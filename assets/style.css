@@ -199,9 +199,11 @@ h3 {
   letter-spacing: -0.005em;
 }
 
+/* Locations in the CV. Two points under the body size, so they read as a
+   label over the entries rather than as another heading. */
 h4 {
   margin: 1.5rem 0 .4rem;
-  font-size: .95em;
+  font-size: .857em;
   font-weight: 600;
   color: var(--muted);
 }
