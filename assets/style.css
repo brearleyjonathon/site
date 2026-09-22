@@ -148,7 +148,7 @@ body.ready * {
   display: inline-flex;
   padding: 2px;
   border: 1px solid var(--rule);
-  background: var(--bg);
+  background: transparent;   /* in Fun mode the backdrop shows through */
 }
 
 .switch button {
@@ -180,14 +180,14 @@ body.ready * {
 
 .section + .section { margin-top: 3.25rem; }
 
+/* Section titles read at the same size as the text under them; only the
+   weight and the space above set them apart. */
 .section > h2 {
   margin: 0 0 1.25rem;
-  font-size: .75rem;
+  font-size: 1em;
   font-weight: 600;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--faint);
-  font-family: var(--sans);
+  letter-spacing: -0.005em;
+  color: var(--text);
 }
 
 .section > h2:only-child { margin-bottom: 0; }
