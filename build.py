@@ -16,8 +16,8 @@ import http.server
 import os
 import re
 import shutil
-import socketserver
 import sys
+import threading
 from pathlib import Path
 
 ROOT = Path(__file__).parent.resolve()
@@ -305,6 +305,7 @@ def serve(port=8000):
     process, no extra tooling — it just checks timestamps on each page load.
     """
     state = {"built": newest_source_time()}
+    lock = threading.Lock()
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -312,22 +313,26 @@ def serve(port=8000):
 
         def do_GET(self):
             if self.path in ("/", "/index.html"):
-                latest = newest_source_time()
-                if latest > state["built"]:
-                    try:
-                        build()
-                        state["built"] = latest
-                    except SystemExit as error:
-                        self.send_error(500, str(error))
-                        return
+                with lock:
+                    latest = newest_source_time()
+                    if latest > state["built"]:
+                        try:
+                            build()
+                            state["built"] = latest
+                        except SystemExit as error:
+                            self.send_error(500, str(error))
+                            return
             super().do_GET()
 
         def log_message(self, fmt, *args):
             pass  # keep the terminal quiet
 
-    socketserver.TCPServer.allow_reuse_address = True
+    # Threaded, so a browser's idle keep-alive or speculative connection
+    # can't block every other request the way a single-threaded server does.
+    http.server.ThreadingHTTPServer.allow_reuse_address = True
+    http.server.ThreadingHTTPServer.daemon_threads = True
     try:
-        server = socketserver.TCPServer(("", port), Handler)
+        server = http.server.ThreadingHTTPServer(("", port), Handler)
     except OSError:
         sys.exit("error: port %d is already in use. Try: python3 build.py --serve --port 8001" % port)
 
