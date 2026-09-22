@@ -272,7 +272,10 @@ li.row {
   align-items: baseline;
   justify-content: space-between;
   gap: .4rem 1.25rem;
-  flex-wrap: wrap;
+  /* No wrapping: a long entry wraps inside its own column and the note
+     stays on the first line, rather than being pushed onto a line of its
+     own with empty space above it. */
+  flex-wrap: nowrap;
 }
 
 li.row .item-main { min-width: 0; }
@@ -318,10 +321,12 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
      down the page instead of across it. */
   .controls { flex: 0 0 auto; align-self: stretch; }
 
-  /* Narrow screens wrap some rows and not others. Keeping the note pinned
-     right means the dates still line up as a column either way, instead of
-     some sitting right and some jumping left. */
-  li.row .item-meta { margin-left: auto; }
+  /* Too narrow for two columns. The note runs on after the text instead,
+     so the entry reads as one sentence and keeps the full width. */
+  li.row { display: block; }
+  li.row .item-main,
+  li.row .item-meta { display: inline; margin-left: 0; }
+  li.row .item-meta::before { content: " \00B7  "; }
 }
 
 @media (prefers-reduced-motion: reduce) {
