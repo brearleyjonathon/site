@@ -9,7 +9,7 @@
   --measure: 44rem;
   --gutter: 1.5rem;
 
-  --step: 1.0625rem;   /* body size  */
+  --step: 0.875rem;    /* body size  */
   --leading: 1.65;     /* body line-height */
   --family: var(--sans);
   --x-height: none;    /* see the serif block below */
@@ -26,7 +26,7 @@
 
 /* Where font-size-adjust is unsupported, fall back to the manual bump. */
 @supports not (font-size-adjust: 0.5) {
-  :root[data-font="serif"] { --step: 1.1875rem; --leading: 1.58; }
+  :root[data-font="serif"] { --step: 0.9775rem; --leading: 1.58; }
 }
 
 :root[data-theme="light"] {
