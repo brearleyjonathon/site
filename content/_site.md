@@ -10,10 +10,10 @@ description: Jon Brearley is a Brooklyn-based building scientist at Transsolar, 
 # Your live URL, once you have one.
 url:
 
-# What a first-time visitor sees: auto | light | dark
+# What a first-time visitor sees: auto | light | dark | fun
 default_theme: auto
 
-# What a first-time visitor sees: sans | serif
+# What a first-time visitor sees: sans (Helvetica) | serif (Baskerville)
 default_font: sans
 
 footer: Last updated September 2026.

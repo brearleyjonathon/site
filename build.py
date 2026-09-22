@@ -324,6 +324,13 @@ def serve(port=8000):
                             return
             super().do_GET()
 
+        def end_headers(self):
+            # The whole promise of --serve is that a refresh shows your edit.
+            # Without this the browser heuristically caches app.js/style.css
+            # and quietly keeps serving the copy it already has.
+            self.send_header("Cache-Control", "no-store, must-revalidate")
+            super().end_headers()
+
         def log_message(self, fmt, *args):
             pass  # keep the terminal quiet
 

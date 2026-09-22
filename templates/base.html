@@ -13,7 +13,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap">
 <link rel="stylesheet" href="style.css">
 
 <script>
@@ -31,7 +31,8 @@
       ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : defaultTheme;
   }
-  root.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+  root.setAttribute("data-theme",
+    theme === "dark" ? "dark" : theme === "fun" ? "fun" : "light");
   root.setAttribute("data-font", font === "serif" || (!font && defaultFont === "serif") ? "serif" : "sans");
 })();
 </script>
@@ -50,6 +51,7 @@
       <div class="switch" role="group" aria-label="Colour theme">
         <button type="button" data-set-theme="light">Light</button>
         <button type="button" data-set-theme="dark">Dark</button>
+        <button type="button" data-set-theme="fun">Fun</button>
       </div>
       <div class="switch" role="group" aria-label="Typeface">
         <button type="button" data-set-font="sans">Sans</button>

@@ -3,8 +3,8 @@
    ========================================================================= */
 
 :root {
-  --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --serif: "Crimson Text", ui-serif, Georgia, "Times New Roman", serif;
+  --sans: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
+  --serif: Baskerville, "Libre Baskerville", Georgia, "Times New Roman", serif;
 
   --measure: 44rem;
   --gutter: 1.5rem;
@@ -12,14 +12,21 @@
   --step: 1.0625rem;   /* body size  */
   --leading: 1.65;     /* body line-height */
   --family: var(--sans);
+  --x-height: none;    /* see the serif block below */
 }
 
-/* Crimson Text has a smaller x-height than Inter, so it needs more size
-   and slightly less leading to sit at the same optical weight. */
+/* Baskerville has a much smaller x-height than Helvetica. Rather than bump
+   the size and leading by hand — which reflows the page and makes the switch
+   lurch — normalise the x-height and leave the declared size and line-height
+   alone. Line boxes stay put; only the letterforms change. */
 :root[data-font="serif"] {
   --family: var(--serif);
-  --step: 1.1875rem;
-  --leading: 1.58;
+  --x-height: 0.52;
+}
+
+/* Where font-size-adjust is unsupported, fall back to the manual bump. */
+@supports not (font-size-adjust: 0.5) {
+  :root[data-font="serif"] { --step: 1.1875rem; --leading: 1.58; }
 }
 
 :root[data-theme="light"] {
@@ -44,6 +51,17 @@
   --focus:     #ffffff;
 }
 
+:root[data-theme="fun"] {
+  --bg:        #ffffff;
+  --text:      #000000;
+  --muted:     #000000;
+  --faint:     #000000;
+  --rule:      #000000;
+  --raised:    #000000;
+  --link-line: #000000;
+  --focus:     #000000;
+}
+
 /* =========================================================================
    Base
    ========================================================================= */
@@ -57,6 +75,7 @@ html {
 
 body {
   margin: 0;
+  font-size-adjust: var(--x-height);
   background: var(--bg);
   color: var(--text);
   font-family: var(--family);
@@ -120,8 +139,10 @@ body.ready * {
 .controls {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: .5rem;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .switch {
@@ -292,6 +313,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 
 @media (max-width: 34rem) {
   .masthead { flex-direction: column; gap: 1.25rem; }
+  .controls { align-self: flex-end; }
 
   /* Narrow screens wrap some rows and not others. Keeping the note pinned
      right means the dates still line up as a column either way, instead of
@@ -304,12 +326,57 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 }
 
 /* =========================================================================
+   Fun — a rainbow that follows the cursor, under unchanged black type
+   =========================================================================
+   --mx / --my are percentages written by app.js, eased toward the pointer a
+   frame at a time. With no pointer they stay at 50% and the slow drift
+   carries the whole thing on its own. */
+
+:root[data-theme="fun"] body {
+  position: relative;
+  z-index: 0;   /* a stacking context, so the backdrop sits above the page
+                   background and below the type */
+}
+
+:root[data-theme="fun"] body::before {
+  content: "";
+  position: fixed;
+  inset: -35%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .5;   /* keeps the colour pastel, so black type stays readable */
+  background:
+    radial-gradient(38vmax 38vmax at var(--mx, 50%) var(--my, 50%),
+                    #ff2d55 0%, transparent 62%),
+    radial-gradient(42vmax 42vmax at calc(100% - var(--mx, 50%)) var(--my, 50%),
+                    #ffb300 0%, transparent 62%),
+    radial-gradient(46vmax 46vmax at var(--mx, 50%) calc(100% - var(--my, 50%)),
+                    #00c853 0%, transparent 62%),
+    radial-gradient(50vmax 50vmax at calc(100% - var(--mx, 50%)) calc(100% - var(--my, 50%)),
+                    #2979ff 0%, transparent 62%),
+    radial-gradient(44vmax 44vmax at 50% 50%,
+                    #aa00ff 0%, transparent 66%),
+    #ffffff;
+  animation: fun-drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes fun-drift {
+  from { transform: rotate(0deg) scale(1);    }
+  to   { transform: rotate(9deg) scale(1.18); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="fun"] body::before { animation: none; }
+}
+
+/* =========================================================================
    Print — a clean CV falls out of this for free
    ========================================================================= */
 
 @media print {
   :root { --bg: #fff; --text: #000; --muted: #444; --faint: #666; --rule: #ccc; }
   .controls { display: none; }
+  body::before { display: none; }
   .page { max-width: none; padding: 0; }
   a { text-decoration: none; }
 }

@@ -60,8 +60,9 @@ ellipsis (…). URLs are left alone.
 
 In `content/_site.md`:
 
-- `default_theme` — `auto` (follow the visitor's system), `light`, or `dark`
-- `default_font` — `sans` (Inter) or `serif` (Crimson Text)
+- `default_theme` — `auto` (follow the visitor's system), `light`, `dark`, or
+  `fun` (a rainbow that drifts and follows the cursor, under the same black type)
+- `default_font` — `sans` (Helvetica) or `serif` (Baskerville)
 - `description` — used by Google and link previews
 - `footer` — the line at the bottom
 

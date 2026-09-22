@@ -34,6 +34,9 @@ Deployment is automatic: pushing to `main` runs `.github/workflows/deploy.yml`, 
 
 **Template.** `templates/base.html` is plain HTML with `{{placeholder}}` tokens replaced by string substitution in `build()`. Adding a new site setting means adding both a `{{token}}` in the template and a `page.replace(...)` line in `build()`. `{{tagline}}` and `{{footer}}` are rendered through `render_inline`, so they accept inline Markdown.
 
-**Theme and font.** An inline script in `<head>` sets `data-theme` and `data-font` on `<html>` before first paint from localStorage, falling back to the `_site.md` defaults (`auto` follows the OS). `assets/app.js` only handles the toggle buttons and keeps `aria-pressed` in sync. `assets/style.css` keys everything off those two attributes via CSS custom properties, and includes a print stylesheet.
+**Theme and font.** An inline script in `<head>` sets `data-theme` (`light`, `dark`, `fun`) and `data-font` (`sans`, `serif`) on `<html>` before first paint from localStorage, falling back to the `_site.md` defaults (`auto` follows the OS). `assets/style.css` keys everything off those two attributes via CSS custom properties, and includes a print stylesheet.
+
+- The two typefaces share one declared `--step` and `--leading`; the serif is matched to the sans optically with `font-size-adjust` (`--x-height`) so switching does not reflow the page. A `@supports` block restores the old manual size bump where `font-size-adjust` is missing.
+- `data-theme="fun"` keeps the black-on-white tokens and adds a fixed `body::before` of layered radial gradients. `assets/app.js` eases `--mx` / `--my` toward the pointer a frame at a time; the loop parks itself once it catches up and is torn down when the theme changes or the visitor prefers reduced motion.
 
 **Dev server.** `serve()` has no file watcher. On each request for `/` it compares the newest mtime under `content/`, `templates/`, and `assets/` to the last build time and rebuilds if newer. Changes to `build.py` itself require restarting the server. Assets are copied flat into `dist/` (no subdirectories), and a `.nojekyll` file is written so GitHub Pages serves the output verbatim.
