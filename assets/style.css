@@ -23,25 +23,25 @@
 }
 
 :root[data-theme="light"] {
-  --bg:        #fdfcfa;
-  --text:      #1b1a18;
-  --muted:     #6a665e;
-  --faint:     #77736a;
-  --rule:      #e6e2da;
-  --raised:    #f2efe9;
-  --link-line: #c8c2b6;
-  --focus:     #2f6ea8;
+  --bg:        #ffffff;
+  --text:      #000000;
+  --muted:     #000000;
+  --faint:     #000000;
+  --rule:      #000000;
+  --raised:    #000000;
+  --link-line: #000000;
+  --focus:     #000000;
 }
 
 :root[data-theme="dark"] {
-  --bg:        #141415;
-  --text:      #e9e7e2;
-  --muted:     #918d85;
-  --faint:     #827f79;
-  --rule:      #2a2a2b;
-  --raised:    #222223;
-  --link-line: #504c46;
-  --focus:     #7fb2dd;
+  --bg:        #000000;
+  --text:      #ffffff;
+  --muted:     #ffffff;
+  --faint:     #ffffff;
+  --rule:      #ffffff;
+  --raised:    #ffffff;
+  --link-line: #ffffff;
+  --focus:     #ffffff;
 }
 
 /* =========================================================================
@@ -128,7 +128,6 @@ body.ready * {
   display: inline-flex;
   padding: 2px;
   border: 1px solid var(--rule);
-  border-radius: 999px;
   background: var(--bg);
 }
 
@@ -137,7 +136,6 @@ body.ready * {
   border: 0;
   margin: 0;
   padding: .3rem .7rem;
-  border-radius: 999px;
   background: transparent;
   color: var(--muted);
   font-family: var(--sans);
@@ -153,7 +151,7 @@ body.ready * {
 
 .switch button[aria-pressed="true"] {
   background: var(--raised);
-  color: var(--text);
+  color: var(--bg);
 }
 
 /* =========================================================================
@@ -204,7 +202,7 @@ a:hover { text-decoration-color: currentColor; }
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: 0;
 }
 
 strong { font-weight: 600; }
@@ -212,9 +210,8 @@ strong { font-weight: 600; }
 code {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: .875em;
-  background: var(--raised);
-  padding: .1em .35em;
-  border-radius: 3px;
+  border: 1px solid var(--rule);
+  padding: .05em .3em;
 }
 
 blockquote {
