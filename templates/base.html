@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{title}}">
+<meta property="og:description" content="{{description}}">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="style.css">
+
+<script>
+// Apply saved preferences before first paint, so nothing flashes.
+(function () {
+  var root = document.documentElement;
+  var defaultTheme = "{{default_theme}}";
+  var defaultFont = "{{default_font}}";
+  try {
+    var theme = localStorage.getItem("theme");
+    var font = localStorage.getItem("font");
+  } catch (e) {}
+  if (!theme) {
+    theme = defaultTheme === "auto"
+      ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : defaultTheme;
+  }
+  root.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+  root.setAttribute("data-font", font === "serif" || (!font && defaultFont === "serif") ? "serif" : "sans");
+})();
+</script>
+</head>
+
+<body>
+<div class="page">
+
+  <header class="masthead">
+    <div class="identity">
+      <h1 class="name">{{name}}</h1>
+      {{tagline}}
+    </div>
+
+    <div class="controls">
+      <div class="switch" role="group" aria-label="Colour theme">
+        <button type="button" data-set-theme="light">Light</button>
+        <button type="button" data-set-theme="dark">Dark</button>
+      </div>
+      <div class="switch" role="group" aria-label="Typeface">
+        <button type="button" data-set-font="sans">Sans</button>
+        <button type="button" data-set-font="serif">Serif</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+{{sections}}
+  </main>
+
+  <footer class="colophon">{{footer}}</footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

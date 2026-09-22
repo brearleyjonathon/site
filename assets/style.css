@@ -1,0 +1,318 @@
+/* =========================================================================
+   Tokens
+   ========================================================================= */
+
+:root {
+  --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "Crimson Text", ui-serif, Georgia, "Times New Roman", serif;
+
+  --measure: 36rem;
+  --gutter: 1.5rem;
+
+  --step: 1.0625rem;   /* body size  */
+  --leading: 1.65;     /* body line-height */
+  --family: var(--sans);
+}
+
+/* Crimson Text has a smaller x-height than Inter, so it needs more size
+   and slightly less leading to sit at the same optical weight. */
+:root[data-font="serif"] {
+  --family: var(--serif);
+  --step: 1.1875rem;
+  --leading: 1.58;
+}
+
+:root[data-theme="light"] {
+  --bg:        #fdfcfa;
+  --text:      #1b1a18;
+  --muted:     #6a665e;
+  --faint:     #77736a;
+  --rule:      #e6e2da;
+  --raised:    #f2efe9;
+  --link-line: #c8c2b6;
+  --focus:     #2f6ea8;
+}
+
+:root[data-theme="dark"] {
+  --bg:        #141415;
+  --text:      #e9e7e2;
+  --muted:     #918d85;
+  --faint:     #827f79;
+  --rule:      #2a2a2b;
+  --raised:    #222223;
+  --link-line: #504c46;
+  --focus:     #7fb2dd;
+}
+
+/* =========================================================================
+   Base
+   ========================================================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--family);
+  font-size: var(--step);
+  line-height: var(--leading);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Only animate colour once the page has settled, so switching themes is
+   smooth but the initial paint is instant. */
+body.ready,
+body.ready * {
+  transition: background-color .22s ease, color .22s ease,
+              border-color .22s ease, opacity .22s ease;
+}
+
+.page {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: clamp(3rem, 9vw, 6rem) var(--gutter) 5rem;
+}
+
+/* =========================================================================
+   Masthead
+   ========================================================================= */
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem 2rem;
+  padding-bottom: 2rem;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.identity { min-width: 0; }
+
+.name {
+  margin: 0;
+  font-size: 1.4em;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.tagline {
+  margin: .45rem 0 0;
+  color: var(--muted);
+  font-size: .95em;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* --- the two switches ---------------------------------------------------- */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+
+.switch {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--bg);
+}
+
+.switch button {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: .3rem .7rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: .01em;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.switch button:hover { color: var(--text); }
+
+.switch button[aria-pressed="true"] {
+  background: var(--raised);
+  color: var(--text);
+}
+
+/* =========================================================================
+   Sections
+   ========================================================================= */
+
+.section + .section { margin-top: 3.25rem; }
+
+.section > h2 {
+  margin: 0 0 1.25rem;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-family: var(--sans);
+}
+
+.section > h2:only-child { margin-bottom: 0; }
+
+h3 {
+  margin: 2rem 0 .5rem;
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+h4 {
+  margin: 1.5rem 0 .4rem;
+  font-size: .95em;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+p { margin: 0 0 1.05em; text-wrap: pretty; }
+p:last-child { margin-bottom: 0; }
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--link-line);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .18em;
+}
+
+a:hover { text-decoration-color: currentColor; }
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+strong { font-weight: 600; }
+
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .875em;
+  background: var(--raised);
+  padding: .1em .35em;
+  border-radius: 3px;
+}
+
+blockquote {
+  margin: 1.5em 0;
+  padding-left: 1.1em;
+  border-left: 2px solid var(--rule);
+  color: var(--muted);
+}
+
+hr {
+  height: 0;
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+
+/* =========================================================================
+   Lists
+   ========================================================================= */
+
+ul, ol {
+  margin: 0 0 1.05em;
+  padding-left: 1.15em;
+}
+
+ul:last-child, ol:last-child { margin-bottom: 0; }
+
+li { margin-bottom: .55em; text-wrap: pretty; }
+li:last-child { margin-bottom: 0; }
+
+li::marker { color: var(--rule); }
+
+/* A `Main text :: right-hand note` row — used for CV entries and dated work. */
+li.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .4rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+li.row .item-main { min-width: 0; }
+
+li.row .item-meta {
+  color: var(--muted);
+  font-size: .875em;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+/* An index list — every row has a right-hand note. Sits flush with the
+   body text and drops the bullets, so it reads as a table of contents
+   rather than a bulleted list. */
+ul.rows, ol.rows {
+  padding-left: 0;
+  list-style: none;
+}
+
+ul.rows li, ol.rows li { margin-bottom: .7em; }
+
+/* =========================================================================
+   Colophon
+   ========================================================================= */
+
+.colophon {
+  margin-top: 4.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--rule);
+  color: var(--faint);
+  font-size: .8125em;
+}
+
+.colophon:empty { display: none; }
+
+/* =========================================================================
+   Small screens
+   ========================================================================= */
+
+@media (max-width: 34rem) {
+  .masthead { flex-direction: column; gap: 1.25rem; }
+
+  /* Narrow screens wrap some rows and not others. Keeping the note pinned
+     right means the dates still line up as a column either way, instead of
+     some sitting right and some jumping left. */
+  li.row .item-meta { margin-left: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.ready, body.ready * { transition: none !important; }
+}
+
+/* =========================================================================
+   Print — a clean CV falls out of this for free
+   ========================================================================= */
+
+@media print {
+  :root { --bg: #fff; --text: #000; --muted: #444; --faint: #666; --rule: #ccc; }
+  .controls { display: none; }
+  .page { max-width: none; padding: 0; }
+  a { text-decoration: none; }
+}
