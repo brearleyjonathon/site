@@ -139,10 +139,9 @@ body.ready * {
 .controls {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: space-between;   /* theme left, typeface right */
   gap: .5rem;
-  flex-shrink: 0;
-  margin-left: auto;
+  flex: 1 1 17rem;
 }
 
 .switch {
@@ -313,7 +312,9 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 
 @media (max-width: 34rem) {
   .masthead { flex-direction: column; gap: 1.25rem; }
-  .controls { align-self: flex-end; }
+  /* The masthead stacks here, so flex-grow would stretch the switches
+     down the page instead of across it. */
+  .controls { flex: 0 0 auto; align-self: stretch; }
 
   /* Narrow screens wrap some rows and not others. Keeping the note pinned
      right means the dates still line up as a column either way, instead of
