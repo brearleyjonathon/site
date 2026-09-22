@@ -4,8 +4,8 @@
 
 name: Jonathon Brearley
 title: Jonathon Brearley
-tagline: One line about what you do. Keep it short — it sits under your name.
-description: Short sentence used by Google and link previews. Aim for ~150 characters.
+tagline: Creative approaches to building performance and climate-responsive design.
+description: Jon Brearley is a Brooklyn-based building scientist at Transsolar, working on climate-responsive design for projects around the world
 
 # Your live URL, once you have one.
 url:
