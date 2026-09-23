@@ -16,7 +16,11 @@
   // itself once it has caught up, and a pointer move wakes it again.
 
   var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  var point = { x: 50, y: 50, atX: 50, atY: 50 };
+  // The clear lens: its radius opens toward LENS_WAKE while the pointer is
+  // moving and settles back to LENS_REST once it stops.
+  var LENS_REST = 70;
+  var LENS_WAKE = 280;
+  var point = { x: 50, y: 50, atX: 50, atY: 50, lens: LENS_REST, want: LENS_REST };
   var frame = null;
   var running = false;
 
@@ -25,10 +29,18 @@
     var dy = point.y - point.atY;
     point.atX += dx * 0.06;
     point.atY += dy * 0.06;
+
+    point.want += (LENS_REST - point.want) * 0.03;   // ebbs while the pointer rests
+    var dl = point.want - point.lens;
+    point.lens += dl * 0.08;
+
     root.style.setProperty("--mx", point.atX.toFixed(2) + "%");
     root.style.setProperty("--my", point.atY.toFixed(2) + "%");
+    root.style.setProperty("--lens", point.lens.toFixed(1) + "px");
 
-    if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) {
+    var still = Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05;
+    var closed = Math.abs(dl) < 0.4 && Math.abs(point.lens - LENS_REST) < 0.4;
+    if (still && closed) {
       frame = null;   // caught up; idle until the pointer moves again
       return;
     }
@@ -42,6 +54,7 @@
   function onPointerMove(event) {
     point.x = (event.clientX / window.innerWidth) * 100;
     point.y = (event.clientY / window.innerHeight) * 100;
+    point.want = LENS_WAKE;
     wake();
   }
 
@@ -79,6 +92,8 @@
       frame = null;
       root.style.removeProperty("--mx");
       root.style.removeProperty("--my");
+      root.style.removeProperty("--lens");
+      point.lens = point.want = LENS_REST;
     }
   }
 

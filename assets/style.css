@@ -386,7 +386,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 1;          /* over the type, not just the backdrop */
+  z-index: 2;          /* over the type and the frost, not just the backdrop */
   pointer-events: none;
   opacity: .16;
   mix-blend-mode: multiply;
@@ -409,11 +409,30 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   100% { background-position:  24px   36px; }
 }
 
+/* Frosted glass over everything, with a hole punched under the pointer.
+   --lens is the radius of that hole, written by app.js: it opens as the
+   pointer moves and closes again when it rests. */
+.frost { display: none; }
+
+:root[data-theme="fun"] .frost {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(1.7px) saturate(1.15);
+  backdrop-filter: blur(1.7px) saturate(1.15);
+  -webkit-mask-image: radial-gradient(circle var(--lens, 90px) at var(--mx, 50%) var(--my, 50%),
+                                      transparent 0%, transparent 42%, #000 100%);
+  mask-image: radial-gradient(circle var(--lens, 90px) at var(--mx, 50%) var(--my, 50%),
+                              transparent 0%, transparent 42%, #000 100%);
+}
+
 /* A burst of dots under the pointer, one per click, in the next colour of
    the backdrop's palette. Created and removed by app.js. */
 .stipple {
   position: fixed;
-  z-index: 2;
+  z-index: 3;
   width: 18rem;
   height: 18rem;
   margin: -9rem 0 0 -9rem;
@@ -439,6 +458,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme="fun"] body::before,
   :root[data-theme="fun"] body::after { animation: none; }
+  :root[data-theme="fun"] .frost { display: none; }
 }
 
 /* =========================================================================
@@ -449,7 +469,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   :root { --bg: #fff; --text: #000; --muted: #444; --faint: #666; --rule: #ccc; }
   .controls { display: none; }
   body::before,
-  body::after { display: none; }
+  body::after,
+  .frost { display: none; }
   main { filter: none; }
   .page { max-width: none; padding: 0; }
   a { text-decoration: none; }
