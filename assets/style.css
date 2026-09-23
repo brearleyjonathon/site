@@ -192,10 +192,12 @@ body.ready * {
 
 .section > h2:only-child { margin-bottom: 0; }
 
+/* Subheadings inside a section. Same size as the section title above them,
+   set in the regular weight, so the level reads without another size step. */
 h3 {
   margin: 2rem 0 .5rem;
-  font-size: 1em;
-  font-weight: 600;
+  font-size: 1.125em;
+  font-weight: 400;
   letter-spacing: -0.005em;
 }
 
