@@ -1073,6 +1073,25 @@
     }
   }
 
+  // Each switch button is given the width of its label in whichever face
+  // is wider, so nothing shifts when the typeface changes. Measured once,
+  // in both faces, with the x-height correction the serif gets.
+  function fitLabels() {
+    var adjust = getComputedStyle(root).getPropertyValue("--serif-x-height").trim() || "none";
+    document.querySelectorAll(".switch button").forEach(function (b) {
+      b.style.minWidth = "";
+      var widest = 0;
+      [["var(--sans)", "none"], ["var(--serif)", adjust]].forEach(function (face) {
+        b.style.fontFamily = face[0];
+        b.style.fontSizeAdjust = face[1];
+        widest = Math.max(widest, b.getBoundingClientRect().width);
+      });
+      b.style.fontFamily = "";
+      b.style.fontSizeAdjust = "";
+      b.style.minWidth = Math.ceil(widest + 0.5) + "px";
+    });
+  }
+
   function sync() {
     var theme = root.getAttribute("data-theme");
     var font = root.getAttribute("data-font");
@@ -1299,7 +1318,11 @@
   if (media.addEventListener) media.addEventListener("change", onSystemChange);
   else if (media.addListener) media.addListener(onSystemChange);
 
+  fitLabels();
   sync();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { fitLabels(); seat(false); outline(); });
+  }
 
   // Enable colour transitions only after the first paint.
   requestAnimationFrame(function () {

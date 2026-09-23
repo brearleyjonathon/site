@@ -13,6 +13,7 @@
   --leading: 1.65;     /* body line-height */
   --family: var(--sans);
   --x-height: none;    /* see the serif block below */
+  --serif-x-height: 0.52;   /* what the serif block sets; app.js reads it to measure labels */
   --title: 1.4286em;   /* 20px: section titles */
   --head: 1.2857em;    /* 18px: subheadings inside a section */
 }
@@ -23,7 +24,7 @@
    alone. Line boxes stay put; only the letterforms change. */
 :root[data-font="serif"] {
   --family: var(--serif);
-  --x-height: 0.52;
+  --x-height: var(--serif-x-height);
 }
 
 /* Where font-size-adjust is unsupported, fall back to the manual bump. */
@@ -169,7 +170,9 @@ body.ready * {
   background: transparent;
   color: var(--muted);
   font-family: var(--family);   /* the buttons change face with the page */
+  font-size-adjust: var(--x-height);   /* the UA button font shorthand resets this */
   font-size: .75rem;
+  text-align: center;           /* labels sit centred in the width app.js fixes */
   font-weight: 500;
   letter-spacing: .01em;
   line-height: 1.4;
