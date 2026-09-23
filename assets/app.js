@@ -37,12 +37,22 @@
   // then tucked into a ball for the cannonball, and differ only in the
   // face drawn on the head; the rest have shapes of their own (SHAPES,
   // below). Clicks take turns through the list.
+  // The drawings are set in a pen about 2.2 wide; THIN scales every stroke
+  // in them, details included, so the whole hand gets lighter together.
+  var THIN = 0.72;
+
+  function thin(strokes) {
+    return strokes.replace(/stroke-width="([\d.]+)"/g, function (m, w) {
+      return 'stroke-width="' + (parseFloat(w) * THIN).toFixed(2) + '"';
+    });
+  }
+
   function ink(id) {
     return '<defs><filter id="' + id + '" x="-30%" y="-30%" width="160%" height="160%">' +
         '<feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="4" result="n"/>' +
-        '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/>' +
+        '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G"/>' +
       '</filter></defs>' +
-      '<g fill="none" stroke="currentColor" stroke-width="2.2" ' +
+      '<g fill="none" stroke="currentColor" stroke-width="' + (2.2 * THIN).toFixed(2) + '" ' +
          'stroke-linecap="round" stroke-linejoin="round" filter="url(#' + id + ')">';
   }
 
@@ -341,7 +351,7 @@
 
   function drawing(cls, box, width, height, id, strokes) {
     return '<svg class="' + cls + '" viewBox="' + box + '" width="' + width + '" height="' + height + '" aria-hidden="true">' +
-      ink(id) + strokes + '</g></svg>';
+      ink(id) + thin(strokes) + '</g></svg>';
   }
 
   function head(kind, lower) {
@@ -369,7 +379,7 @@
 
   function back(kind) {
     var shape = BACKS[SHAPES[kind] ? kind : "shared"];
-    return '<g fill="var(--bg, #fff)" stroke="var(--bg, #fff)" stroke-width="3">' + shape + '</g>';
+    return '<g fill="var(--bg, #fff)" stroke="var(--bg, #fff)" stroke-width="3.4">' + shape + '</g>';
   }
 
   function floater(kind) {
@@ -380,21 +390,21 @@
   // The water the bear lands in: a wavy line that draws itself outward
   // from the point of impact, in two halves so it spreads both ways at once.
   var WATER =
-    '<svg viewBox="0 0 96 18" aria-hidden="true">' + ink("sketch-water") +
+    '<svg viewBox="0 0 96 18" aria-hidden="true">' + ink("sketch-water") + thin(
       '<path pathLength="100" d="M48 9 C44.4 4.4 41 4.1 37.6 8.4 C34.2 12.7 30.8 12.9 27.4 8.9 C24 4.9 20.6 4.6 17.2 8.6 C13.8 12.6 10.4 12.8 7 8.8 C5.4 6.9 3.8 6.6 2.4 8.2"/>' +
-      '<path pathLength="100" d="M48 9 C51.5 13.6 54.9 13.7 58.3 9.3 C61.7 4.9 65.1 4.8 68.5 8.8 C71.9 12.8 75.3 13 78.7 9.1 C82.1 5.2 85.5 5.1 88.9 9 C90.6 11 92.2 11.2 93.6 9.6"/>' +
+      '<path pathLength="100" d="M48 9 C51.5 13.6 54.9 13.7 58.3 9.3 C61.7 4.9 65.1 4.8 68.5 8.8 C71.9 12.8 75.3 13 78.7 9.1 C82.1 5.2 85.5 5.1 88.9 9 C90.6 11 92.2 11.2 93.6 9.6"/>') +
     '</g></svg>';
 
   // The splash: seven short strokes that fly up and out of the landing.
   var FLICKS =
-    '<svg viewBox="0 0 120 55" aria-hidden="true">' + ink("sketch-flicks") +
+    '<svg viewBox="0 0 120 55" aria-hidden="true">' + ink("sketch-flicks") + thin(
       '<path d="M49 50 C46 40 44.6 30 46.4 19"/>' +
       '<path d="M38 51 C31.6 44 26.4 37 21.4 29"/>' +
       '<path d="M26 52 C18.8 48.2 12.6 44 6.4 38.8"/>' +
       '<path d="M71 50 C74 40 75.4 30 73.6 19"/>' +
       '<path d="M82 51 C88.4 44 93.6 37 98.6 29"/>' +
       '<path d="M94 52 C101.2 48.2 107.4 44 113.6 38.8"/>' +
-      '<path d="M60 48 C59.6 39 60.2 30 60.8 22"/>' +
+      '<path d="M60 48 C59.6 39 60.2 30 60.8 22"/>') +
     '</g></svg>';
 
   // The clearing the pointer opens in the colour. Its centre and radius are

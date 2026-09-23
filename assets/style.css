@@ -184,15 +184,34 @@ body.ready * {
   color: var(--bg);
 }
 
-/* The Fun sub-switch: where the colour is. Only there while Fun is on. The
-   pressed side wears the live hue, so it turns as the pointer travels. */
-.fun-controls {
-  display: none;
-  flex: 1 1 100%;
+/* The Fun sub-switch: where the colour is. It sits beside the theme switch
+   and slides out from the Fun button when Fun is pressed. A pill, to mark
+   it as the child of the switch next to it; the pressed side wears the
+   live hue, so it turns as the pointer travels. */
+.theme-group {
+  display: flex;
   align-items: center;
+  gap: .5rem;
 }
 
-:root[data-theme="fun"] .fun-controls { display: flex; }
+.fun-controls {
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  translate: -.75rem 0;
+  visibility: hidden;
+  transition: opacity .35s ease, translate .35s cubic-bezier(.2, .8, .3, 1), visibility 0s .35s;
+}
+
+:root[data-theme="fun"] .fun-controls {
+  opacity: 1;
+  translate: 0 0;
+  visibility: visible;
+  transition: opacity .35s ease .1s, translate .35s cubic-bezier(.2, .8, .3, 1) .1s, visibility 0s;
+}
+
+.switch.pill,
+.switch.pill button { border-radius: 999px; }
 
 .switch button[data-set-fun][aria-pressed="true"] {
   background: linear-gradient(100deg, var(--c1), var(--c3), var(--c5));
@@ -347,6 +366,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   /* The masthead stacks here, so flex-grow would stretch the switches
      down the page instead of across it. */
   .controls { flex: 0 0 auto; align-self: stretch; }
+  .theme-group { flex-wrap: wrap; }
 
   /* Too narrow for two columns. The note runs on after the text instead,
      so the entry reads as one sentence and keeps the full width. */
@@ -698,7 +718,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme="fun"] body::after { animation: none; }
   .blob { animation: none; }
-  .pools, :root[data-theme="fun"] .blobs { transition: none; }
+  .pools, :root[data-theme="fun"] .blobs, .fun-controls { transition: none; }
   .diver, .splash, .flicks, .drop, .swimmer { display: none; }
 }
 
