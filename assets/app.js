@@ -896,7 +896,7 @@
     var across = (Math.random() < 0.5 ? -1 : 1) * (42 + Math.random() * 52);
     var down = Math.max(40, window.innerHeight - 10 - event.clientY);
     var flight = 0.7 + down / 700;   // seconds in the air
-    var size = 0.72 + Math.random() * 0.66;   // no two quite the same size
+    var size = 1;   // one size for all of them
     var landX = event.clientX + across;
     var landY = event.clientY + down;
 
