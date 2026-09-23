@@ -97,14 +97,6 @@ body.ready * {
               border-color .22s ease, opacity .22s ease;
 }
 
-/* Holds the SVG filter the Fun theme points at. */
-.filters {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
 .page {
   max-width: var(--measure);
   margin: 0 auto;
@@ -437,12 +429,6 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   100% { background-position:  24px   36px; }
 }
 
-/* A shallow roll through the text, like heat off a surface. Static, so it
-   costs one pass rather than one a frame. */
-:root[data-theme="fun"] main {
-  filter: url("#fun-warp");
-}
-
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme="fun"] body::after { animation: none; }
   .blob { animation: none; }
@@ -457,7 +443,6 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   .controls { display: none; }
   body::after,
   .blobs { display: none; }
-  main { filter: none; }
   .page { max-width: none; padding: 0; }
   a { text-decoration: none; }
 }
