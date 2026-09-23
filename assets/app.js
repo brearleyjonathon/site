@@ -27,9 +27,10 @@
   // A little animal, drawn as if doodled: the head is a loop that overshoots
   // itself rather than a circle, no stroke quite meets the next, and a
   // little turbulence roughens every edge so it reads as pencil rather than
-  // as vector. Every animal shares one body, standing with its arms up and
-  // then tucked into a ball for the cannonball, and differs only in the
-  // face drawn on the head. Clicks take turns through the list.
+  // as vector. Most of them share one body, standing with its arms up and
+  // then tucked into a ball for the cannonball, and differ only in the
+  // face drawn on the head; the camel and giraffe have shapes of their own
+  // (SHAPES, below). Clicks take turns through the list.
   function ink(id) {
     return '<defs><filter id="' + id + '" x="-30%" y="-30%" width="160%" height="160%">' +
         '<feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="4" result="n"/>' +
@@ -87,32 +88,7 @@
       '<path d="M26.8 8.4 C31.4 5.2 34.6 8.6 33.2 13.4 C32.2 16.4 29 17 26.6 15.2"/>' + EYES +
       '<path d="M20 12.6 C20.4 15.6 20.6 18.6 19.4 21.4 C18.6 23.2 17 23.6 15.8 22.6" stroke-width="2.4"/>' +
       '<path d="M18.9 16.2 L21.3 16.4" stroke-width="1.3"/>' +
-      '<path d="M18.7 18.6 L21.1 18.8" stroke-width="1.3"/>',
-    camel:
-      '<path d="M14.2 6.6 C13.6 5 14.6 3.8 15.8 4.6" stroke-width="2"/>' +
-      '<path d="M25.8 6.6 C26.4 5 25.4 3.8 24.2 4.6" stroke-width="2"/>' +
-      '<path d="M19.2 3.4 C19.6 1.8 20.8 1.4 21.6 2.6" stroke-width="1.6"/>' +
-      '<path d="M15.8 10.6 C16.6 9.6 17.8 9.6 18.6 10.6" stroke-width="1.9"/>' +
-      '<path d="M21.4 10.6 C22.2 9.6 23.4 9.6 24.2 10.6" stroke-width="1.9"/>' +
-      '<path d="M15.6 12.4 C14.6 16.4 16.6 19.6 20 19.6 C23.4 19.6 25.4 16.4 24.4 12.4" stroke-width="1.9"/>' +
-      '<path d="M17.6 15.6 C18 15.1 18.4 15.3 18.6 15.9" stroke-width="1.6"/>' +
-      '<path d="M22.4 15.6 C22 15.1 21.6 15.3 21.4 15.9" stroke-width="1.6"/>' +
-      '<path d="M20 16.6 L20 18.2" stroke-width="1.4"/>' +
-      '<path d="M17.6 17.6 C18.4 18.4 19.4 18.5 20 18.2 C20.6 18.5 21.6 18.4 22.4 17.6" stroke-width="1.5"/>',
-    giraffe:
-      '<path d="M16.4 4.6 L15.6 .6" stroke-width="1.8"/>' +
-      '<path d="M15.6 .6 L15.5 .5" stroke-width="2.8"/>' +
-      '<path d="M23.6 4.6 L24.4 .6" stroke-width="1.8"/>' +
-      '<path d="M24.4 .6 L24.5 .5" stroke-width="2.8"/>' +
-      '<path d="M13 8.2 C10.6 6.6 9 7.4 9.4 9.4" stroke-width="2"/>' +
-      '<path d="M27 8.2 C29.4 6.6 31 7.4 30.6 9.4" stroke-width="2"/>' + EYES +
-      '<path d="M16.6 13 C16.6 15.8 18.4 17.6 20 17.6 C21.6 17.6 23.4 15.8 23.4 13" stroke-width="1.9"/>' +
-      '<path d="M18.6 15 L18.7 15.1" stroke-width="2.2"/>' +
-      '<path d="M21.4 15 L21.5 15.1" stroke-width="2.2"/>' +
-      '<path d="M14.4 12 L14.5 12.1" stroke-width="2.6"/>' +
-      '<path d="M25.6 12.4 L25.7 12.5" stroke-width="2.6"/>' +
-      '<path d="M17.4 6.6 L17.5 6.7" stroke-width="2.4"/>' +
-      '<path d="M23 6.8 L23.1 6.9" stroke-width="2.4"/>'
+      '<path d="M18.7 18.6 L21.1 18.8" stroke-width="1.3"/>'
   };
 
   var ANIMALS = ["bear", "cat", "rabbit", "frog", "duck", "elephant", "camel", "giraffe"];
@@ -139,6 +115,141 @@
     '<path d="M1.5 25.4 C4.5 21.8 7.5 21.8 10.5 25.2 C13.5 28.6 16.5 28.6 19.5 25.2 ' +
              'C22.5 21.8 25.5 21.8 28.5 25.2 C31.5 28.6 34.5 28.6 37.5 25.4"/>';
 
+  // Two of them are not a face on the shared body but their own shape,
+  // drawn in profile: the camel with its humps and the giraffe with its
+  // neck. Each is drawn standing, tucked, and afloat.
+  var SHAPES = {
+    camel: {
+      stand:
+        // the long neck, rising and leaning forward
+        '<path d="M14.6 25.4 C12.6 21 11.8 16.4 12.6 12"/>' +
+        '<path d="M19.6 25.2 C17.6 20.8 16.6 16 17.2 11.8"/>' +
+        // head: over the crown, out along the drooping muzzle, back under the jaw
+        '<path d="M17.2 11.8 C17 8.6 14.6 7 12 7.6 C9.4 8.2 7 9 6.2 10.6 C6.8 12.2 9.6 12.6 12.6 12" stroke-width="2"/>' +
+        '<path d="M15.4 7.8 C15.8 6 17 5.6 17.6 7" stroke-width="1.8"/>' +
+        '<path d="M12.6 7.4 C12.8 6 13.8 5.4 14.8 6.2" stroke-width="1.6"/>' +
+        '<path d="M11.2 9 C11.8 8.4 12.8 8.4 13.2 9" stroke-width="1.5"/>' +
+        '<path d="M12.2 9.6 L12.3 9.7" stroke-width="2.4"/>' +
+        '<path d="M7.4 10.2 L7.5 10.3" stroke-width="1.9"/>' +
+        '<path d="M6.8 11.4 C7.8 11.9 9 12 10 11.7" stroke-width="1.5"/>' +
+        // body, low and long, with two humps standing up off the back
+        '<path d="M14.6 25.4 C12.4 28 12.8 33.4 16 35.8 C19.6 38.4 26.6 38.4 29.8 35.6 C32.4 33.4 32.6 29.6 31 27"/>' +
+        '<path d="M19.6 25.2 C20.4 20.4 23 19.6 24.4 23.4 C25.8 19.4 28.8 19.6 30.2 23.6 C30.8 25 31 26 31 27"/>' +
+        // tail and legs
+        '<path d="M31.2 28 C32.8 29.8 33 32 32.2 34.4" stroke-width="1.8"/>' +
+        '<path d="M32.2 34.4 L32.3 34.5" stroke-width="2.8"/>' +
+        '<path d="M17.4 37.6 L16.6 43.2"/>' +
+        '<path d="M20.4 38.4 L20 43.4"/>' +
+        '<path d="M26 38.2 L26.6 43.2"/>' +
+        '<path d="M29 36.6 L30.2 42.6"/>',
+      tuck:
+        // the ball, with the humps on top
+        '<path d="M16.8 21.6 C11.6 23.6 9.6 29.6 12 34.4 C14.6 39.4 21.6 40.6 26.6 37.6 C31 35 32.2 29.2 29.6 25"/>' +
+        '<path d="M20.8 21.4 C21.8 17.8 24.4 17.4 25.4 21 C26.6 17.6 29 17.8 29.8 21.6 C30.1 22.8 30 24 29.6 25"/>' +
+        // neck folded up, head tucked down against it
+        '<path d="M16.8 21.6 C14.8 18.2 14.8 14.6 16.4 12"/>' +
+        '<path d="M20.4 21.4 C18.8 18.2 18.6 15.2 19.8 13"/>' +
+        '<path d="M19.8 13 C19.8 9.8 17.4 8 14.8 8.8 C12.6 9.4 10.6 11.8 10.2 14.2 C11.6 15.2 14.4 14.2 16.4 12" stroke-width="2"/>' +
+        '<path d="M17.6 9 C18 7.4 19.2 7 19.8 8.4" stroke-width="1.8"/>' +
+        '<path d="M15 8.6 C15.2 7.2 16.2 6.8 17 7.6" stroke-width="1.6"/>' +
+        '<path d="M13.2 10.4 C13.8 9.8 14.8 9.8 15.2 10.4" stroke-width="1.5"/>' +
+        '<path d="M14.2 11 L14.3 11.1" stroke-width="2.4"/>' +
+        '<path d="M11.2 13.4 L11.3 13.5" stroke-width="1.9"/>' +
+        '<path d="M10.8 14.6 C11.6 15 12.6 15 13.4 14.7" stroke-width="1.5"/>' +
+        // legs folded under
+        '<path d="M14.2 35.6 C12.8 37 12.8 39 14.4 40.2"/>' +
+        '<path d="M19.4 39.6 C18.4 41 18.8 42.4 20.4 42.8"/>',
+      float:
+        // neck up out of the water, head turned to the left
+        '<path d="M15.4 25.2 C14.4 20.2 14.2 15 15.6 10.4"/>' +
+        '<path d="M20.2 25.4 C19.4 20.4 19.4 15.6 20.6 11.2"/>' +
+        '<path d="M20.6 11.2 C20.4 8.2 18.2 6.6 15.8 7.2 C13.4 7.8 11.4 9.4 10.6 11.6 C11.8 12.8 14 12.4 15.6 10.4" stroke-width="2"/>' +
+        '<path d="M18.6 7.4 C19 5.8 20.2 5.4 20.8 6.8" stroke-width="1.8"/>' +
+        '<path d="M16 7 C16.2 5.6 17.2 5.2 18 6" stroke-width="1.6"/>' +
+        '<path d="M14 8.8 C14.6 8.2 15.6 8.2 16 8.8" stroke-width="1.5"/>' +
+        '<path d="M15 9.4 L15.1 9.5" stroke-width="2.4"/>' +
+        '<path d="M11.6 10.8 L11.7 10.9" stroke-width="1.9"/>' +
+        '<path d="M11.2 12 C12 12.4 13 12.4 13.8 12.1" stroke-width="1.5"/>' +
+        // the humps behind, then the wave
+        '<path d="M22.4 25.4 C23 20.4 25.6 19.6 27.2 23.4 C28.4 19.6 31.4 20 32.6 23.6 C32.9 24.4 33.1 25 33.2 25.6"/>' +
+        '<path d="M1.5 25.4 C4.5 21.8 7.5 21.8 10.5 25.2 C13.5 28.6 16.5 28.6 19.5 25.2 ' +
+                 'C22.5 21.8 25.5 21.8 28.5 25.2 C31.5 28.6 34.5 28.6 37.5 25.4"/>'
+    },
+    giraffe: {
+      stand:
+        // head to the left, ossicones, ear, eye, nostril, mouth
+        '<path d="M12.4 4.2 C9.6 4 7.6 5.8 7.8 8 C8 9.8 10.4 10.4 12.6 9.8" stroke-width="2"/>' +
+        '<path d="M12.4 4.2 C14.2 4 15.8 5 16.8 6.8" stroke-width="2"/>' +
+        '<path d="M11.6 4.2 L11.2 1.2" stroke-width="1.8"/>' +
+        '<path d="M11.2 1.2 L11.1 1.1" stroke-width="2.8"/>' +
+        '<path d="M14.2 4.2 L14.6 1.2" stroke-width="1.8"/>' +
+        '<path d="M14.6 1.2 L14.7 1.1" stroke-width="2.8"/>' +
+        '<path d="M15.6 5.6 C17.4 4.4 18.6 4.8 18.2 6.4" stroke-width="1.8"/>' +
+        '<path d="M10.4 6.6 L10.5 6.7" stroke-width="2.6"/>' +
+        '<path d="M8.6 7.2 L8.7 7.3" stroke-width="1.9"/>' +
+        '<path d="M8 8.6 C8.8 9.2 9.8 9.3 10.6 9" stroke-width="1.5"/>' +
+        // the long neck, with spots
+        '<path d="M12.6 9.8 C14.6 15 16.8 20.4 20.4 25.2"/>' +
+        '<path d="M16.8 6.8 C19.6 12.4 22 18.2 24.6 23.8"/>' +
+        '<path d="M16.2 12.4 L16.3 12.5" stroke-width="2.6"/>' +
+        '<path d="M19.4 16.6 L19.5 16.7" stroke-width="2.6"/>' +
+        '<path d="M20 21 L20.1 21.1" stroke-width="2.6"/>' +
+        // body, spots, tail
+        '<path d="M20.4 25.2 C16.8 25.6 13.8 28.6 14.4 32.6 C15 36.6 19 38.6 23.6 38.2 C28.2 37.8 30.6 34.4 30.2 30.4 C29.9 27.4 27.6 24.6 24.6 23.8"/>' +
+        '<path d="M19.2 30.6 L19.3 30.7" stroke-width="3"/>' +
+        '<path d="M24.6 29.4 L24.7 29.5" stroke-width="3"/>' +
+        '<path d="M22.4 34.6 L22.5 34.7" stroke-width="3"/>' +
+        '<path d="M27.4 33.8 L27.5 33.9" stroke-width="2.6"/>' +
+        '<path d="M30 29.4 C32.2 30.6 33 32.8 32.2 35" stroke-width="1.8"/>' +
+        '<path d="M32.2 35 L32.3 35.1" stroke-width="2.8"/>' +
+        // legs
+        '<path d="M17.2 37.6 L16.2 43.2"/>' +
+        '<path d="M20 38.4 L19.6 43.4"/>' +
+        '<path d="M25.6 38.2 L26.4 43.2"/>' +
+        '<path d="M28.4 36.8 L29.6 42.8"/>',
+      tuck:
+        // the ball
+        '<path d="M20 21 C13.4 21 10 26.4 11.4 31.8 C12.8 37.4 19.6 40 25.4 37.6 C30.8 35.4 32.2 28.4 28.6 24.2"/>' +
+        '<path d="M17.6 28.6 L17.7 28.7" stroke-width="3"/>' +
+        '<path d="M23.4 27.2 L23.5 27.3" stroke-width="3"/>' +
+        '<path d="M20.6 33.4 L20.7 33.5" stroke-width="3"/>' +
+        '<path d="M26.6 32 L26.7 32.1" stroke-width="2.6"/>' +
+        // the neck curled up and over, head tucked at the top
+        '<path d="M28.6 24.2 C27.8 17 24 12.2 18.8 10.4"/>' +
+        '<path d="M25.2 26.6 C25 19.6 21.8 15 17.4 13.6"/>' +
+        '<path d="M22.4 16.4 L22.5 16.5" stroke-width="2.6"/>' +
+        '<path d="M25.4 21 L25.5 21.1" stroke-width="2.6"/>' +
+        '<path d="M18.8 10.4 C16.4 9.2 14 10.4 13.8 12.6 C13.6 14.4 15.4 15.6 17.4 15.4" stroke-width="2"/>' +
+        '<path d="M17.6 9.4 L17 6.6" stroke-width="1.8"/>' +
+        '<path d="M17 6.6 L16.9 6.5" stroke-width="2.8"/>' +
+        '<path d="M19.6 9.8 L20.2 7" stroke-width="1.8"/>' +
+        '<path d="M20.2 7 L20.3 6.9" stroke-width="2.8"/>' +
+        '<path d="M20.4 11.2 C22 10 23 10.6 22.4 12.2" stroke-width="1.8"/>' +
+        '<path d="M16 11.8 L16.1 11.9" stroke-width="2.6"/>' +
+        '<path d="M14.4 12.6 L14.5 12.7" stroke-width="1.9"/>' +
+        // legs folded under
+        '<path d="M14.4 34.6 C13 36 12.8 38 14.2 39.2"/>' +
+        '<path d="M18.2 38.6 C17.2 40.2 17.6 41.6 19.2 42"/>',
+      float:
+        // the neck rising out of the water, head turned to the left
+        '<path d="M18.4 25 C18.8 19 19 13 18.2 7.6"/>' +
+        '<path d="M22.6 25.2 C22.6 19.2 22.4 13.4 21.4 8"/>' +
+        '<path d="M19.8 13.4 L19.9 13.5" stroke-width="2.6"/>' +
+        '<path d="M20.8 18.6 L20.9 18.7" stroke-width="2.6"/>' +
+        '<path d="M19.6 22.6 L19.7 22.7" stroke-width="2.6"/>' +
+        '<path d="M18.2 7.6 C15.4 6.4 12.6 7.4 12.6 9.6 C12.6 11.4 15.2 12 17.6 11.4 C19 11.2 20.6 10 21.4 8" stroke-width="2"/>' +
+        '<path d="M17 5.6 L16.6 2.6" stroke-width="1.8"/>' +
+        '<path d="M16.6 2.6 L16.5 2.5" stroke-width="2.8"/>' +
+        '<path d="M20 5.4 L20.6 2.4" stroke-width="1.8"/>' +
+        '<path d="M20.6 2.4 L20.7 2.3" stroke-width="2.8"/>' +
+        '<path d="M21.6 6.8 C23.4 5.6 24.4 6.2 23.8 7.8" stroke-width="1.8"/>' +
+        '<path d="M15.2 8.8 L15.3 8.9" stroke-width="2.6"/>' +
+        '<path d="M13.4 9.4 L13.5 9.5" stroke-width="1.9"/>' +
+        '<path d="M1.5 25.4 C4.5 21.8 7.5 21.8 10.5 25.2 C13.5 28.6 16.5 28.6 19.5 25.2 ' +
+                 'C22.5 21.8 25.5 21.8 28.5 25.2 C31.5 28.6 34.5 28.6 37.5 25.4"/>'
+    }
+  };
+
   function drawing(cls, box, width, height, id, strokes) {
     return '<svg class="' + cls + '" viewBox="' + box + '" width="' + width + '" height="' + height + '" aria-hidden="true">' +
       ink(id) + strokes + '</g></svg>';
@@ -150,12 +261,14 @@
   }
 
   function jumper(kind) {
-    return drawing("stand", "0 0 40 44", 44, 48, "sketch", head(kind, false) + BODY_STAND) +
-           drawing("tuck", "0 0 40 44", 44, 48, "sketch", head(kind, true) + BODY_TUCK);
+    var own = SHAPES[kind];
+    return drawing("stand", "0 0 40 44", 44, 48, "sketch", own ? own.stand : head(kind, false) + BODY_STAND) +
+           drawing("tuck", "0 0 40 44", 44, 48, "sketch", own ? own.tuck : head(kind, true) + BODY_TUCK);
   }
 
   function floater(kind) {
-    return drawing("float", "0 0 40 30", 44, 33, "sketch", head(kind, true) + BODY_FLOAT);
+    var own = SHAPES[kind];
+    return drawing("float", "0 0 40 30", 44, 33, "sketch", own ? own.float : head(kind, true) + BODY_FLOAT);
   }
 
   // The water the bear lands in: a wavy line that draws itself outward
@@ -574,8 +687,11 @@
     if (root.getAttribute("data-theme") !== "fun" || motion.matches) return;
     if (event.target.closest("[data-set-theme], [data-set-font], a")) return;
 
+    // It falls all the way to the water along the bottom of the window,
+    // however high the click was, and takes longer from higher up.
     var across = (Math.random() < 0.5 ? -1 : 1) * (42 + Math.random() * 52);
-    var down = 150 + Math.random() * 70;
+    var down = Math.max(40, window.innerHeight - 10 - event.clientY);
+    var flight = 0.7 + down / 700;   // seconds in the air
     var landX = event.clientX + across;
     var landY = event.clientY + down;
 
@@ -585,15 +701,17 @@
     diver.style.top = event.clientY + "px";
     diver.style.setProperty("--dx", across.toFixed(0) + "px");
     diver.style.setProperty("--dy", down.toFixed(0) + "px");
+    diver.style.setProperty("--flight", flight.toFixed(2) + "s");
     var kind = ANIMALS[turn++ % ANIMALS.length];
     diver.innerHTML = "<i>" + jumper(kind) + "</i>";
     sink(diver);
-    surfacing.push(window.setTimeout(function () { surface(kind); }, 1500));
+    surfacing.push(window.setTimeout(function () { surface(kind); }, flight * 1000 + 550));
 
     var water = document.createElement("span");
     water.className = "splash";
     water.style.left = landX + "px";
     water.style.top = landY + "px";
+    water.style.setProperty("--flight", flight.toFixed(2) + "s");
     water.innerHTML = WATER;
     sink(water);
 
@@ -601,6 +719,7 @@
     flicks.className = "flicks";
     flicks.style.left = landX + "px";
     flicks.style.top = landY + "px";
+    flicks.style.setProperty("--flight", flight.toFixed(2) + "s");
     flicks.innerHTML = FLICKS;
     sink(flicks);
 
@@ -611,7 +730,7 @@
       drop.style.top = landY + "px";
       drop.style.setProperty("--ddx", ((i - 3) * 14 + (Math.random() - 0.5) * 12).toFixed(0) + "px");
       drop.style.setProperty("--ddup", (-30 - Math.random() * 36 - (3 - Math.abs(i - 3)) * 8).toFixed(0) + "px");
-      drop.style.animationDelay = (0.9 + Math.random() * 0.06).toFixed(2) + "s";
+      drop.style.animationDelay = (flight - 0.05 + Math.random() * 0.06).toFixed(2) + "s";
       sink(drop);
     }
   }

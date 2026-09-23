@@ -487,7 +487,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   z-index: 3;
   pointer-events: none;
   color: var(--text);
-  animation: dive-across .95s linear forwards;
+  animation: dive-across var(--flight, .95s) linear forwards;
 }
 
 .diver i {
@@ -497,7 +497,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   height: 48px;
   margin: -1.6rem 0 0 -1.4rem;
   transform-origin: 50% 55%;
-  animation: dive-fall .95s forwards;
+  animation: dive-fall var(--flight, .95s) forwards;
 }
 
 /* The standing bear and the tucked one share the box and cross-fade at
@@ -509,8 +509,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   overflow: visible;
 }
 
-.diver .stand { animation: show-stand .95s linear forwards; }
-.diver .tuck  { opacity: 0; animation: show-tuck .95s linear forwards; }
+.diver .stand { animation: show-stand var(--flight, .95s) linear forwards; }
+.diver .tuck  { opacity: 0; animation: show-tuck var(--flight, .95s) linear forwards; }
 
 @keyframes dive-across {
   from { translate: 0 0; }
@@ -519,7 +519,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 
 /* Up off the pointer, hang, then away down, turning over once on the way.
    The timing function set inside a keyframe governs the segment that
-   starts there. */
+   starts there. The whole flight lasts --flight, set per dive from how far
+   there is to fall, and the splash below is delayed by the same amount. */
 @keyframes dive-fall {
   0% {
     transform: translateY(0) rotate(0deg);
@@ -555,7 +556,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   pointer-events: none;
   opacity: 0;
   transform-origin: 50% 50%;
-  animation: splash-show 1.15s linear .88s forwards;
+  animation: splash-show 1.15s linear forwards;
+  animation-delay: calc(var(--flight, .95s) - .07s);
 }
 
 .splash svg,
@@ -569,7 +571,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 .splash path {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  animation: splash-draw .4s cubic-bezier(.2, .7, .3, 1) .88s forwards;
+  animation: splash-draw .4s cubic-bezier(.2, .7, .3, 1) forwards;
+  animation-delay: calc(var(--flight, .95s) - .07s);
 }
 
 @keyframes splash-draw {
@@ -596,7 +599,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   pointer-events: none;
   opacity: 0;
   transform-origin: 50% 100%;
-  animation: flick .6s cubic-bezier(.2, .7, .35, 1) .9s forwards;
+  animation: flick .6s cubic-bezier(.2, .7, .35, 1) forwards;
+  animation-delay: calc(var(--flight, .95s) - .05s);
 }
 
 @keyframes flick {
@@ -615,7 +619,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   border-radius: 50%;
   pointer-events: none;
   opacity: 0;
-  animation: drop-arc .7s cubic-bezier(.3, .55, .7, 1) .9s forwards;
+  animation: drop-arc .7s cubic-bezier(.3, .55, .7, 1) forwards;
 }
 
 @keyframes drop-arc {
