@@ -420,13 +420,26 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   border-radius: 50%;
   pointer-events: none;
   opacity: 0;
-  animation: plume-rise 2.8s ease-out forwards;
+  /* --drift, --climb, the size and the duration are all set per puff in
+     app.js, so no two rise the same way. */
+  animation: plume-rise 2.8s cubic-bezier(.25, .55, .35, 1) forwards;
 }
 
+/* Drawn out as it climbs, the way a plume thins when it lifts. */
 @keyframes plume-rise {
-  0%   { opacity: 0;   transform: translateY(0)      scale(.45); }
-  16%  { opacity: .75; }
-  100% { opacity: 0;   transform: translateY(-210px) scale(1.6); }
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(.42, .38);
+  }
+  14% { opacity: .72; }
+  55% {
+    transform: translate(calc(var(--drift, 0px) * .3),
+                         calc(var(--climb, -210px) * .42)) scale(.92, 1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift, 0px), var(--climb, -210px)) scale(1.25, 2);
+  }
 }
 
 /* Percentages here are of the blob's own size, so each one travels in

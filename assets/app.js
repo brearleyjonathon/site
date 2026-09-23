@@ -23,13 +23,17 @@
   var REACH = 300;        // px: how close the pointer has to be to warm a blob
   var GAIN = 2.6;         // heat picked up per second at point-blank range
   var COOL = 0.55;        // share of a blob's heat lost per second
-  var LIFT = 115;         // px a fully warm blob rises
-  var SWELL = 0.16;       // how much a fully warm blob grows
+  var LIFT = 125;         // px a fully warm blob rises
+  var SWELL = 0.04;       // how much a fully warm blob widens
+  var STRETCH = 0.30;     // how much it draws itself out as it rises
+  var SWAY = 30;          // px it wanders sideways on the way up
+  var SPRING = 40;        // pull toward where it wants to be
+  var DRAG = 8.5;         // damping, a little under critical, so it overshoots
   var SETTLE = 0.34;      // how far toward the middle they drift once calm
   var CALM_AFTER = 1200;  // ms of stillness before they start settling
   var CALM_OVER = 4500;   // ms from there to full equilibrium
-  var PLUME_EVERY = 430;  // ms between puffs while the pointer lingers
-  var PLUME_MAX = 14;
+  var PLUME_EVERY = 250;  // ms between puffs while the pointer lingers
+  var PLUME_MAX = 20;
 
   // Anchors through the day. Between them the colours are mixed by the
   // hour, so the page warms up and cools down rather than jumping.
@@ -87,7 +91,7 @@
     if (!field || now - lastPlume < PLUME_EVERY) return;
     // Only where the pointer lingers, not along every sweep of it.
     var travelled = Math.hypot(cursor.x - cursor.plumeX, cursor.y - cursor.plumeY);
-    if (travelled > 70) {
+    if (travelled > 120) {
       cursor.plumeX = cursor.x;
       cursor.plumeY = cursor.y;
       return;
@@ -101,9 +105,14 @@
     var warm = colours[Math.floor(Math.random() * colours.length)];
     var puffEl = document.createElement("span");
     puffEl.className = "plume";
-    puffEl.style.left = cursor.x + "px";
-    puffEl.style.top = cursor.y + "px";
+    puffEl.style.left = (cursor.x + (Math.random() - 0.5) * 34) + "px";
+    puffEl.style.top = (cursor.y + (Math.random() - 0.5) * 20) + "px";
     puffEl.style.background = "radial-gradient(closest-side, " + warm + ", transparent)";
+    // No two puffs rise the same way, so the stream never looks stamped out.
+    puffEl.style.setProperty("--drift", ((Math.random() - 0.5) * 120).toFixed(0) + "px");
+    puffEl.style.setProperty("--climb", (-170 - Math.random() * 120).toFixed(0) + "px");
+    puffEl.style.animationDuration = (2.4 + Math.random() * 1.6).toFixed(2) + "s";
+    puffEl.style.width = puffEl.style.height = (5 + Math.random() * 5).toFixed(1) + "rem";
     puffEl.addEventListener("animationend", function () { puffEl.remove(); });
     field.appendChild(puffEl);
   }
@@ -140,15 +149,27 @@
       if (b.heat > 1) b.heat = 1;
       if (b.heat < 0.0008) b.heat = 0;
 
-      var toX = (midX - cx) * SETTLE * calm;
+      // Warm air does not travel straight up. The sway is widest when the
+      // blob is hottest and dies away as it cools.
+      var wander = Math.sin(now / 1100 + b.phase) * SWAY * b.heat;
+      var toX = (midX - cx) * SETTLE * calm + wander;
       var toY = (midY - cy) * SETTLE * calm - b.heat * LIFT;
 
-      b.x += (toX - b.x) * 0.06;
-      b.y += (toY - b.y) * 0.06;
-      b.el.style.translate = b.x.toFixed(1) + "px " + b.y.toFixed(1) + "px";
-      b.el.style.scale = (1 + b.heat * SWELL).toFixed(3);
+      // A spring rather than a straight ease, damped just under critical, so
+      // a blob carries past where it was headed and rolls back into place.
+      b.vx += (toX - b.x) * SPRING * gap;
+      b.vy += (toY - b.y) * SPRING * gap;
+      b.vx -= b.vx * DRAG * gap;
+      b.vy -= b.vy * DRAG * gap;
+      b.x += b.vx * gap;
+      b.y += b.vy * gap;
 
-      if (b.heat > 0 || Math.abs(toX - b.x) > 0.5 || Math.abs(toY - b.y) > 0.5) {
+      b.el.style.translate = b.x.toFixed(1) + "px " + b.y.toFixed(1) + "px";
+      b.el.style.scale = (1 + b.heat * SWELL).toFixed(3) + " " +
+                         (1 + b.heat * STRETCH).toFixed(3);
+
+      if (b.heat > 0 || Math.abs(toX - b.x) > 0.5 || Math.abs(toY - b.y) > 0.5 ||
+          Math.abs(b.vx) > 1 || Math.abs(b.vy) > 1) {
         resting = false;
       }
     }
@@ -190,7 +211,7 @@
     if (running) {
       field = document.querySelector(".blobs");
       blobs = [].map.call(document.querySelectorAll(".blob"), function (el) {
-        return { el: el, x: 0, y: 0, heat: 0 };
+        return { el: el, x: 0, y: 0, vx: 0, vy: 0, heat: 0, phase: Math.random() * 6.28 };
       });
       paintClock();
       clock = window.setInterval(paintClock, 240000);   // keep up with the hour
