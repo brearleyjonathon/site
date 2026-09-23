@@ -1196,8 +1196,47 @@
     }
   }
 
-  // Clip the thumb to the scallop. The path is in the pill's coordinates,
-  // so it is shifted by wherever the thumb is at the moment; during a hop
+  // The thumb's own outline: scalloped all the way round. Along the top
+  // and bottom, and round an end that is also the pill's end, the wave is
+  // the pill's own, so the fill meets the line bump for bump. Round an end
+  // that is not, a cap is drawn whose wave runs on from the phase the top
+  // edge arrives with and comes out at the phase the bottom edge leaves
+  // with, so there is no seam anywhere. x0 and x1 are the thumb's sides
+  // in the pill's own coordinates.
+  var OUT = -2.9, AMP = 2;   // the scallop: how far in, and how deep
+
+  function thumbShape(pill, x0, x1) {
+    var w = pill.offsetWidth, h = pill.offsetHeight;
+    var r = h / 2, run = w - h, arc = Math.PI * r, L = 2 * run + 2 * arc;
+    var lam = L / Math.max(8, Math.round(L / 14));
+    var TAU = 2 * Math.PI;
+    var pts = [];
+    function wave(phi) { return OUT + AMP * Math.sin(phi); }
+    function top(x) { return TAU * (x - r) / lam; }
+    function bottom(x) { return TAU * (run + arc + (w - r - x)) / lam; }
+    function cap(cx, from, phiA, phiB) {
+      // half a turn from angle `from`, the wave going from phiA to phiB
+      // plus whole turns enough to keep the bumps the usual size
+      var n = Math.max(8, Math.round(arc / 1.2));
+      var m = Math.round(arc / lam - (phiB - phiA) / TAU);
+      for (var i = 0; i <= n; i++) {
+        var t = i / n, a = from + Math.PI * t;
+        var k = wave(phiA + (phiB - phiA + TAU * m) * t);
+        pts.push([cx + (r + k) * Math.cos(a), r + (r + k) * Math.sin(a)]);
+      }
+    }
+    var x;
+    for (x = x0 + r; x <= x1 - r; x += 1.2) pts.push([x, -wave(top(x))]);
+    if (x1 >= w - 0.5) cap(w - r, -Math.PI / 2, TAU * run / lam, TAU * (run + arc) / lam);
+    else cap(x1 - r, -Math.PI / 2, top(x1 - r), bottom(x1 - r));
+    for (x = x1 - r; x >= x0 + r; x -= 1.2) pts.push([x, h + wave(bottom(x))]);
+    if (x0 <= 0.5) cap(r, Math.PI / 2, TAU * (2 * run + arc) / lam, TAU * L / lam);
+    else cap(x0 + r, Math.PI / 2, bottom(x0 + r), top(x0 + r));
+    return pts;
+  }
+
+  // Clip the thumb to its scallop, built for the box it has right now
+  // (layout values, so a hop's squash does not throw it); during a hop
   // this is called every frame, and once more when the hop has landed.
   document.addEventListener("animationend", function (e) {
     if (e.target.classList && e.target.classList.contains("thumb")) trim();
@@ -1205,10 +1244,12 @@
 
   function trim() {
     var thumb = document.querySelector(".switch.pill .thumb");
-    if (!thumb || !hem.length) return;
-    var pill = thumb.parentNode.getBoundingClientRect();
-    var at = thumb.getBoundingClientRect();
-    thumb.style.clipPath = 'path("' + trace(hem, at.left - pill.left, at.top - pill.top) + '")';
+    if (!thumb) return;
+    var pill = thumb.parentNode;
+    var edge = pill.clientLeft;
+    var x0 = thumb.offsetLeft + edge, x1 = x0 + thumb.offsetWidth;
+    var y0 = thumb.offsetTop + edge;
+    thumb.style.clipPath = 'path("' + trace(thumbShape(pill, x0, x1), x0, y0) + '")';
   }
 
   window.addEventListener("resize", function () { seat(false); outline(); });
