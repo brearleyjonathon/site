@@ -1023,7 +1023,8 @@
   // The scalloped line round the Source/Field pill. A point is walked
   // round the pill's perimeter and pushed out along the normal by a wave
   // with a whole number of bumps, so the scallops are even and the path
-  // closes. It is drawn once; CSS then dashes it so that about three
+  // closes, inset so its outer peaks stay within the pill's edge. It is
+  // drawn once; CSS then dashes it so that about three
   // quarters of it shows, like a doodle left unfinished, and slides the
   // dash round the pill. Nothing here runs per frame.
   var PAD = 8;       // px of room the svg has round the pill
@@ -1065,7 +1066,8 @@
     var w = pill.offsetWidth, h = pill.offsetHeight;
     if (!w || !h) return;
     lineSvg.setAttribute("viewBox", (-PAD) + " " + (-PAD) + " " + (w + 2 * PAD) + " " + (h + 2 * PAD));
-    linePaths[0].setAttribute("d", scallop(w, h, 4, 2.4));
+    // Inset: the outer peaks reach just inside the pill's edge, never past it.
+    linePaths[0].setAttribute("d", scallop(w, h, -2.9, 2));
     linePaths[0].setAttribute("pathLength", "1000");   // so the CSS dash is in known units
   }
 

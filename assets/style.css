@@ -213,14 +213,15 @@ body.ready * {
 .switch.pill,
 .switch.pill button { border-radius: 999px; }
 
-.switch.pill { position: relative; }
-.switch.pill button { position: relative; z-index: 1; }
+.switch.pill { position: relative; border-color: transparent; }
+.switch.pill button { position: relative; z-index: 2; }
 
-/* The pill keeps its own thin border, which holds the buttons and the
-   thumb; outside it a single scalloped line is drawn in an svg by
-   assets/app.js, once. The path is given a pathLength of 1000, so the
-   dash below shows about three quarters of it and slides round the pill
-   every nine seconds. */
+/* The pill has no visible border of its own (the width is kept so nothing
+   shifts). Its only outline is the scalloped line drawn in the svg by
+   assets/app.js, once, inset so its outer peaks stay within the pill's
+   edge; it sits above the thumb and under the labels. The path is given
+   a pathLength of 1000, so the dash below shows about three quarters of
+   it and slides round the pill every nine seconds. */
 .pill-line {
   position: absolute;
   inset: -8px;
@@ -228,6 +229,7 @@ body.ready * {
   height: calc(100% + 16px);
   overflow: visible;
   pointer-events: none;
+  z-index: 1;
   fill: none;
   stroke: var(--text);
   stroke-linecap: round;
