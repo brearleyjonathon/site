@@ -434,6 +434,24 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   100% { transform: translate( 12%,  16%); }
 }
 
+/* Every word in the page body becomes one of these while Fun is on, so the
+   pointer can shove them around.
+
+   These stay `display: inline` on purpose. Making them inline-block would
+   allow transforms, and rotation with them, but a browser may break a line
+   between two atomic inlines even with a word joiner between them, which
+   orphaned punctuation that followed a link. A relative offset moves an
+   inline box without touching layout or line breaking at all. */
+.shard {
+  position: relative;
+  transition: left .42s cubic-bezier(.22, .8, .3, 1),
+              top .42s cubic-bezier(.22, .8, .3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shard { transition: none; }
+}
+
 /* A click sends a little figure off the pointer, arcing down into the page
    and under, leaving a ring and a few droplets behind. Drawn in ink rather
    than in the palette, so it reads against the colour. */
