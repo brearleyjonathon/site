@@ -47,13 +47,14 @@
     });
   }
 
+  // The hand itself is chosen in CSS from the typeface: with the serif the
+  // group is run through the #ink-loose filter in the page and drawn with
+  // round caps, a sketch gone over twice; with the sans it gets no filter,
+  // square caps and mitred joins, and the same paths turn into technical
+  // drawings of themselves. The id is kept only to tell the groups apart.
   function ink(id) {
-    return '<defs><filter id="' + id + '" x="-30%" y="-30%" width="160%" height="160%">' +
-        '<feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="4" result="n"/>' +
-        '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G"/>' +
-      '</filter></defs>' +
-      '<g fill="none" stroke="currentColor" stroke-width="' + (2.2 * THIN).toFixed(2) + '" ' +
-         'stroke-linecap="round" stroke-linejoin="round" filter="url(#' + id + ')">';
+    return '<g class="ink ink-' + id + '" fill="none" stroke="currentColor" ' +
+         'stroke-width="' + (2.2 * THIN).toFixed(2) + '">';
   }
 
   // The head loop, in the standing figure's coordinates. The tucked and
@@ -965,8 +966,41 @@
     document.querySelectorAll("[data-set-fun]").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.setFun === fun));
     });
+    seat(false);
     syncFun();
   }
+
+  // The pill's thumb sits under whichever side is pressed. On a switch it
+  // hops: shrinks to a circle in the middle, squashes, and springs out
+  // into the other side. Geometry goes in as custom properties, so the
+  // keyframes can be plain CSS.
+  function seat(hop) {
+    var pill = document.querySelector(".switch.pill");
+    var thumb = pill && pill.querySelector(".thumb");
+    var on = pill && pill.querySelector("[data-set-fun][aria-pressed='true']");
+    if (!thumb || !on) return;
+    var box = pill.getBoundingClientRect();
+    var to = on.getBoundingClientRect();
+    pill.style.setProperty("--th", (box.height - 4).toFixed(1) + "px");
+    pill.style.setProperty("--tx", (to.left - box.left).toFixed(1) + "px");
+    pill.style.setProperty("--tw", to.width.toFixed(1) + "px");
+
+    // A plain re-seat while a hop is still playing only moves its target;
+    // the hop keeps going and lands there.
+    var mid = thumb.getAnimations().some(function (a) { return a.playState === "running"; });
+    if (!hop && mid) return;
+
+    var from = thumb.getBoundingClientRect();
+    pill.style.setProperty("--fx", (from.left - box.left).toFixed(1) + "px");
+    pill.style.setProperty("--fw", from.width.toFixed(1) + "px");
+    thumb.classList.remove("hop");
+    if (hop && !motion.matches) {
+      void thumb.offsetWidth;   // restart the animation from the top
+      thumb.classList.add("hop");
+    }
+  }
+
+  window.addEventListener("resize", function () { seat(false); });
 
   document.addEventListener("click", function (event) {
     var button = event.target.closest("[data-set-theme], [data-set-font], [data-set-fun]");
@@ -976,6 +1010,7 @@
       root.setAttribute("data-theme", button.dataset.setTheme);
       save("theme", button.dataset.setTheme);
     } else if (button.dataset.setFun) {
+      var was = mode();
       // The pools are clipped to a circle centred here, so the colour
       // gathers into the button pressed, or spreads back out from it.
       var at = button.getBoundingClientRect();
@@ -984,6 +1019,12 @@
       root.setAttribute("data-fun", button.dataset.setFun);
       save("fun-mode", button.dataset.setFun);
       marks.length = 0;   // the old marks were the other colour
+      if (was !== mode()) {
+        document.querySelectorAll("[data-set-fun]").forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b.dataset.setFun === mode()));
+        });
+        seat(true);
+      }
     } else {
       root.setAttribute("data-font", button.dataset.setFont);
       save("font", button.dataset.setFont);

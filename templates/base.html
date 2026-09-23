@@ -48,6 +48,14 @@
     <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.9"
                        xChannelSelector="R" yChannelSelector="G"/>
   </filter>
+  <!-- The hand the animals are drawn in while the serif is on: a loose
+       wobble over every stroke. With the sans they get no filter at all. -->
+  <filter id="ink-loose" x="-30%" y="-30%" width="160%" height="160%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.085" numOctaves="2"
+                  seed="4" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"
+                       xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
 </svg>
 
 <div class="page">
@@ -67,6 +75,7 @@
         </div>
         <div class="fun-controls">
           <div class="switch pill" role="group" aria-label="Where the colour is">
+            <span class="thumb" aria-hidden="true"></span>
             <button type="button" data-set-fun="source">Source</button>
             <button type="button" data-set-fun="field">Field</button>
           </div>

@@ -213,9 +213,45 @@ body.ready * {
 .switch.pill,
 .switch.pill button { border-radius: 999px; }
 
-.switch button[data-set-fun][aria-pressed="true"] {
-  background: linear-gradient(100deg, var(--c1), var(--c3), var(--c5));
+.switch.pill { position: relative; }
+.switch.pill button { position: relative; z-index: 1; }
+
+/* The pressed side is marked by the thumb underneath rather than the
+   button itself, so it can travel. */
+.switch.pill button[aria-pressed="true"] {
+  background: transparent;
   color: var(--text);
+}
+
+.thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: var(--tx, 2px);
+  width: var(--tw, 0);
+  border-radius: 999px;
+  background: linear-gradient(100deg, var(--c1), var(--c3), var(--c5));
+  transform-origin: 50% 50%;
+}
+
+.thumb.hop { animation: thumb-hop .6s cubic-bezier(.3, .7, .3, 1) both; }
+
+/* Out of one side, into a circle in the middle with a squash and a
+   stretch, then out into the other side with a little overshoot. */
+@keyframes thumb-hop {
+  0% {
+    left: var(--fx); width: var(--fw); scale: 1;
+    animation-timing-function: cubic-bezier(.5, 0, .7, .6);
+  }
+  42% {
+    left: calc(50% - var(--th) / 2); width: var(--th); scale: 1.22 .86;
+    animation-timing-function: ease-in-out;
+  }
+  56% {
+    left: calc(50% - var(--th) / 2); width: var(--th); scale: .9 1.14;
+    animation-timing-function: cubic-bezier(.2, .9, .3, 1.35);
+  }
+  100% { left: var(--tx); width: var(--tw); scale: 1; }
 }
 
 /* =========================================================================
@@ -507,6 +543,27 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   filter: url("#fun-warp");
 }
 
+/* The hand the animals, the water and the splash are drawn in follows the
+   typeface. With the serif the strokes are run through a loose wobble and
+   given a faint second line a hair off the first, like a sketch gone over
+   twice. With the sans there is no filter at all: square caps and mitred
+   joins turn the same paths into technical drawings, robot versions of
+   themselves. The filter lives in the page's own <svg class="filters">. */
+.ink {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:root[data-font="serif"] .ink {
+  filter: url(#ink-loose) drop-shadow(.7px .5px 0 rgba(0, 0, 0, .22));
+}
+
+:root[data-font="sans"] .ink {
+  filter: none;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
 /* Every word in the page body becomes one of these while Fun is on, so the
    pointer can shove them around.
 
@@ -719,6 +776,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   :root[data-theme="fun"] body::after { animation: none; }
   .blob { animation: none; }
   .pools, :root[data-theme="fun"] .blobs, .fun-controls { transition: none; }
+  .thumb.hop { animation: none; }
   .diver, .splash, .flicks, .drop, .swimmer { display: none; }
 }
 
