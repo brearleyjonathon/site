@@ -475,9 +475,10 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   .shard { transition: none; }
 }
 
-/* A click sends a little bear off the pointer: it hops, tucks, spins once
-   and lands bottom-first in the page, leaving a heave of water, a burst of
-   splash strokes and a few droplets behind. Drawn in ink rather
+/* A click sends a little animal off the pointer: it hops, tucks, spins
+   once and lands bottom-first in the page, leaving a heave of water, a
+   burst of splash strokes and a few droplets behind, then surfaces in the
+   row along the bottom of the window. Drawn in ink rather
    than in the palette, so it reads against the colour, and doodled rather
    than drafted: the strokes are set in assets/app.js. */
 
@@ -623,10 +624,43 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   100% { opacity: 0; transform: translate(var(--ddx, 20px), 8px) scale(.45); }
 }
 
+/* The row along the bottom. Each animal rises into its place, then bobs
+   on its own wave at its own pace; `left` is set by assets/app.js and
+   eases when the row shuffles. */
+.swimmer {
+  position: fixed;
+  z-index: 3;
+  bottom: 4px;
+  width: 44px;
+  height: 33px;
+  color: var(--text);
+  pointer-events: none;
+  transition: left .6s cubic-bezier(.22, .8, .3, 1), opacity .5s ease;
+  animation: surface .7s cubic-bezier(.2, .9, .3, 1.15) both;
+}
+
+.swimmer.gone { opacity: 0; }
+
+.swimmer svg {
+  display: block;
+  overflow: visible;
+  animation: bob var(--bob-time, 3.2s) ease-in-out var(--bob-delay, 0s) infinite;
+}
+
+@keyframes surface {
+  from { translate: 0 40px; opacity: 0; }
+  to   { translate: 0 0; opacity: 1; }
+}
+
+@keyframes bob {
+  0%, 100% { translate: 0 0; rotate: -2deg; }
+  50%      { translate: 0 -3px; rotate: 2deg; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme="fun"] body::after { animation: none; }
   .blob { animation: none; }
-  .diver, .splash, .flicks, .drop { display: none; }
+  .diver, .splash, .flicks, .drop, .swimmer { display: none; }
 }
 
 /* =========================================================================
@@ -637,7 +671,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   :root { --bg: #fff; --text: #000; --muted: #444; --faint: #666; --rule: #ccc; }
   .controls { display: none; }
   body::after,
-  .blobs { display: none; }
+  .blobs,
+  .swimmer { display: none; }
   main { filter: none; }
   .page { max-width: none; padding: 0; }
   a { text-decoration: none; }

@@ -24,13 +24,14 @@
     { at: 19, set: ["#ff5c7a", "#ff8a3d", "#d94fd0", "#8a5cff", "#ff4f9a"] }
   ];
 
-  // A little bear, drawn as if doodled: the head is a loop that overshoots
+  // A little animal, drawn as if doodled: the head is a loop that overshoots
   // itself rather than a circle, no stroke quite meets the next, and a
   // little turbulence roughens every edge so it reads as pencil rather than
-  // as vector. It stands with its arms up, then tucks into a ball for the
-  // cannonball; the two drawings are stacked and cross-faded in flight.
+  // as vector. Every animal shares one body, standing with its arms up and
+  // then tucked into a ball for the cannonball, and differs only in the
+  // face drawn on the head. Clicks take turns through the list.
   function ink(id) {
-    return '<defs><filter id="' + id + '" x="-20%" y="-20%" width="140%" height="140%">' +
+    return '<defs><filter id="' + id + '" x="-30%" y="-30%" width="160%" height="160%">' +
         '<feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="4" result="n"/>' +
         '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/>' +
       '</filter></defs>' +
@@ -38,38 +39,93 @@
          'stroke-linecap="round" stroke-linejoin="round" filter="url(#' + id + ')">';
   }
 
-  function bear(cls, strokes) {
-    return '<svg class="' + cls + '" viewBox="0 0 40 44" width="44" height="48" aria-hidden="true">' +
-      ink("sketch") + strokes + '</g></svg>';
+  // The head loop, in the standing figure's coordinates. The tucked and
+  // floating figures carry it 2.2 lower.
+  var HEAD =
+    '<path d="M26.6 6.4 C22.4 2.3 14.2 3.6 12.6 9 C11.1 14 15.4 18.8 20.6 18.4 ' +
+             'C25.8 18 28.9 12.6 27 8 C26.8 7.6 26.6 7.2 26.3 6.8" stroke-width="2.1"/>';
+
+  var EYES =
+    '<path d="M17.3 10.4 L17.4 10.5" stroke-width="3"/>' +
+    '<path d="M22.9 10.2 L23 10.3" stroke-width="3"/>';
+
+  var FACES = {
+    bear:
+      '<path d="M13.6 6.4 C12.2 3.4 14.8 1.2 17.2 3.4"/>' +
+      '<path d="M23.4 3.2 C25.8 1 28.6 3.2 27.2 6.2"/>' + EYES +
+      '<path d="M19.3 13.1 C20 12.3 21 12.4 21.4 13.2 C20.9 13.8 19.8 13.8 19.3 13.1" stroke-width="1.8"/>' +
+      '<path d="M18.4 15.4 C19.3 16.5 21.1 16.5 22 15.4" stroke-width="1.8"/>',
+    cat:
+      '<path d="M13.4 7.4 C12.6 5.2 12.2 3.2 12.6 1.4 C14.4 2.2 16 3.2 17.4 4.4"/>' +
+      '<path d="M26.6 7.2 C27.4 5 27.8 3 27.4 1.2 C25.6 2 24 3 22.6 4.2"/>' + EYES +
+      '<path d="M19.3 12.9 L20.7 12.9 L20 13.9 L19.3 12.9" stroke-width="1.6"/>' +
+      '<path d="M20 13.9 C19.7 15 18.8 15.4 17.9 15" stroke-width="1.6"/>' +
+      '<path d="M20 13.9 C20.3 15 21.2 15.4 22.1 15" stroke-width="1.6"/>' +
+      '<path d="M9.4 12.4 L14 13" stroke-width="1.4"/>' +
+      '<path d="M9.8 15 L14.2 14.2" stroke-width="1.4"/>' +
+      '<path d="M30.6 12.4 L26 13" stroke-width="1.4"/>' +
+      '<path d="M30.2 15 L25.8 14.2" stroke-width="1.4"/>',
+    rabbit:
+      '<path d="M15.4 4.8 C13.6 .8 13.4 -3 15.6 -4.2 C17.6 -5 18.8 -1.2 18.4 3.4"/>' +
+      '<path d="M24.6 4.8 C26.4 .8 26.6 -3 24.4 -4.2 C22.4 -5 21.2 -1.2 21.6 3.4"/>' + EYES +
+      '<path d="M19.3 12.7 C19.7 12.1 20.5 12.1 20.8 12.8" stroke-width="1.8"/>' +
+      '<path d="M18 14.4 C19.2 15.6 20.8 15.6 22 14.4" stroke-width="1.6"/>' +
+      '<path d="M19.2 15.4 L19.2 17" stroke-width="1.6"/>' +
+      '<path d="M20.8 15.4 L20.8 17" stroke-width="1.6"/>',
+    frog:
+      '<path d="M13.2 7 C12.4 3.6 16 1.8 17.6 4.8" stroke-width="2"/>' +
+      '<path d="M26.8 7 C27.6 3.6 24 1.8 22.4 4.8" stroke-width="2"/>' +
+      '<path d="M15.3 5.2 L15.4 5.3" stroke-width="2.8"/>' +
+      '<path d="M24.7 5.2 L24.8 5.3" stroke-width="2.8"/>' +
+      '<path d="M14.6 12.8 C17 16.2 23 16.2 25.4 12.8" stroke-width="1.9"/>',
+    duck:
+      '<path d="M19 3.4 C19.4 1.4 20.8 .4 22.4 1.2" stroke-width="1.8"/>' + EYES +
+      '<path d="M15.6 13.4 C17 11.6 23 11.6 24.4 13.4 C23 15.4 17 15.4 15.6 13.4" stroke-width="1.8"/>' +
+      '<path d="M16.4 13.5 L23.6 13.5" stroke-width="1.3"/>'
+  };
+
+  var ANIMALS = ["bear", "cat", "rabbit", "frog", "duck"];
+  var turn = 0;
+
+  var BODY_STAND =
+    '<path d="M15.4 19.4 C12.4 23.6 12.2 30.6 14.2 35.6 C16 40.2 24.2 40.2 25.9 35.6 C27.8 30.6 27.6 23.6 24.6 19.4"/>' +
+    '<path d="M14.6 22.4 C11.2 19.6 9.2 16.2 8.2 12.2" stroke-width="2.3"/>' +
+    '<path d="M25.4 22.4 C28.8 19.6 30.8 16.2 31.8 12.2" stroke-width="2.3"/>' +
+    '<path d="M12.6 41.2 C13.6 39.6 16.6 39.6 17.8 41.4 C16.4 42.6 13.8 42.6 12.6 41.2" stroke-width="2"/>' +
+    '<path d="M22.2 41.4 C23.4 39.6 26.4 39.6 27.4 41.2 C26.2 42.6 23.6 42.6 22.2 41.4" stroke-width="2"/>';
+
+  var BODY_TUCK =
+    '<path d="M15.2 20.8 C10.4 23.6 9 30 12.4 34.8 C16 39.8 24.4 40 28 35.4 C31.4 31 30.2 24.4 25.6 21.2"/>' +
+    '<path d="M14.4 24.6 C15.6 29.6 20.2 31.8 25.6 30.6" stroke-width="2.3"/>' +
+    '<path d="M25.8 23.4 C26.4 26.4 25.4 29 23.4 30.6" stroke-width="2.3"/>' +
+    '<path d="M17.6 35.4 C18.8 33.4 21.8 33.6 22.6 35.8 C21.2 37.2 18.6 37 17.6 35.4" stroke-width="2"/>' +
+    '<path d="M23.6 33.6 C25 31.8 27.8 32.4 28.2 34.6 C26.8 35.8 24.4 35.4 23.6 33.6" stroke-width="2"/>';
+
+  // Afterwards it bobs in the water: head and shoulders over its own wave.
+  var BODY_FLOAT =
+    '<path d="M13.6 19.8 C11.2 20.8 8.8 22 6.6 23.6" stroke-width="2.3"/>' +
+    '<path d="M26.4 19.8 C28.8 20.8 31.2 22 33.4 23.6" stroke-width="2.3"/>' +
+    '<path d="M1.5 25.4 C4.5 21.8 7.5 21.8 10.5 25.2 C13.5 28.6 16.5 28.6 19.5 25.2 ' +
+             'C22.5 21.8 25.5 21.8 28.5 25.2 C31.5 28.6 34.5 28.6 37.5 25.4"/>';
+
+  function drawing(cls, box, width, height, id, strokes) {
+    return '<svg class="' + cls + '" viewBox="' + box + '" width="' + width + '" height="' + height + '" aria-hidden="true">' +
+      ink(id) + strokes + '</g></svg>';
   }
 
-  var BEAR =
-    bear("stand",
-      '<path d="M26.6 6.4 C22.4 2.3 14.2 3.6 12.6 9 C11.1 14 15.4 18.8 20.6 18.4 C25.8 18 28.9 12.6 27 8 C26.8 7.6 26.6 7.2 26.3 6.8" stroke-width="2.1"/>' +
-      '<path d="M13.6 6.4 C12.2 3.4 14.8 1.2 17.2 3.4"/>' +
-      '<path d="M23.4 3.2 C25.8 1 28.6 3.2 27.2 6.2"/>' +
-      '<path d="M17.3 10.4 L17.4 10.5" stroke-width="3"/>' +
-      '<path d="M22.9 10.2 L23 10.3" stroke-width="3"/>' +
-      '<path d="M19.3 13.1 C20 12.3 21 12.4 21.4 13.2 C20.9 13.8 19.8 13.8 19.3 13.1" stroke-width="1.8"/>' +
-      '<path d="M18.4 15.4 C19.3 16.5 21.1 16.5 22 15.4" stroke-width="1.8"/>' +
-      '<path d="M15.4 19.4 C12.4 23.6 12.2 30.6 14.2 35.6 C16 40.2 24.2 40.2 25.9 35.6 C27.8 30.6 27.6 23.6 24.6 19.4"/>' +
-      '<path d="M14.6 22.4 C11.2 19.6 9.2 16.2 8.2 12.2" stroke-width="2.3"/>' +
-      '<path d="M25.4 22.4 C28.8 19.6 30.8 16.2 31.8 12.2" stroke-width="2.3"/>' +
-      '<path d="M12.6 41.2 C13.6 39.6 16.6 39.6 17.8 41.4 C16.4 42.6 13.8 42.6 12.6 41.2" stroke-width="2"/>' +
-      '<path d="M22.2 41.4 C23.4 39.6 26.4 39.6 27.4 41.2 C26.2 42.6 23.6 42.6 22.2 41.4" stroke-width="2"/>') +
-    bear("tuck",
-      '<path d="M26.5 8.6 C22.6 4.3 14.6 5.4 12.6 10.6 C10.8 15.6 15.2 20.6 20.6 20.2 C25.8 19.8 29 14.4 27.1 9.8 C26.9 9.3 26.6 8.9 26.2 8.5" stroke-width="2.1"/>' +
-      '<path d="M13.4 8.2 C12.2 5.2 14.6 3.2 16.8 5.4"/>' +
-      '<path d="M23.6 5.2 C25.8 3 28.4 5 27.2 8"/>' +
-      '<path d="M17.2 12.2 C17.4 12.6 17.8 12.6 18 12.2" stroke-width="2.6"/>' +
-      '<path d="M22.6 12 C22.8 12.4 23.2 12.4 23.4 12" stroke-width="2.6"/>' +
-      '<path d="M19.2 15.2 C19.9 14.4 20.9 14.5 21.3 15.3 C20.8 15.9 19.7 15.9 19.2 15.2" stroke-width="1.8"/>' +
-      '<path d="M18.2 17.2 C19.1 18.4 21.1 18.4 22 17.2" stroke-width="1.8"/>' +
-      '<path d="M15.2 20.8 C10.4 23.6 9 30 12.4 34.8 C16 39.8 24.4 40 28 35.4 C31.4 31 30.2 24.4 25.6 21.2"/>' +
-      '<path d="M14.4 24.6 C15.6 29.6 20.2 31.8 25.6 30.6" stroke-width="2.3"/>' +
-      '<path d="M25.8 23.4 C26.4 26.4 25.4 29 23.4 30.6" stroke-width="2.3"/>' +
-      '<path d="M17.6 35.4 C18.8 33.4 21.8 33.6 22.6 35.8 C21.2 37.2 18.6 37 17.6 35.4" stroke-width="2"/>' +
-      '<path d="M23.6 33.6 C25 31.8 27.8 32.4 28.2 34.6 C26.8 35.8 24.4 35.4 23.6 33.6" stroke-width="2"/>');
+  function head(kind, lower) {
+    var face = HEAD + FACES[kind];
+    return lower ? '<g transform="translate(0 2.2)">' + face + '</g>' : face;
+  }
+
+  function jumper(kind) {
+    return drawing("stand", "0 0 40 44", 44, 48, "sketch", head(kind, false) + BODY_STAND) +
+           drawing("tuck", "0 0 40 44", 44, 48, "sketch", head(kind, true) + BODY_TUCK);
+  }
+
+  function floater(kind) {
+    return drawing("float", "0 0 40 30", 44, 33, "sketch", head(kind, true) + BODY_FLOAT);
+  }
 
   // The water the bear lands in: a wavy line that draws itself outward
   // from the point of impact, in two halves so it spreads both ways at once.
@@ -443,6 +499,46 @@
     document.body.appendChild(el);
   }
 
+  // Where the animals end up. Each one surfaces along the bottom of the
+  // window and takes the next place in the row; when the row is full the
+  // first to arrive slips away and the rest shuffle along.
+  var SLOT = 54;       // px from one animal to the next
+  var EDGE = 14;       // px in from the left
+  var swimmers = [];
+  var surfacing = [];  // timers for animals still under water
+
+  function surface(kind) {
+    if (!running) return;
+    var el = document.createElement("span");
+    el.className = "swimmer";
+    el.innerHTML = floater(kind);
+    el.style.setProperty("--bob-delay", (-Math.random() * 3.2).toFixed(2) + "s");
+    el.style.setProperty("--bob-time", (2.8 + Math.random() * 1.2).toFixed(2) + "s");
+    el.style.left = (EDGE + swimmers.length * SLOT) + "px";
+    swimmers.push(el);
+    document.body.appendChild(el);
+    lineUp();
+  }
+
+  function lineUp() {
+    var fit = Math.max(1, Math.floor((window.innerWidth - EDGE * 2) / SLOT));
+    while (swimmers.length > fit) {
+      var gone = swimmers.shift();
+      gone.classList.add("gone");
+      window.setTimeout(function () { gone.remove(); }, 600);
+    }
+    swimmers.forEach(function (el, i) {
+      el.style.left = (EDGE + i * SLOT) + "px";
+    });
+  }
+
+  function clearRow() {
+    surfacing.forEach(window.clearTimeout);
+    surfacing = [];
+    swimmers.forEach(function (el) { el.remove(); });
+    swimmers = [];
+  }
+
   function dive(event) {
     if (root.getAttribute("data-theme") !== "fun" || motion.matches) return;
     if (event.target.closest("[data-set-theme], [data-set-font], a")) return;
@@ -458,8 +554,10 @@
     diver.style.top = event.clientY + "px";
     diver.style.setProperty("--dx", across.toFixed(0) + "px");
     diver.style.setProperty("--dy", down.toFixed(0) + "px");
-    diver.innerHTML = "<i>" + BEAR + "</i>";
+    var kind = ANIMALS[turn++ % ANIMALS.length];
+    diver.innerHTML = "<i>" + jumper(kind) + "</i>";
     sink(diver);
+    surfacing.push(window.setTimeout(function () { surface(kind); }, 1500));
 
     var water = document.createElement("span");
     water.className = "splash";
@@ -504,6 +602,7 @@
       place();   // put them somewhere sensible even if the loop never runs
       window.addEventListener("scroll", onScroll, { passive: true });
       window.addEventListener("resize", fit);
+      window.addEventListener("resize", lineUp);
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       window.addEventListener("pointerout", onPointerOut, { passive: true });
       if (!motion.matches) {
@@ -520,6 +619,8 @@
       window.removeEventListener("pointerout", onPointerOut);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", fit);
+      window.removeEventListener("resize", lineUp);
+      clearRow();
       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
       marks.length = 0;
       canvas = ctx = sprite = null;
