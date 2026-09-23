@@ -56,16 +56,17 @@
     <feDisplacementMap in="SourceGraphic" in2="n" scale="1.3"
                        xChannelSelector="R" yChannelSelector="G"/>
   </filter>
-  <!-- The outline of the Source/Field pill: the same wobble, redrawn with a
-       new seed a few times a second, so the line wiggles like a doodle
-       that is being redrawn. -->
+  <!-- The outline of the Source/Field pill: a soft, low wobble whose
+       frequency drifts back and forth, so the line sways slowly rather
+       than jittering. -->
   <filter id="pill-wobble" x="-20%" y="-40%" width="140%" height="180%">
-    <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2"
-                  seed="1" result="n">
-      <animate attributeName="seed" values="1;2;3;4;5;6;7;8" dur="1.4s"
-               calcMode="discrete" repeatCount="indefinite"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.024" numOctaves="1"
+                  seed="3" result="n">
+      <animate attributeName="baseFrequency" values="0.024;0.034;0.024"
+               dur="5s" calcMode="spline" keyTimes="0;0.5;1"
+               keySplines="0.4 0 0.6 1;0.4 0 0.6 1" repeatCount="indefinite"/>
     </feTurbulence>
-    <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="2.8"
                        xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </svg>
