@@ -369,7 +369,11 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
-  opacity: .6;   /* keeps the colour pastel, so black type stays readable */
+  opacity: .55;   /* keeps the colour pastel, so black type stays readable */
+
+  /* --base is the average of the five, so the field is colour all the way
+     out rather than blobs floating on white. */
+  background-color: var(--base, #f2eef4);
 
   /* The pointer opens a hole in the colour rather than sitting on top of
      it, so the page shows through clean around the cursor. --mx, --my and
@@ -382,170 +386,43 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
                               transparent 0%, transparent 30%, #000 100%);
 }
 
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  animation: blob-drift 37s ease-in-out infinite alternate;
-}
-
 /* The five colours are written by app.js from the time of day. The values
    here are the midday set, used until it runs. */
 :root {
   --c1: #ff2d55; --c2: #ffb300; --c3: #00c853; --c4: #2979ff; --c5: #aa00ff;
 }
 
+/* Each is an attractor point: a wide, soft pool of one colour, overlapping
+   the others enough that they read as one blended field. They are wider
+   than the viewport on purpose, so an edge never shows. app.js moves them
+   by writing `translate`; nothing here animates. */
+.blob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  will-change: translate;
+}
+
 .blob:nth-child(1) {
-  width: 46vmax; height: 46vmax; left: -6%; top: -10%;
+  width: 70vmax; height: 70vmax; margin: -35vmax 0 0 -35vmax;
   background: radial-gradient(closest-side, var(--c1), transparent);
-  animation-duration: 41s;
 }
 .blob:nth-child(2) {
-  width: 52vmax; height: 52vmax; left: 50%; top: -16%;
+  width: 78vmax; height: 78vmax; margin: -39vmax 0 0 -39vmax;
   background: radial-gradient(closest-side, var(--c2), transparent);
-  animation-duration: 47s; animation-delay: -9s;
 }
 .blob:nth-child(3) {
-  width: 58vmax; height: 58vmax; left: -4%; top:  40%;
+  width: 86vmax; height: 86vmax; margin: -43vmax 0 0 -43vmax;
   background: radial-gradient(closest-side, var(--c3), transparent);
-  animation-duration: 53s; animation-delay: -18s;
 }
 .blob:nth-child(4) {
-  width: 50vmax; height: 50vmax; left: 48%; top:  36%;
+  width: 74vmax; height: 74vmax; margin: -37vmax 0 0 -37vmax;
   background: radial-gradient(closest-side, var(--c4), transparent);
-  animation-duration: 37s; animation-delay: -27s;
 }
 .blob:nth-child(5) {
-  width: 42vmax; height: 42vmax; left: 22%; top:  10%;
+  width: 64vmax; height: 64vmax; margin: -32vmax 0 0 -32vmax;
   background: radial-gradient(closest-side, var(--c5), transparent);
-  animation-duration: 59s; animation-delay: -36s;
-}
-
-/* Percentages here are of the blob's own size, so each one travels in
-   proportion to how big it is. Eight stops rather than four, so the path
-   curves instead of turning corners. */
-@keyframes blob-drift {
-  0%   { transform: translate(-16%,  10%); }
-  14%  { transform: translate( -2%,  -4%); }
-  28%  { transform: translate( 20%, -14%); }
-  42%  { transform: translate( 15%,   8%); }
-  56%  { transform: translate(  6%,  24%); }
-  70%  { transform: translate(-13%,  12%); }
-  84%  { transform: translate(-22%,  -6%); }
-  100% { transform: translate( 12%,  16%); }
-}
-
-/* Every word in the page body becomes one of these while Fun is on, so the
-   pointer can shove them around.
-
-   These stay `display: inline` on purpose. Making them inline-block would
-   allow transforms, and rotation with them, but a browser may break a line
-   between two atomic inlines even with a word joiner between them, which
-   orphaned punctuation that followed a link. A relative offset moves an
-   inline box without touching layout or line breaking at all. */
-.shard {
-  position: relative;
-  transition: left .42s cubic-bezier(.22, .8, .3, 1),
-              top .42s cubic-bezier(.22, .8, .3, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .shard { transition: none; }
-}
-
-/* A click sends a little figure off the pointer, arcing down into the page
-   and under, leaving a ring and a few droplets behind. Drawn in ink rather
-   than in the palette, so it reads against the colour. */
-
-.diver {
-  position: fixed;
-  z-index: 3;
-  pointer-events: none;
-  color: var(--text);
-  animation: dive-across .95s linear forwards;
-}
-
-.diver i {
-  display: block;
-  animation: dive-fall .95s forwards, dive-turn .95s ease-in forwards;
-}
-
-.diver svg {
-  display: block;
-  margin: -1.35rem 0 0 -0.8rem;
-}
-
-@keyframes dive-across {
-  from { translate: 0 0; }
-  to   { translate: var(--dx, 60px) 0; }
-}
-
-/* Up off the pointer, hang, then away down. The timing function set inside
-   a keyframe governs the segment that starts there. */
-@keyframes dive-fall {
-  0% {
-    transform: translateY(0);
-    animation-timing-function: cubic-bezier(.16, .7, .45, 1);
-  }
-  34% {
-    transform: translateY(-54px);
-    animation-timing-function: cubic-bezier(.55, 0, .85, .5);
-  }
-  92%  { opacity: 1; }
-  100% { transform: translateY(var(--dy, 170px)); opacity: 0; }
-}
-
-@keyframes dive-turn {
-  from { rotate: -12deg; }
-  to   { rotate: 168deg; }
-}
-
-.splash {
-  position: fixed;
-  z-index: 3;
-  width: 4.2rem;
-  height: 4.2rem;
-  margin: -2.1rem 0 0 -2.1rem;
-  border: 2px solid var(--text);
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-  animation: splash-out .55s ease-out .9s forwards;
-}
-
-/* A second ring just behind the first, so the surface reads as disturbed
-   rather than as one expanding outline. */
-.splash::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1.5px solid var(--text);
-  border-radius: 50%;
-  animation: splash-out .55s ease-out .14s forwards;
-}
-
-@keyframes splash-out {
-  0%   { opacity: 1;  transform: scale(.16, .06); }
-  40%  { opacity: .8; }
-  100% { opacity: 0;  transform: scale(1.3, .5); }
-}
-
-.drop {
-  position: fixed;
-  z-index: 3;
-  width: .44rem;
-  height: .44rem;
-  margin: -.22rem 0 0 -.22rem;
-  background: var(--text);
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-  animation: drop-arc .65s cubic-bezier(.3, .55, .7, 1) .9s forwards;
-}
-
-@keyframes drop-arc {
-  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
-  45%  { opacity: 1; transform: translate(calc(var(--ddx, 20px) * .6), var(--ddup, -26px)) scale(.9); }
-  100% { opacity: 0; transform: translate(var(--ddx, 20px), 8px) scale(.45); }
 }
 
 /* Film grain. A tile of SVG noise, multiplied over everything including the

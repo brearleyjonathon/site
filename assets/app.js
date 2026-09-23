@@ -39,6 +39,16 @@
   var HOLE = 190;      // px: radius of the clearing once it is fully open
   var EASE = 0.12;
 
+  // The attractor points. Each wanders a slow Lissajous path, which stays
+  // smooth and bounded without any edge handling. One clock drives all
+  // five, and scrolling winds that clock forward: at rest it runs at 1,
+  // and a fast scroll takes it up to about ten times that before decaying.
+  var RUSH = 9;        // how much faster the field moves at full scroll
+  var CALM = 2.4;      // how quickly the rush bleeds off, per second
+  var points = [];
+  var drift = 0;       // the clock the paths are read from
+  var rush = 0;
+
   // The words scatter out of the pointer's way. Each is wrapped in a span
   // only while Fun is on, and put back when it is off. Words rather than
   // letters: a span per letter makes some screen readers spell the page out.
@@ -55,6 +65,38 @@
   var running = false;
   var clock = null;
   var typeWatch = null;
+
+  function plot() {
+    points = [].map.call(document.querySelectorAll(".blob"), function (el, i) {
+      return {
+        el: el,
+        ax: 0.30 + i * 0.035,           // how far it ranges, as a share of
+        ay: 0.26 + ((i * 7) % 5) * 0.02, // the viewport
+        fx: 0.055 + i * 0.011,          // and how fast, in radians a second
+        fy: 0.041 + ((i * 3) % 5) * 0.009,
+        px: i * 1.7,
+        py: i * 2.9 + 1.1
+      };
+    });
+  }
+
+  function place() {
+    var w = window.innerWidth;
+    var h = window.innerHeight;
+    for (var i = 0; i < points.length; i++) {
+      var pt = points[i];
+      var x = Math.sin(drift * pt.fx + pt.px) * pt.ax * w;
+      var y = Math.sin(drift * pt.fy + pt.py) * pt.ay * h;
+      pt.el.style.translate = x.toFixed(1) + "px " + y.toFixed(1) + "px";
+    }
+  }
+
+  function onScroll() {
+    var y = window.scrollY;
+    rush = Math.min(rush + Math.abs(y - (onScroll.was || 0)) * 0.05, RUSH);
+    onScroll.was = y;
+    scatterSoon();
+  }
 
   function mix(a, b, t) {
     var out = "#";
@@ -79,14 +121,30 @@
       if (into >= span) continue;
 
       var t = into / span;
+      var blend = [0, 0, 0];
       a.set.forEach(function (colour, n) {
-        root.style.setProperty("--c" + (n + 1), mix(colour, b.set[n], t));
+        var now = mix(colour, b.set[n], t);
+        root.style.setProperty("--c" + (n + 1), now);
+        for (var c = 0; c < 3; c++) {
+          blend[c] += parseInt(now.substr(1 + c * 2, 2), 16) / a.set.length;
+        }
       });
+      // The field sits on the average of the five, so it is colour to the
+      // edges instead of blobs floating on white.
+      root.style.setProperty("--base", "rgb(" + blend.map(Math.round).join(",") + ")");
       return;
     }
   }
 
-  function step() {
+  function step(now) {
+    var gap = Math.min((now - (step.last || now)) / 1000, 0.05);
+    step.last = now;
+
+    drift += gap * (1 + rush);
+    rush -= rush * CALM * gap;
+    if (rush < 0.01) rush = 0;
+    place();
+
     point.atX += (point.x - point.atX) * EASE;
     point.atY += (point.y - point.atY) * EASE;
     point.open += (point.want - point.open) * EASE;
@@ -95,17 +153,14 @@
     root.style.setProperty("--my", point.atY.toFixed(2) + "%");
     root.style.setProperty("--hole", point.open.toFixed(1) + "px");
 
-    if (Math.abs(point.x - point.atX) < 0.04 &&
-        Math.abs(point.y - point.atY) < 0.04 &&
-        Math.abs(point.want - point.open) < 0.4) {
-      frame = null;   // caught up; idle until the pointer moves again
-      return;
-    }
     frame = requestAnimationFrame(step);
   }
 
   function wake() {
-    if (running && frame === null) frame = requestAnimationFrame(step);
+    if (running && frame === null) {
+      step.last = 0;
+      frame = requestAnimationFrame(step);
+    }
   }
 
   function onPointerMove(event) {
@@ -286,11 +341,12 @@
     if (running) {
       paintClock();
       clock = window.setInterval(paintClock, 240000);   // keep up with the hour
+      plot();
+      window.addEventListener("scroll", onScroll, { passive: true });
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       window.addEventListener("pointerout", onPointerOut, { passive: true });
       if (!motion.matches) {
         shatter();
-        window.addEventListener("scroll", scatterSoon, { passive: true });
         window.addEventListener("resize", remeasure);
         // The typeface switch changes every word's box, so take them again.
         typeWatch = new MutationObserver(remeasure);
@@ -301,13 +357,16 @@
       window.clearInterval(clock);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerout", onPointerOut);
-      window.removeEventListener("scroll", scatterSoon);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", remeasure);
       if (typeWatch) { typeWatch.disconnect(); typeWatch = null; }
       mend();
       if (frame !== null) cancelAnimationFrame(frame);
       frame = null;
       point.open = point.want = 1;
+      rush = 0;
+      points.forEach(function (pt) { pt.el.style.removeProperty("translate"); });
+      points = [];
       ["--mx", "--my", "--hole"].forEach(function (name) {
         root.style.removeProperty(name);
       });
