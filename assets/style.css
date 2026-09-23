@@ -13,6 +13,7 @@
   --leading: 1.65;     /* body line-height */
   --family: var(--sans);
   --x-height: none;    /* see the serif block below */
+  --head: 1.2857em;    /* 18px: section titles and their subheadings */
 }
 
 /* Baskerville has a much smaller x-height than Helvetica. Rather than bump
@@ -184,7 +185,7 @@ body.ready * {
    what separates them from the bold subheadings inside a section. */
 .section > h2 {
   margin: 0 0 1.25rem;
-  font-size: 1.125em;
+  font-size: var(--head);
   font-weight: 600;
   letter-spacing: -0.005em;
   color: var(--text);
@@ -196,7 +197,7 @@ body.ready * {
    set in the regular weight, so the level reads without another size step. */
 h3 {
   margin: 2rem 0 .5rem;
-  font-size: 1.125em;
+  font-size: var(--head);
   font-weight: 400;
   letter-spacing: -0.005em;
 }
