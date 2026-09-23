@@ -1099,6 +1099,7 @@
   // dash round the pill. Nothing here runs per frame.
   var PAD = 8;       // px of room the svg has round the pill
   var lineSvg = null, linePaths = null;
+  var hem = [];      // the scallop's points, in the pill's own coordinates
 
   function around(w, h, s) {
     var r = h / 2, run = w - h, arc = Math.PI * r, a;
@@ -1116,12 +1117,21 @@
     var L = 2 * (w - h) + Math.PI * h;
     var bumps = Math.max(8, Math.round(L / 14));
     var n = Math.max(120, bumps * 12);
-    var d = "";
+    var pts = [];
     for (var i = 0; i < n; i++) {
       var s = L * i / n;
       var p = around(w, h, s);
       var k = out + amp * Math.sin(2 * Math.PI * bumps * s / L);
-      d += (i ? "L" : "M") + (p[0] + p[2] * k).toFixed(1) + " " + (p[1] + p[3] * k).toFixed(1);
+      pts.push([p[0] + p[2] * k, p[1] + p[3] * k]);
+    }
+    return pts;
+  }
+
+  // The points as a path, shifted by (dx, dy).
+  function trace(pts, dx, dy) {
+    var d = "";
+    for (var i = 0; i < pts.length; i++) {
+      d += (i ? "L" : "M") + (pts[i][0] - dx).toFixed(1) + " " + (pts[i][1] - dy).toFixed(1);
     }
     return d + "Z";
   }
@@ -1137,8 +1147,10 @@
     if (!w || !h) return;
     lineSvg.setAttribute("viewBox", (-PAD) + " " + (-PAD) + " " + (w + 2 * PAD) + " " + (h + 2 * PAD));
     // Inset: the outer peaks reach just inside the pill's edge, never past it.
-    linePaths[0].setAttribute("d", scallop(w, h, -2.9, 2));
+    hem = scallop(w, h, -2.9, 2);
+    linePaths[0].setAttribute("d", trace(hem, 0, 0));
     linePaths[0].setAttribute("pathLength", "1000");   // so the CSS dash is in known units
+    trim();
   }
 
   // The pill's thumb sits under whichever side is pressed. On a switch it
@@ -1153,13 +1165,15 @@
     var box = pill.getBoundingClientRect();
     var to = on.getBoundingClientRect();
     var from = thumb.getBoundingClientRect();   // before the target moves it
-    // The thumb sits a little inside the button it marks, so it stays
-    // within the squiggle's band rather than running under it.
-    var IN = 2;
+    // The thumb runs from the pill's own edge, on the outer side, to the
+    // boundary with the next button; the scallop clip trims it to shape.
+    var sides = pill.querySelectorAll("[data-set-fun]");
+    var start = on === sides[0] ? 0 : to.left - box.left;
+    var end = on === sides[sides.length - 1] ? box.width : to.right - box.left;
     var edge = pill.clientLeft;   // the border: `left` is measured inside it
-    pill.style.setProperty("--th", (box.height - 8).toFixed(1) + "px");
-    pill.style.setProperty("--tx", (to.left - box.left - edge + IN).toFixed(1) + "px");
-    pill.style.setProperty("--tw", (to.width - 2 * IN).toFixed(1) + "px");
+    pill.style.setProperty("--th", box.height.toFixed(1) + "px");
+    pill.style.setProperty("--tx", (start - edge).toFixed(1) + "px");
+    pill.style.setProperty("--tw", (end - start).toFixed(1) + "px");
 
     // A plain re-seat while a hop is still playing only moves its target;
     // the hop keeps going and lands there.
@@ -1172,7 +1186,29 @@
     if (hop && !motion.matches) {
       void thumb.offsetWidth;   // restart the animation from the top
       thumb.classList.add("hop");
+      var until = performance.now() + 800;
+      (function follow() {
+        trim();
+        if (performance.now() < until) requestAnimationFrame(follow);
+      })();
+    } else {
+      trim();
     }
+  }
+
+  // Clip the thumb to the scallop. The path is in the pill's coordinates,
+  // so it is shifted by wherever the thumb is at the moment; during a hop
+  // this is called every frame, and once more when the hop has landed.
+  document.addEventListener("animationend", function (e) {
+    if (e.target.classList && e.target.classList.contains("thumb")) trim();
+  });
+
+  function trim() {
+    var thumb = document.querySelector(".switch.pill .thumb");
+    if (!thumb || !hem.length) return;
+    var pill = thumb.parentNode.getBoundingClientRect();
+    var at = thumb.getBoundingClientRect();
+    thumb.style.clipPath = 'path("' + trace(hem, at.left - pill.left, at.top - pill.top) + '")';
   }
 
   window.addEventListener("resize", function () { seat(false); outline(); });
