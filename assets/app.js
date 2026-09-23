@@ -727,36 +727,43 @@
   }
 
   // Where the animals end up. Each one surfaces along the bottom of the
-  // window and takes the next place in the row; when the row is full the
-  // first to arrive slips away and the rest shuffle along.
-  var SLOT = 54;       // px from one animal to the next
-  var EDGE = 14;       // px in from the left
+  // window exactly where it landed, at the size it dived at, and stays
+  // there; only when the water gets crowded does the first to arrive slip
+  // away.
+  var CROWD = 40;      // how many can be afloat at once
+  var EDGE = 6;        // px in from the sides they are kept
   var swimmers = [];
   var surfacing = [];  // timers for animals still under water
 
-  function surface(kind) {
+  function surface(kind, x, size) {
     if (!running) return;
     var el = document.createElement("span");
     el.className = "swimmer";
     el.innerHTML = floater(kind);
+    el.style.setProperty("--size", size.toFixed(2));
     el.style.setProperty("--bob-delay", (-Math.random() * 3.2).toFixed(2) + "s");
     el.style.setProperty("--bob-time", (2.8 + Math.random() * 1.2).toFixed(2) + "s");
-    el.style.left = (EDGE + swimmers.length * SLOT) + "px";
+    el.dataset.x = x.toFixed(0);
+    settle(el);
     swimmers.push(el);
     document.body.appendChild(el);
-    lineUp();
-  }
-
-  function lineUp() {
-    var fit = Math.max(1, Math.floor((window.innerWidth - EDGE * 2) / SLOT));
-    while (swimmers.length > fit) {
+    while (swimmers.length > CROWD) {
       var gone = swimmers.shift();
       gone.classList.add("gone");
       window.setTimeout(function () { gone.remove(); }, 600);
     }
-    swimmers.forEach(function (el, i) {
-      el.style.left = (EDGE + i * SLOT) + "px";
-    });
+  }
+
+  // Centre the animal on where it landed, kept just inside the window.
+  function settle(el) {
+    var width = 44 * parseFloat(el.style.getPropertyValue("--size") || "1");
+    var left = parseFloat(el.dataset.x) - width / 2;
+    left = Math.max(EDGE, Math.min(window.innerWidth - EDGE - width, left));
+    el.style.left = left.toFixed(0) + "px";
+  }
+
+  function lineUp() {
+    swimmers.forEach(settle);
   }
 
   function clearRow() {
@@ -775,6 +782,7 @@
     var across = (Math.random() < 0.5 ? -1 : 1) * (42 + Math.random() * 52);
     var down = Math.max(40, window.innerHeight - 10 - event.clientY);
     var flight = 0.7 + down / 700;   // seconds in the air
+    var size = 0.72 + Math.random() * 0.66;   // no two quite the same size
     var landX = event.clientX + across;
     var landY = event.clientY + down;
 
@@ -785,10 +793,11 @@
     diver.style.setProperty("--dx", across.toFixed(0) + "px");
     diver.style.setProperty("--dy", down.toFixed(0) + "px");
     diver.style.setProperty("--flight", flight.toFixed(2) + "s");
+    diver.style.setProperty("--size", size.toFixed(2));
     var kind = ANIMALS[turn++ % ANIMALS.length];
     diver.innerHTML = "<i>" + jumper(kind) + "</i>";
     sink(diver);
-    surfacing.push(window.setTimeout(function () { surface(kind); }, flight * 1000 + 550));
+    surfacing.push(window.setTimeout(function () { surface(kind, landX, size); }, flight * 1000 + 550));
 
     var water = document.createElement("span");
     water.className = "splash";
