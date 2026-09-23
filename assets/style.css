@@ -475,9 +475,11 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   .shard { transition: none; }
 }
 
-/* A click sends a little figure off the pointer, arcing down into the page
-   and under, leaving a ring and a few droplets behind. Drawn in ink rather
-   than in the palette, so it reads against the colour. */
+/* A click sends a little bear off the pointer: it hops, tucks, spins once
+   and lands bottom-first in the page, leaving a heave of water, a burst of
+   splash strokes, a few droplets and a word behind. Drawn in ink rather
+   than in the palette, so it reads against the colour, and doodled rather
+   than drafted: the strokes are set in assets/app.js. */
 
 .diver {
   position: fixed;
@@ -488,68 +490,140 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 }
 
 .diver i {
+  position: relative;
   display: block;
-  animation: dive-fall .95s forwards, dive-turn .95s ease-in forwards;
+  width: 44px;
+  height: 48px;
+  margin: -1.6rem 0 0 -1.4rem;
+  transform-origin: 50% 55%;
+  animation: dive-fall .95s forwards;
 }
 
+/* The standing bear and the tucked one share the box and cross-fade at
+   the top of the hop. */
 .diver svg {
+  position: absolute;
+  inset: 0;
   display: block;
-  margin: -1.35rem 0 0 -0.8rem;
+  overflow: visible;
 }
+
+.diver .stand { animation: show-stand .95s linear forwards; }
+.diver .tuck  { opacity: 0; animation: show-tuck .95s linear forwards; }
 
 @keyframes dive-across {
   from { translate: 0 0; }
   to   { translate: var(--dx, 60px) 0; }
 }
 
-/* Up off the pointer, hang, then away down. The timing function set inside
-   a keyframe governs the segment that starts there. */
+/* Up off the pointer, hang, then away down, turning over once on the way.
+   The timing function set inside a keyframe governs the segment that
+   starts there. */
 @keyframes dive-fall {
   0% {
-    transform: translateY(0);
+    transform: translateY(0) rotate(0deg);
     animation-timing-function: cubic-bezier(.16, .7, .45, 1);
   }
   34% {
-    transform: translateY(-54px);
-    animation-timing-function: cubic-bezier(.55, 0, .85, .5);
+    transform: translateY(-58px) rotate(40deg);
+    animation-timing-function: cubic-bezier(.5, 0, .8, .45);
   }
-  92%  { opacity: 1; }
-  100% { transform: translateY(var(--dy, 170px)); opacity: 0; }
+  93%  { opacity: 1; }
+  100% { transform: translateY(var(--dy, 170px)) rotate(360deg); opacity: 0; }
 }
 
-@keyframes dive-turn {
-  from { rotate: -12deg; }
-  to   { rotate: 168deg; }
+@keyframes show-stand {
+  0%, 24%   { opacity: 1; }
+  34%, 100% { opacity: 0; }
 }
 
+@keyframes show-tuck {
+  0%, 24%   { opacity: 0; }
+  34%, 100% { opacity: 1; }
+}
+
+/* The water. Its two halves draw themselves out from the landing point as
+   the bear goes under, the whole line heaves up and settles, then fades. */
 .splash {
   position: fixed;
   z-index: 3;
-  width: 4.2rem;
-  height: 4.2rem;
-  margin: -2.1rem 0 0 -2.1rem;
-  border: 2px solid var(--text);
-  border-radius: 50%;
+  width: 6.6rem;
+  height: 1.25rem;
+  margin: -.62rem 0 0 -3.3rem;
+  color: var(--text);
   pointer-events: none;
   opacity: 0;
-  animation: splash-out .55s ease-out .9s forwards;
+  transform-origin: 50% 50%;
+  animation: splash-show 1.15s linear .88s forwards;
 }
 
-/* A second ring just behind the first, so the surface reads as disturbed
-   rather than as one expanding outline. */
-.splash::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1.5px solid var(--text);
-  border-radius: 50%;
-  animation: splash-out .55s ease-out .14s forwards;
+.splash svg,
+.flicks svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-@keyframes splash-out {
-  0%   { opacity: 1;  transform: scale(.16, .06); }
-  40%  { opacity: .8; }
-  100% { opacity: 0;  transform: scale(1.3, .5); }
+.splash path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: splash-draw .4s cubic-bezier(.2, .7, .3, 1) .88s forwards;
+}
+
+@keyframes splash-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes splash-show {
+  0%   { opacity: 1; transform: scale(.9, 1); }
+  12%  { opacity: 1; transform: scale(1, 1.7); }
+  24%  { opacity: 1; transform: scale(1, .8); }
+  36%  { opacity: 1; transform: scale(1, 1.15); }
+  50%  { opacity: 1; transform: scale(1, 1); }
+  100% { opacity: 0; transform: translateY(3px) scale(1.08, 1); }
+}
+
+/* The splash strokes, flying up and out of the landing and gone. */
+.flicks {
+  position: fixed;
+  z-index: 3;
+  width: 7.2rem;
+  height: 3.3rem;
+  margin: -3.2rem 0 0 -3.6rem;
+  color: var(--text);
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  animation: flick .6s cubic-bezier(.2, .7, .35, 1) .9s forwards;
+}
+
+@keyframes flick {
+  0%   { opacity: 1; transform: translateY(6px) scale(.25); }
+  45%  { opacity: 1; transform: translateY(-10px) scale(1); }
+  100% { opacity: 0; transform: translateY(-20px) scale(1.1); }
+}
+
+/* The word, in the page's own type, popping up beside the splash. */
+.sploosh {
+  position: fixed;
+  z-index: 3;
+  margin: -.6em 0 0 -1.6em;
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  animation: sploosh .85s cubic-bezier(.2, .9, .3, 1.2) .92s forwards;
+}
+
+@keyframes sploosh {
+  0%   { opacity: 1; transform: rotate(-8deg) scale(.4); }
+  30%  { opacity: 1; transform: rotate(-6deg) scale(1); }
+  70%  { opacity: 1; transform: rotate(-6deg) translateY(-4px); }
+  100% { opacity: 0; transform: rotate(-6deg) translateY(-12px); }
 }
 
 .drop {
@@ -562,7 +636,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   border-radius: 50%;
   pointer-events: none;
   opacity: 0;
-  animation: drop-arc .65s cubic-bezier(.3, .55, .7, 1) .9s forwards;
+  animation: drop-arc .7s cubic-bezier(.3, .55, .7, 1) .9s forwards;
 }
 
 @keyframes drop-arc {
@@ -574,7 +648,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme="fun"] body::after { animation: none; }
   .blob { animation: none; }
-  .diver, .splash, .drop { display: none; }
+  .diver, .splash, .flicks, .sploosh, .drop { display: none; }
 }
 
 /* =========================================================================

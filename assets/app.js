@@ -24,14 +24,72 @@
     { at: 19, set: ["#ff5c7a", "#ff8a3d", "#d94fd0", "#8a5cff", "#ff4f9a"] }
   ];
 
-  var FIGURE =
-    '<svg viewBox="0 0 24 34" width="26" height="37" aria-hidden="true">' +
-      '<circle cx="12" cy="6" r="3.6" fill="currentColor"/>' +
-      '<path d="M12 10.5 V23 M12 13 L5.5 7.5 M12 13 L18.5 7.5 ' +
-              'M12 23 L8.4 32 M12 23 L15.6 32" ' +
-            'fill="none" stroke="currentColor" stroke-width="2.2" ' +
-            'stroke-linecap="round" stroke-linejoin="round"/>' +
-    '</svg>';
+  // A little bear, drawn as if doodled: the head is a loop that overshoots
+  // itself rather than a circle, no stroke quite meets the next, and a
+  // little turbulence roughens every edge so it reads as pencil rather than
+  // as vector. It stands with its arms up, then tucks into a ball for the
+  // cannonball; the two drawings are stacked and cross-faded in flight.
+  function ink(id) {
+    return '<defs><filter id="' + id + '" x="-20%" y="-20%" width="140%" height="140%">' +
+        '<feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="4" result="n"/>' +
+        '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/>' +
+      '</filter></defs>' +
+      '<g fill="none" stroke="currentColor" stroke-width="2.2" ' +
+         'stroke-linecap="round" stroke-linejoin="round" filter="url(#' + id + ')">';
+  }
+
+  function bear(cls, strokes) {
+    return '<svg class="' + cls + '" viewBox="0 0 40 44" width="44" height="48" aria-hidden="true">' +
+      ink("sketch") + strokes + '</g></svg>';
+  }
+
+  var BEAR =
+    bear("stand",
+      '<path d="M26.6 6.4 C22.4 2.3 14.2 3.6 12.6 9 C11.1 14 15.4 18.8 20.6 18.4 C25.8 18 28.9 12.6 27 8 C26.8 7.6 26.6 7.2 26.3 6.8" stroke-width="2.1"/>' +
+      '<path d="M13.6 6.4 C12.2 3.4 14.8 1.2 17.2 3.4"/>' +
+      '<path d="M23.4 3.2 C25.8 1 28.6 3.2 27.2 6.2"/>' +
+      '<path d="M17.3 10.4 L17.4 10.5" stroke-width="3"/>' +
+      '<path d="M22.9 10.2 L23 10.3" stroke-width="3"/>' +
+      '<path d="M19.3 13.1 C20 12.3 21 12.4 21.4 13.2 C20.9 13.8 19.8 13.8 19.3 13.1" stroke-width="1.8"/>' +
+      '<path d="M18.4 15.4 C19.3 16.5 21.1 16.5 22 15.4" stroke-width="1.8"/>' +
+      '<path d="M15.4 19.4 C12.4 23.6 12.2 30.6 14.2 35.6 C16 40.2 24.2 40.2 25.9 35.6 C27.8 30.6 27.6 23.6 24.6 19.4"/>' +
+      '<path d="M14.6 22.4 C11.2 19.6 9.2 16.2 8.2 12.2" stroke-width="2.3"/>' +
+      '<path d="M25.4 22.4 C28.8 19.6 30.8 16.2 31.8 12.2" stroke-width="2.3"/>' +
+      '<path d="M12.6 41.2 C13.6 39.6 16.6 39.6 17.8 41.4 C16.4 42.6 13.8 42.6 12.6 41.2" stroke-width="2"/>' +
+      '<path d="M22.2 41.4 C23.4 39.6 26.4 39.6 27.4 41.2 C26.2 42.6 23.6 42.6 22.2 41.4" stroke-width="2"/>') +
+    bear("tuck",
+      '<path d="M26.5 8.6 C22.6 4.3 14.6 5.4 12.6 10.6 C10.8 15.6 15.2 20.6 20.6 20.2 C25.8 19.8 29 14.4 27.1 9.8 C26.9 9.3 26.6 8.9 26.2 8.5" stroke-width="2.1"/>' +
+      '<path d="M13.4 8.2 C12.2 5.2 14.6 3.2 16.8 5.4"/>' +
+      '<path d="M23.6 5.2 C25.8 3 28.4 5 27.2 8"/>' +
+      '<path d="M17.2 12.2 C17.4 12.6 17.8 12.6 18 12.2" stroke-width="2.6"/>' +
+      '<path d="M22.6 12 C22.8 12.4 23.2 12.4 23.4 12" stroke-width="2.6"/>' +
+      '<path d="M19.2 15.2 C19.9 14.4 20.9 14.5 21.3 15.3 C20.8 15.9 19.7 15.9 19.2 15.2" stroke-width="1.8"/>' +
+      '<path d="M18.2 17.2 C19.1 18.4 21.1 18.4 22 17.2" stroke-width="1.8"/>' +
+      '<path d="M15.2 20.8 C10.4 23.6 9 30 12.4 34.8 C16 39.8 24.4 40 28 35.4 C31.4 31 30.2 24.4 25.6 21.2"/>' +
+      '<path d="M14.4 24.6 C15.6 29.6 20.2 31.8 25.6 30.6" stroke-width="2.3"/>' +
+      '<path d="M25.8 23.4 C26.4 26.4 25.4 29 23.4 30.6" stroke-width="2.3"/>' +
+      '<path d="M17.6 35.4 C18.8 33.4 21.8 33.6 22.6 35.8 C21.2 37.2 18.6 37 17.6 35.4" stroke-width="2"/>' +
+      '<path d="M23.6 33.6 C25 31.8 27.8 32.4 28.2 34.6 C26.8 35.8 24.4 35.4 23.6 33.6" stroke-width="2"/>');
+
+  // The water the bear lands in: a wavy line that draws itself outward
+  // from the point of impact, in two halves so it spreads both ways at once.
+  var WATER =
+    '<svg viewBox="0 0 96 18" aria-hidden="true">' + ink("sketch-water") +
+      '<path pathLength="100" d="M48 9 C44.4 4.4 41 4.1 37.6 8.4 C34.2 12.7 30.8 12.9 27.4 8.9 C24 4.9 20.6 4.6 17.2 8.6 C13.8 12.6 10.4 12.8 7 8.8 C5.4 6.9 3.8 6.6 2.4 8.2"/>' +
+      '<path pathLength="100" d="M48 9 C51.5 13.6 54.9 13.7 58.3 9.3 C61.7 4.9 65.1 4.8 68.5 8.8 C71.9 12.8 75.3 13 78.7 9.1 C82.1 5.2 85.5 5.1 88.9 9 C90.6 11 92.2 11.2 93.6 9.6"/>' +
+    '</g></svg>';
+
+  // The splash: seven short strokes that fly up and out of the landing.
+  var FLICKS =
+    '<svg viewBox="0 0 120 55" aria-hidden="true">' + ink("sketch-flicks") +
+      '<path d="M49 50 C46 40 44.6 30 46.4 19"/>' +
+      '<path d="M38 51 C31.6 44 26.4 37 21.4 29"/>' +
+      '<path d="M26 52 C18.8 48.2 12.6 44 6.4 38.8"/>' +
+      '<path d="M71 50 C74 40 75.4 30 73.6 19"/>' +
+      '<path d="M82 51 C88.4 44 93.6 37 98.6 29"/>' +
+      '<path d="M94 52 C101.2 48.2 107.4 44 113.6 38.8"/>' +
+      '<path d="M60 48 C59.6 39 60.2 30 60.8 22"/>' +
+    '</g></svg>';
 
   // The clearing the pointer opens in the colour. Its centre and radius are
   // both eased a frame at a time, which is what makes it trail the cursor
@@ -376,8 +434,12 @@
     }, 160);
   }
 
+  // Children animate too, and their animationend bubbles, so only the
+  // element's own last animation is allowed to take it away.
   function sink(el) {
-    el.addEventListener("animationend", function () { el.remove(); });
+    el.addEventListener("animationend", function (e) {
+      if (e.target === el) el.remove();
+    });
     document.body.appendChild(el);
   }
 
@@ -396,22 +458,37 @@
     diver.style.top = event.clientY + "px";
     diver.style.setProperty("--dx", across.toFixed(0) + "px");
     diver.style.setProperty("--dy", down.toFixed(0) + "px");
-    diver.innerHTML = "<i>" + FIGURE + "</i>";
+    diver.innerHTML = "<i>" + BEAR + "</i>";
     sink(diver);
 
-    var ring = document.createElement("span");
-    ring.className = "splash";
-    ring.style.left = landX + "px";
-    ring.style.top = landY + "px";
-    sink(ring);
+    var water = document.createElement("span");
+    water.className = "splash";
+    water.style.left = landX + "px";
+    water.style.top = landY + "px";
+    water.innerHTML = WATER;
+    sink(water);
 
-    for (var i = 0; i < 5; i++) {
+    var flicks = document.createElement("span");
+    flicks.className = "flicks";
+    flicks.style.left = landX + "px";
+    flicks.style.top = landY + "px";
+    flicks.innerHTML = FLICKS;
+    sink(flicks);
+
+    var word = document.createElement("span");
+    word.className = "sploosh";
+    word.style.left = (landX + (across < 0 ? -1 : 1) * 46) + "px";
+    word.style.top = (landY - 58) + "px";
+    word.textContent = "sploosh!";
+    sink(word);
+
+    for (var i = 0; i < 7; i++) {
       var drop = document.createElement("span");
       drop.className = "drop";
       drop.style.left = landX + "px";
       drop.style.top = landY + "px";
-      drop.style.setProperty("--ddx", ((i - 2) * 11 + (Math.random() - 0.5) * 12).toFixed(0) + "px");
-      drop.style.setProperty("--ddup", (-20 - Math.random() * 22).toFixed(0) + "px");
+      drop.style.setProperty("--ddx", ((i - 3) * 14 + (Math.random() - 0.5) * 12).toFixed(0) + "px");
+      drop.style.setProperty("--ddup", (-30 - Math.random() * 36 - (3 - Math.abs(i - 3)) * 8).toFixed(0) + "px");
       drop.style.animationDelay = (0.9 + Math.random() * 0.06).toFixed(2) + "s";
       sink(drop);
     }
@@ -462,7 +539,7 @@
       rush = 0;
       points.forEach(function (pt) { pt.el.style.removeProperty("translate"); });
       points = [];
-      [].forEach.call(document.querySelectorAll(".diver, .splash, .drop"),
+      [].forEach.call(document.querySelectorAll(".diver, .splash, .flicks, .sploosh, .drop"),
         function (el) { el.remove(); });
     }
   }
