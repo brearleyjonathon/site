@@ -859,13 +859,13 @@
     el.style.left = left.toFixed(0) + "px";
   }
 
-  // With the serif on they line up, in a neat row from the left in the
-  // order they landed across the page; with the sans they stay where they
+  // With the sans on they line up, in a neat row from the left in the
+  // order they landed across the page; with the serif they stay where they
   // landed. `left` eases, so a change of face sends them sliding.
   var GAP = 6;   // px between neighbours in the row
 
   function lineUp() {
-    if (root.getAttribute("data-font") !== "serif") {
+    if (root.getAttribute("data-font") === "serif") {
       swimmers.forEach(settle);
       return;
     }
