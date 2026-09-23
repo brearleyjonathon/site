@@ -10,63 +10,151 @@
   }
 
   // --- Fun mode ----------------------------------------------------------
-  // The blobs drift on their own in CSS, through `transform`. Here we only
-  // shove them away from the pointer, through the separate `translate`
-  // property, so the two motions compose without fighting.
+  // A small thermal model. The pointer is a heat source: blobs near it warm
+  // up, and warm blobs swell and rise, because that is what warm air does.
+  // Heat bleeds away on its own, so they sink back once you move on. Leave
+  // the page alone and everything drifts toward the middle and evens out,
+  // which is what equilibrium looks like.
   //
-  // A blob's own rect already includes the shove we applied last frame, so
-  // we subtract it back off to get where the blob would be standing
-  // undisturbed. Measuring from there is what keeps it from chasing itself.
+  // The blobs also drift on their own through CSS `transform`. We only ever
+  // write the separate `translate` and `scale` properties, so the two
+  // motions compose and neither has to know about the other.
 
-  var REACH = 430;      // px: how close the pointer has to be to matter
-  var SHOVE = 260;      // px: how far a blob is pushed at point-blank range
-  var EASE = 0.09;
+  var REACH = 300;        // px: how close the pointer has to be to warm a blob
+  var GAIN = 2.6;         // heat picked up per second at point-blank range
+  var COOL = 0.55;        // share of a blob's heat lost per second
+  var LIFT = 115;         // px a fully warm blob rises
+  var SWELL = 0.16;       // how much a fully warm blob grows
+  var SETTLE = 0.34;      // how far toward the middle they drift once calm
+  var CALM_AFTER = 1200;  // ms of stillness before they start settling
+  var CALM_OVER = 4500;   // ms from there to full equilibrium
+  var PLUME_EVERY = 430;  // ms between puffs while the pointer lingers
+  var PLUME_MAX = 14;
+
+  // Anchors through the day. Between them the colours are mixed by the
+  // hour, so the page warms up and cools down rather than jumping.
+  var HOURS = [
+    { at: 3,  set: ["#5566cc", "#3f8fb0", "#6f57bd", "#4a74d6", "#8460c8"] },
+    { at: 8,  set: ["#ff7a8a", "#ffb36b", "#ffd166", "#f78fb3", "#8fc9bd"] },
+    { at: 13, set: ["#ff2d55", "#ffb300", "#00c853", "#2979ff", "#aa00ff"] },
+    { at: 19, set: ["#ff5c7a", "#ff8a3d", "#d94fd0", "#8a5cff", "#ff4f9a"] }
+  ];
 
   var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  var cursor = { x: 0, y: 0, here: false };
+  var cursor = { x: 0, y: 0, here: false, plumeX: 0, plumeY: 0 };
   var blobs = [];
+  var field = null;
+  var colours = HOURS[2].set;
   var frame = null;
   var running = false;
+  var clock = null;
+  var lastFrame = 0;
+  var lastMove = 0;
+  var lastPlume = 0;
 
-  function collect() {
-    blobs = [].map.call(document.querySelectorAll(".blob"), function (el) {
-      return { el: el, x: 0, y: 0, toX: 0, toY: 0 };
-    });
+  function mix(a, b, t) {
+    var out = "#";
+    for (var i = 1; i < 7; i += 2) {
+      var from = parseInt(a.substr(i, 2), 16);
+      var to = parseInt(b.substr(i, 2), 16);
+      var v = Math.round(from + (to - from) * t).toString(16);
+      out += v.length < 2 ? "0" + v : v;
+    }
+    return out;
   }
 
-  function aim() {
+  function paintClock() {
+    var now = new Date();
+    var hour = now.getHours() + now.getMinutes() / 60;
+
+    for (var i = 0; i < HOURS.length; i++) {
+      var a = HOURS[i];
+      var b = HOURS[(i + 1) % HOURS.length];
+      var span = (b.at - a.at + 24) % 24;
+      var into = (hour - a.at + 24) % 24;
+      if (into >= span) continue;
+
+      var t = into / span;
+      colours = a.set.map(function (colour, n) { return mix(colour, b.set[n], t); });
+      colours.forEach(function (colour, n) {
+        root.style.setProperty("--c" + (n + 1), colour);
+      });
+      return;
+    }
+  }
+
+  function puff(now) {
+    if (!field || now - lastPlume < PLUME_EVERY) return;
+    // Only where the pointer lingers, not along every sweep of it.
+    var travelled = Math.hypot(cursor.x - cursor.plumeX, cursor.y - cursor.plumeY);
+    if (travelled > 70) {
+      cursor.plumeX = cursor.x;
+      cursor.plumeY = cursor.y;
+      return;
+    }
+    if (field.querySelectorAll(".plume").length >= PLUME_MAX) return;
+
+    lastPlume = now;
+    cursor.plumeX = cursor.x;
+    cursor.plumeY = cursor.y;
+
+    var warm = colours[Math.floor(Math.random() * colours.length)];
+    var puffEl = document.createElement("span");
+    puffEl.className = "plume";
+    puffEl.style.left = cursor.x + "px";
+    puffEl.style.top = cursor.y + "px";
+    puffEl.style.background = "radial-gradient(closest-side, " + warm + ", transparent)";
+    puffEl.addEventListener("animationend", function () { puffEl.remove(); });
+    field.appendChild(puffEl);
+  }
+
+  function step(now) {
+    var gap = Math.min((now - lastFrame) / 1000, 0.05);
+    lastFrame = now;
+
+    var still = now - lastMove;
+    var calm = Math.max(0, Math.min((still - CALM_AFTER) / CALM_OVER, 1));
+    var midX = window.innerWidth / 2;
+    var midY = window.innerHeight / 2;
+    var resting = calm >= 1;
+
+    // A pointer left sitting there stops counting as a heat source, so the
+    // page can actually reach equilibrium rather than being held warm.
+    var source = 1 - calm;
+    if (cursor.here && source > 0.4) puff(now);
+
     for (var i = 0; i < blobs.length; i++) {
       var b = blobs[i];
-      if (!cursor.here) { b.toX = b.toY = 0; continue; }
-
       var r = b.el.getBoundingClientRect();
-      var dx = r.left + r.width / 2 - b.x - cursor.x;
-      var dy = r.top + r.height / 2 - b.y - cursor.y;
-      var away = Math.sqrt(dx * dx + dy * dy) || 1;
-      var near = Math.max(0, 1 - away / REACH);
-      var by = near * near * SHOVE;   // falls off fast, so only close blobs move
+      // Where the blob would be standing with no heat applied. Measuring
+      // from here is what stops it chasing its own displacement.
+      var cx = r.left + r.width / 2 - b.x;
+      var cy = r.top + r.height / 2 - b.y;
 
-      b.toX = (dx / away) * by;
-      b.toY = (dy / away) * by;
-    }
-  }
+      if (cursor.here) {
+        var away = Math.hypot(cx - cursor.x, cy - cursor.y);
+        var near = Math.max(0, 1 - away / REACH);
+        b.heat += near * near * GAIN * gap * source;
+      }
+      b.heat -= b.heat * COOL * gap;
+      if (b.heat > 1) b.heat = 1;
+      if (b.heat < 0.0008) b.heat = 0;
 
-  function step() {
-    aim();
+      var toX = (midX - cx) * SETTLE * calm;
+      var toY = (midY - cy) * SETTLE * calm - b.heat * LIFT;
 
-    var settled = true;
-    for (var i = 0; i < blobs.length; i++) {
-      var b = blobs[i];
-      b.x += (b.toX - b.x) * EASE;
-      b.y += (b.toY - b.y) * EASE;
+      b.x += (toX - b.x) * 0.06;
+      b.y += (toY - b.y) * 0.06;
       b.el.style.translate = b.x.toFixed(1) + "px " + b.y.toFixed(1) + "px";
-      if (Math.abs(b.toX - b.x) > 0.3 || Math.abs(b.toY - b.y) > 0.3) settled = false;
+      b.el.style.scale = (1 + b.heat * SWELL).toFixed(3);
+
+      if (b.heat > 0 || Math.abs(toX - b.x) > 0.5 || Math.abs(toY - b.y) > 0.5) {
+        resting = false;
+      }
     }
 
-    // While the pointer is on the page the blobs keep drifting under it, so
-    // the loop has to keep looking. Once it leaves, we only run long enough
-    // for everything to slide back.
-    if (settled && !cursor.here) {
+    // Nothing left to change until the pointer moves again.
+    if (resting) {
       frame = null;
       return;
     }
@@ -74,13 +162,16 @@
   }
 
   function wake() {
-    if (running && frame === null) frame = requestAnimationFrame(step);
+    if (!running || frame !== null) return;
+    lastFrame = performance.now();
+    frame = requestAnimationFrame(step);
   }
 
   function onPointerMove(event) {
     cursor.x = event.clientX;
     cursor.y = event.clientY;
     cursor.here = true;
+    lastMove = performance.now();
     wake();
   }
 
@@ -97,17 +188,30 @@
     running = wanted;
 
     if (running) {
-      collect();
+      field = document.querySelector(".blobs");
+      blobs = [].map.call(document.querySelectorAll(".blob"), function (el) {
+        return { el: el, x: 0, y: 0, heat: 0 };
+      });
+      paintClock();
+      clock = window.setInterval(paintClock, 240000);   // keep up with the hour
+      lastMove = performance.now() - CALM_AFTER - CALM_OVER;
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       window.addEventListener("pointerout", onPointerOut, { passive: true });
       wake();
     } else {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerout", onPointerOut);
+      window.clearInterval(clock);
       if (frame !== null) cancelAnimationFrame(frame);
       frame = null;
       cursor.here = false;
-      blobs.forEach(function (b) { b.el.style.removeProperty("translate"); });
+      if (field) {
+        [].forEach.call(field.querySelectorAll(".plume"), function (el) { el.remove(); });
+      }
+      blobs.forEach(function (b) {
+        b.el.style.removeProperty("translate");
+        b.el.style.removeProperty("scale");
+      });
     }
   }
 
