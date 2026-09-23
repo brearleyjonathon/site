@@ -642,7 +642,6 @@
     if (rush < 0.01) rush = 0;
     place();
     paintHue();
-    outline(now);
     sow(now);
     paint(now);
     if (flying.length && shards.length) scatter();   // the animals shove as they fall
@@ -959,7 +958,7 @@
 
     if (running) {
       startHue();
-      outline(0);
+      outline();
       plot();
       canvas = document.querySelector(".trail");
       ctx = canvas ? canvas.getContext("2d") : null;
@@ -974,7 +973,7 @@
         shatter();
         window.addEventListener("resize", remeasure);
         // The typeface switch changes every word's box, so take them again.
-        typeWatch = new MutationObserver(function () { remeasure(); lineUp(); });
+        typeWatch = new MutationObserver(function () { remeasure(); lineUp(); outline(); seat(false); });
         typeWatch.observe(root, { attributes: true, attributeFilter: ["data-font"] });
       }
       wake();
@@ -1023,9 +1022,10 @@
 
   // The scalloped line round the Source/Field pill. A point is walked
   // round the pill's perimeter and pushed out along the normal by a wave
-  // with a whole number of bumps, so the scallops are even. Only about
-  // three quarters of the way round is drawn, like a doodle left
-  // unfinished, and the whole line travels round the pill while Fun is on.
+  // with a whole number of bumps, so the scallops are even and the path
+  // closes. It is drawn once; CSS then dashes it so that about three
+  // quarters of it shows, like a doodle left unfinished, and slides the
+  // dash round the pill. Nothing here runs per frame.
   var PAD = 8;       // px of room the svg has round the pill
   var lineSvg = null, linePaths = null;
 
@@ -1041,21 +1041,21 @@
     return [r + r * Math.cos(a), r + r * Math.sin(a), Math.cos(a), Math.sin(a)];
   }
 
-  function scallop(w, h, out, amp, phase, start, share) {
+  function scallop(w, h, out, amp) {
     var L = 2 * (w - h) + Math.PI * h;
     var bumps = Math.max(8, Math.round(L / 14));
     var n = Math.max(120, bumps * 12);
     var d = "";
-    for (var i = 0; i <= n * share; i++) {
-      var s = (start + L * i / n) % L;
+    for (var i = 0; i < n; i++) {
+      var s = L * i / n;
       var p = around(w, h, s);
-      var k = out + amp * Math.sin(2 * Math.PI * bumps * s / L + phase);
+      var k = out + amp * Math.sin(2 * Math.PI * bumps * s / L);
       d += (i ? "L" : "M") + (p[0] + p[2] * k).toFixed(1) + " " + (p[1] + p[3] * k).toFixed(1);
     }
-    return d;
+    return d + "Z";
   }
 
-  function outline(now) {
+  function outline() {
     if (!lineSvg) {
       lineSvg = document.querySelector(".pill-line");
       linePaths = lineSvg ? lineSvg.querySelectorAll("path") : null;
@@ -1065,10 +1065,8 @@
     var w = pill.offsetWidth, h = pill.offsetHeight;
     if (!w || !h) return;
     lineSvg.setAttribute("viewBox", (-PAD) + " " + (-PAD) + " " + (w + 2 * PAD) + " " + (h + 2 * PAD));
-    var L = 2 * (w - h) + Math.PI * h;
-    var phase = now / 1100;
-    var start = ((now / 9000) % 1) * L;    // the line travels round the pill every nine seconds
-    linePaths[0].setAttribute("d", scallop(w, h, 4, 2.4, phase, start, 0.72));
+    linePaths[0].setAttribute("d", scallop(w, h, 4, 2.4));
+    linePaths[0].setAttribute("pathLength", "1000");   // so the CSS dash is in known units
   }
 
   // The pill's thumb sits under whichever side is pressed. On a switch it
@@ -1101,7 +1099,7 @@
     }
   }
 
-  window.addEventListener("resize", function () { seat(false); outline(0); });
+  window.addEventListener("resize", function () { seat(false); outline(); });
 
   document.addEventListener("click", function (event) {
     var button = event.target.closest("[data-set-theme], [data-set-font], [data-set-fun]");
