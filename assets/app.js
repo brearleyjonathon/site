@@ -36,8 +36,12 @@
   // The clearing the pointer opens in the colour. Its centre and radius are
   // both eased a frame at a time, which is what makes it trail the cursor
   // instead of snapping to it.
-  var HOLE = 150;      // px: radius of the clearing the pointer carries
-  var KEEP = 0.34;     // share of the trail still there a second later
+  var HOLE = 130;      // px: radius a clearing starts from
+  var LIFE = 2300;     // ms a clearing takes to open out and go
+  var SEED = 70;       // ms between clearings while the pointer is down here
+  var STEP = 22;       // px of travel that also earns one
+  var FROM = 0.40;     // it opens from this share of HOLE
+  var TO = 1.85;       // out to this one
 
   // The attractor points. Each wanders a slow Lissajous path, which stays
   // smooth and bounded without any edge handling. One clock drives all
@@ -64,24 +68,31 @@
   var ctx = null;
   var sprite = null;
   var grain = 1;       // canvas pixels per css pixel
-  var last = { x: 0, y: 0, going: false };
+  var last = { x: 0, y: 0, going: false, sown: 0 };
+  var marks = [];
   var frame = null;
   var running = false;
   var clock = null;
   var typeWatch = null;
 
-  // One soft disc, drawn once and stamped over and over. Building a fresh
-  // gradient for every stamp would be the slow way round.
+  // One clearing, drawn once at a good size and then scaled. Its edge runs
+  // through several stops rather than two, so it reads as a value falling
+  // off through a ramp rather than a disc with a blurred rim.
+  var RAMP = [
+    [0.00, 0.92], [0.22, 0.86], [0.40, 0.70],
+    [0.58, 0.46], [0.74, 0.25], [0.88, 0.09], [1.00, 0]
+  ];
+
   function cut() {
-    var size = Math.ceil(HOLE * 2 * grain);
+    var size = Math.ceil(HOLE * 2 * grain * TO);
     sprite = document.createElement("canvas");
     sprite.width = sprite.height = size;
     var edge = sprite.getContext("2d");
     var mid = size / 2;
     var glow = edge.createRadialGradient(mid, mid, 0, mid, mid, mid);
-    glow.addColorStop(0, "rgba(255,255,255,0.9)");
-    glow.addColorStop(0.42, "rgba(255,255,255,0.55)");
-    glow.addColorStop(1, "rgba(255,255,255,0)");
+    RAMP.forEach(function (stop) {
+      glow.addColorStop(stop[0], "rgba(255,255,255," + stop[1] + ")");
+    });
     edge.fillStyle = glow;
     edge.fillRect(0, 0, size, size);
   }
@@ -93,36 +104,55 @@
     canvas.height = Math.round(window.innerHeight * grain);
     cut();
     last.going = false;
+    marks.length = 0;
   }
 
-  function stamp(x, y) {
-    var size = sprite.width;
-    ctx.drawImage(sprite, x * grain - size / 2, y * grain - size / 2);
-  }
-
-  function wear(gap) {
-    if (!ctx) return;
-
-    // Take a slice of alpha off everything, so the path closes over behind
-    // the pointer instead of staying open.
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.fillStyle = "rgba(0,0,0," + (1 - Math.pow(KEEP, gap)).toFixed(4) + ")";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalCompositeOperation = "source-over";
-
+  // Each clearing is kept rather than burned into the canvas, because it has
+  // to keep opening out after it is made. The canvas is redrawn each frame
+  // from the ones still alive.
+  function sow(now) {
     if (!last.going) return;
 
-    // Stamp along the way the pointer came, so a quick sweep leaves a
-    // ribbon rather than a row of dots.
     var dx = held.x - last.x;
     var dy = held.y - last.y;
     var far = Math.sqrt(dx * dx + dy * dy);
-    var hops = Math.max(1, Math.min(Math.ceil(far / 16), 24));
+    if (now - last.sown < SEED && far < STEP) return;
+
+    // Space them along the way the pointer came, so a quick sweep opens a
+    // ribbon rather than a row of dots.
+    var hops = Math.max(1, Math.min(Math.round(far / STEP), 12));
     for (var i = 1; i <= hops; i++) {
-      stamp(last.x + dx * (i / hops), last.y + dy * (i / hops));
+      marks.push({
+        x: last.x + dx * (i / hops),
+        y: last.y + dy * (i / hops),
+        born: now - (hops - i) * 12   // the earliest is furthest along
+      });
     }
     last.x = held.x;
     last.y = held.y;
+    last.sown = now;
+    if (marks.length > 90) marks.splice(0, marks.length - 90);
+  }
+
+  function paint(now) {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var alive = 0;
+    for (var i = 0; i < marks.length; i++) {
+      var m = marks[i];
+      var age = (now - m.born) / LIFE;
+      if (age >= 1) continue;
+      marks[alive++] = m;
+
+      // Opens out as it goes, and thins as it opens.
+      var span = HOLE * (FROM + (TO - FROM) * age) * grain;
+      var left = 1 - age;
+      ctx.globalAlpha = left * left;
+      ctx.drawImage(sprite, m.x * grain - span, m.y * grain - span, span * 2, span * 2);
+    }
+    marks.length = alive;
+    ctx.globalAlpha = 1;
   }
 
   function plot() {
@@ -203,7 +233,8 @@
     rush -= rush * CALM * gap;
     if (rush < 0.01) rush = 0;
     place();
-    wear(gap);
+    sow(now);
+    paint(now);
 
     frame = requestAnimationFrame(step);
   }
@@ -420,6 +451,7 @@
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", fit);
       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      marks.length = 0;
       canvas = ctx = sprite = null;
       last.going = false;
       window.removeEventListener("resize", remeasure);

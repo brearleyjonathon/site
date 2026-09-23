@@ -457,6 +457,120 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   filter: url("#fun-warp");
 }
 
+/* Every word in the page body becomes one of these while Fun is on, so the
+   pointer can shove them around.
+
+   These stay `display: inline` on purpose. Making them inline-block would
+   allow transforms, and rotation with them, but a browser may break a line
+   between two atomic inlines even with a word joiner between them, which
+   orphaned punctuation that followed a link. A relative offset moves an
+   inline box without touching layout or line breaking at all. */
+.shard {
+  position: relative;
+  transition: left .42s cubic-bezier(.22, .8, .3, 1),
+              top .42s cubic-bezier(.22, .8, .3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shard { transition: none; }
+}
+
+/* A click sends a little figure off the pointer, arcing down into the page
+   and under, leaving a ring and a few droplets behind. Drawn in ink rather
+   than in the palette, so it reads against the colour. */
+
+.diver {
+  position: fixed;
+  z-index: 3;
+  pointer-events: none;
+  color: var(--text);
+  animation: dive-across .95s linear forwards;
+}
+
+.diver i {
+  display: block;
+  animation: dive-fall .95s forwards, dive-turn .95s ease-in forwards;
+}
+
+.diver svg {
+  display: block;
+  margin: -1.35rem 0 0 -0.8rem;
+}
+
+@keyframes dive-across {
+  from { translate: 0 0; }
+  to   { translate: var(--dx, 60px) 0; }
+}
+
+/* Up off the pointer, hang, then away down. The timing function set inside
+   a keyframe governs the segment that starts there. */
+@keyframes dive-fall {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(.16, .7, .45, 1);
+  }
+  34% {
+    transform: translateY(-54px);
+    animation-timing-function: cubic-bezier(.55, 0, .85, .5);
+  }
+  92%  { opacity: 1; }
+  100% { transform: translateY(var(--dy, 170px)); opacity: 0; }
+}
+
+@keyframes dive-turn {
+  from { rotate: -12deg; }
+  to   { rotate: 168deg; }
+}
+
+.splash {
+  position: fixed;
+  z-index: 3;
+  width: 4.2rem;
+  height: 4.2rem;
+  margin: -2.1rem 0 0 -2.1rem;
+  border: 2px solid var(--text);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  animation: splash-out .55s ease-out .9s forwards;
+}
+
+/* A second ring just behind the first, so the surface reads as disturbed
+   rather than as one expanding outline. */
+.splash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid var(--text);
+  border-radius: 50%;
+  animation: splash-out .55s ease-out .14s forwards;
+}
+
+@keyframes splash-out {
+  0%   { opacity: 1;  transform: scale(.16, .06); }
+  40%  { opacity: .8; }
+  100% { opacity: 0;  transform: scale(1.3, .5); }
+}
+
+.drop {
+  position: fixed;
+  z-index: 3;
+  width: .44rem;
+  height: .44rem;
+  margin: -.22rem 0 0 -.22rem;
+  background: var(--text);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  animation: drop-arc .65s cubic-bezier(.3, .55, .7, 1) .9s forwards;
+}
+
+@keyframes drop-arc {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  45%  { opacity: 1; transform: translate(calc(var(--ddx, 20px) * .6), var(--ddup, -26px)) scale(.9); }
+  100% { opacity: 0; transform: translate(var(--ddx, 20px), 8px) scale(.45); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme="fun"] body::after { animation: none; }
   .blob { animation: none; }
