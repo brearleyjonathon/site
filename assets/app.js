@@ -45,6 +45,26 @@
     wake();
   }
 
+  // A click in Fun mode drops a burst of dots where the pointer is, taking
+  // the next colour from the backdrop's palette.
+  var palette = ["#ff2d55", "#ffb300", "#00c853", "#2979ff", "#aa00ff"];
+  var nextColour = 0;
+
+  function stipple(event) {
+    if (root.getAttribute("data-theme") !== "fun" || motion.matches) return;
+    if (event.target.closest("[data-set-theme], [data-set-font], a")) return;
+
+    var dot = document.createElement("span");
+    dot.className = "stipple";
+    dot.style.left = event.clientX + "px";
+    dot.style.top = event.clientY + "px";
+    dot.style.color = palette[nextColour++ % palette.length];
+    dot.addEventListener("animationend", function () { dot.remove(); });
+    document.body.appendChild(dot);
+  }
+
+  document.addEventListener("click", stipple);
+
   function syncFun() {
     var wanted = root.getAttribute("data-theme") === "fun" && !motion.matches;
     if (wanted === running) return;
