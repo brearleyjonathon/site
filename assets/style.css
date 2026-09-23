@@ -375,15 +375,18 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
      out rather than blobs floating on white. */
   background-color: var(--base, #f2eef4);
 
-  /* The pointer opens a hole in the colour rather than sitting on top of
-     it, so the page shows through clean around the cursor. --mx, --my and
-     --hole are eased by app.js, which is what makes the clearing trail
-     rather than snap. --hole stays at 1px until the pointer first moves,
-     so the page never loads with a clearing parked in the middle of it. */
-  -webkit-mask-image: radial-gradient(circle var(--hole, 1px) at var(--mx, 50%) var(--my, 50%),
-                                      transparent 0%, transparent 30%, #000 100%);
-  mask-image: radial-gradient(circle var(--hole, 1px) at var(--mx, 50%) var(--my, 50%),
-                              transparent 0%, transparent 30%, #000 100%);
+}
+
+/* Where the pointer has been. app.js stamps soft white into this and takes
+   a little alpha back out of the whole thing every frame, so the path
+   stays clear under the cursor and closes over behind it. It sits inside
+   the field, above the pools, so the white it lays down cancels the colour
+   and the page shows through. */
+.trail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* The five colours are written by app.js from the time of day. The values

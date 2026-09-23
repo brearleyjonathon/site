@@ -36,14 +36,14 @@
   // The clearing the pointer opens in the colour. Its centre and radius are
   // both eased a frame at a time, which is what makes it trail the cursor
   // instead of snapping to it.
-  var HOLE = 190;      // px: radius of the clearing once it is fully open
-  var EASE = 0.12;
+  var HOLE = 150;      // px: radius of the clearing the pointer carries
+  var KEEP = 0.34;     // share of the trail still there a second later
 
   // The attractor points. Each wanders a slow Lissajous path, which stays
   // smooth and bounded without any edge handling. One clock drives all
   // five, and scrolling winds that clock forward: at rest it runs at 1,
   // and a fast scroll takes it up to about ten times that before decaying.
-  var RUSH = 9;        // how much faster the field moves at full scroll
+  var RUSH = 8;        // how much faster the field moves at full scroll
   var CALM = 2.4;      // how quickly the rush bleeds off, per second
   var points = [];
   var drift = 0;       // the clock the paths are read from
@@ -60,20 +60,79 @@
   var held = { x: -9999, y: -9999 };
 
   var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  var point = { x: 50, y: 50, atX: 50, atY: 50, open: 1, want: 1 };
+  var canvas = null;
+  var ctx = null;
+  var sprite = null;
+  var grain = 1;       // canvas pixels per css pixel
+  var last = { x: 0, y: 0, going: false };
   var frame = null;
   var running = false;
   var clock = null;
   var typeWatch = null;
 
+  // One soft disc, drawn once and stamped over and over. Building a fresh
+  // gradient for every stamp would be the slow way round.
+  function cut() {
+    var size = Math.ceil(HOLE * 2 * grain);
+    sprite = document.createElement("canvas");
+    sprite.width = sprite.height = size;
+    var edge = sprite.getContext("2d");
+    var mid = size / 2;
+    var glow = edge.createRadialGradient(mid, mid, 0, mid, mid, mid);
+    glow.addColorStop(0, "rgba(255,255,255,0.9)");
+    glow.addColorStop(0.42, "rgba(255,255,255,0.55)");
+    glow.addColorStop(1, "rgba(255,255,255,0)");
+    edge.fillStyle = glow;
+    edge.fillRect(0, 0, size, size);
+  }
+
+  function fit() {
+    if (!canvas) return;
+    grain = Math.min(window.devicePixelRatio || 1, 1.5);
+    canvas.width = Math.round(window.innerWidth * grain);
+    canvas.height = Math.round(window.innerHeight * grain);
+    cut();
+    last.going = false;
+  }
+
+  function stamp(x, y) {
+    var size = sprite.width;
+    ctx.drawImage(sprite, x * grain - size / 2, y * grain - size / 2);
+  }
+
+  function wear(gap) {
+    if (!ctx) return;
+
+    // Take a slice of alpha off everything, so the path closes over behind
+    // the pointer instead of staying open.
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fillStyle = "rgba(0,0,0," + (1 - Math.pow(KEEP, gap)).toFixed(4) + ")";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = "source-over";
+
+    if (!last.going) return;
+
+    // Stamp along the way the pointer came, so a quick sweep leaves a
+    // ribbon rather than a row of dots.
+    var dx = held.x - last.x;
+    var dy = held.y - last.y;
+    var far = Math.sqrt(dx * dx + dy * dy);
+    var hops = Math.max(1, Math.min(Math.ceil(far / 16), 24));
+    for (var i = 1; i <= hops; i++) {
+      stamp(last.x + dx * (i / hops), last.y + dy * (i / hops));
+    }
+    last.x = held.x;
+    last.y = held.y;
+  }
+
   function plot() {
     points = [].map.call(document.querySelectorAll(".blob"), function (el, i) {
       return {
         el: el,
-        ax: 0.30 + i * 0.035,           // how far it ranges, as a share of
-        ay: 0.26 + ((i * 7) % 5) * 0.02, // the viewport
-        fx: 0.055 + i * 0.011,          // and how fast, in radians a second
-        fy: 0.041 + ((i * 3) % 5) * 0.009,
+        ax: 0.34 + i * 0.04,             // how far it ranges, as a share of
+        ay: 0.30 + ((i * 7) % 5) * 0.025, // the viewport
+        fx: 0.125 + i * 0.024,           // and how fast, in radians a second
+        fy: 0.094 + ((i * 3) % 5) * 0.019,
         px: i * 1.7,
         py: i * 2.9 + 1.1
       };
@@ -137,45 +196,41 @@
   }
 
   function step(now) {
-    var gap = Math.min((now - (step.last || now)) / 1000, 0.05);
-    step.last = now;
+    var gap = Math.min((now - (step.beat || now)) / 1000, 0.05);
+    step.beat = now;
 
     drift += gap * (1 + rush);
     rush -= rush * CALM * gap;
     if (rush < 0.01) rush = 0;
     place();
-
-    point.atX += (point.x - point.atX) * EASE;
-    point.atY += (point.y - point.atY) * EASE;
-    point.open += (point.want - point.open) * EASE;
-
-    root.style.setProperty("--mx", point.atX.toFixed(2) + "%");
-    root.style.setProperty("--my", point.atY.toFixed(2) + "%");
-    root.style.setProperty("--hole", point.open.toFixed(1) + "px");
+    wear(gap);
 
     frame = requestAnimationFrame(step);
   }
 
   function wake() {
+    if (motion.matches) return;   // the field holds still; nothing to run
     if (running && frame === null) {
-      step.last = 0;
+      step.beat = 0;
       frame = requestAnimationFrame(step);
     }
   }
 
   function onPointerMove(event) {
-    point.x = (event.clientX / window.innerWidth) * 100;
-    point.y = (event.clientY / window.innerHeight) * 100;
-    point.want = HOLE;
     held.x = event.clientX;
     held.y = event.clientY;
+    if (!last.going) {
+      last.x = held.x;
+      last.y = held.y;
+      last.going = true;
+    }
     scatterSoon();
     wake();
   }
 
   function onPointerOut(event) {
     if (event.relatedTarget === null) {   // actually left the window
-      point.want = 1;                     // the colour closes back over
+      last.going = false;                 // stop cutting; the trail closes over
       held.x = held.y = -9999;            // and the words fall back in line
       scatterSoon();
       wake();
@@ -342,7 +397,12 @@
       paintClock();
       clock = window.setInterval(paintClock, 240000);   // keep up with the hour
       plot();
+      canvas = document.querySelector(".trail");
+      ctx = canvas ? canvas.getContext("2d") : null;
+      fit();
+      place();   // put them somewhere sensible even if the loop never runs
       window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", fit);
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       window.addEventListener("pointerout", onPointerOut, { passive: true });
       if (!motion.matches) {
@@ -358,18 +418,18 @@
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerout", onPointerOut);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", fit);
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas = ctx = sprite = null;
+      last.going = false;
       window.removeEventListener("resize", remeasure);
       if (typeWatch) { typeWatch.disconnect(); typeWatch = null; }
       mend();
       if (frame !== null) cancelAnimationFrame(frame);
       frame = null;
-      point.open = point.want = 1;
       rush = 0;
       points.forEach(function (pt) { pt.el.style.removeProperty("translate"); });
       points = [];
-      ["--mx", "--my", "--hole"].forEach(function (name) {
-        root.style.removeProperty(name);
-      });
       [].forEach.call(document.querySelectorAll(".diver, .splash, .drop"),
         function (el) { el.remove(); });
     }
