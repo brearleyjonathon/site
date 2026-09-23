@@ -81,10 +81,41 @@
     duck:
       '<path d="M19 3.4 C19.4 1.4 20.8 .4 22.4 1.2" stroke-width="1.8"/>' + EYES +
       '<path d="M15.6 13.4 C17 11.6 23 11.6 24.4 13.4 C23 15.4 17 15.4 15.6 13.4" stroke-width="1.8"/>' +
-      '<path d="M16.4 13.5 L23.6 13.5" stroke-width="1.3"/>'
+      '<path d="M16.4 13.5 L23.6 13.5" stroke-width="1.3"/>',
+    elephant:
+      '<path d="M13.2 8.4 C8.6 5.2 5.4 8.6 6.8 13.4 C7.8 16.4 11 17 13.4 15.2"/>' +
+      '<path d="M26.8 8.4 C31.4 5.2 34.6 8.6 33.2 13.4 C32.2 16.4 29 17 26.6 15.2"/>' + EYES +
+      '<path d="M20 12.6 C20.4 15.6 20.6 18.6 19.4 21.4 C18.6 23.2 17 23.6 15.8 22.6" stroke-width="2.4"/>' +
+      '<path d="M18.9 16.2 L21.3 16.4" stroke-width="1.3"/>' +
+      '<path d="M18.7 18.6 L21.1 18.8" stroke-width="1.3"/>',
+    camel:
+      '<path d="M14.2 6.6 C13.6 5 14.6 3.8 15.8 4.6" stroke-width="2"/>' +
+      '<path d="M25.8 6.6 C26.4 5 25.4 3.8 24.2 4.6" stroke-width="2"/>' +
+      '<path d="M19.2 3.4 C19.6 1.8 20.8 1.4 21.6 2.6" stroke-width="1.6"/>' +
+      '<path d="M15.8 10.6 C16.6 9.6 17.8 9.6 18.6 10.6" stroke-width="1.9"/>' +
+      '<path d="M21.4 10.6 C22.2 9.6 23.4 9.6 24.2 10.6" stroke-width="1.9"/>' +
+      '<path d="M15.6 12.4 C14.6 16.4 16.6 19.6 20 19.6 C23.4 19.6 25.4 16.4 24.4 12.4" stroke-width="1.9"/>' +
+      '<path d="M17.6 15.6 C18 15.1 18.4 15.3 18.6 15.9" stroke-width="1.6"/>' +
+      '<path d="M22.4 15.6 C22 15.1 21.6 15.3 21.4 15.9" stroke-width="1.6"/>' +
+      '<path d="M20 16.6 L20 18.2" stroke-width="1.4"/>' +
+      '<path d="M17.6 17.6 C18.4 18.4 19.4 18.5 20 18.2 C20.6 18.5 21.6 18.4 22.4 17.6" stroke-width="1.5"/>',
+    giraffe:
+      '<path d="M16.4 4.6 L15.6 .6" stroke-width="1.8"/>' +
+      '<path d="M15.6 .6 L15.5 .5" stroke-width="2.8"/>' +
+      '<path d="M23.6 4.6 L24.4 .6" stroke-width="1.8"/>' +
+      '<path d="M24.4 .6 L24.5 .5" stroke-width="2.8"/>' +
+      '<path d="M13 8.2 C10.6 6.6 9 7.4 9.4 9.4" stroke-width="2"/>' +
+      '<path d="M27 8.2 C29.4 6.6 31 7.4 30.6 9.4" stroke-width="2"/>' + EYES +
+      '<path d="M16.6 13 C16.6 15.8 18.4 17.6 20 17.6 C21.6 17.6 23.4 15.8 23.4 13" stroke-width="1.9"/>' +
+      '<path d="M18.6 15 L18.7 15.1" stroke-width="2.2"/>' +
+      '<path d="M21.4 15 L21.5 15.1" stroke-width="2.2"/>' +
+      '<path d="M14.4 12 L14.5 12.1" stroke-width="2.6"/>' +
+      '<path d="M25.6 12.4 L25.7 12.5" stroke-width="2.6"/>' +
+      '<path d="M17.4 6.6 L17.5 6.7" stroke-width="2.4"/>' +
+      '<path d="M23 6.8 L23.1 6.9" stroke-width="2.4"/>'
   };
 
-  var ANIMALS = ["bear", "cat", "rabbit", "frog", "duck"];
+  var ANIMALS = ["bear", "cat", "rabbit", "frog", "duck", "elephant", "camel", "giraffe"];
   var turn = 0;
 
   var BODY_STAND =
