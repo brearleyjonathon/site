@@ -796,9 +796,12 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   animation: bob var(--bob-time, 3.2s) ease-in-out var(--bob-delay, 0s) infinite;
 }
 
+/* The rise uses `transform`, not `translate`: the swimming in app.js sets
+   `translate` inline, and a filled animation on the same property would
+   override it for good. */
 @keyframes surface {
-  from { translate: 0 40px; opacity: 0; }
-  to   { translate: 0 0; opacity: 1; }
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes bob {
