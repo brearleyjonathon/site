@@ -1021,11 +1021,11 @@
     syncFun();
   }
 
-  // The scalloped line round the Source/Field pill. A point is walked round
-  // the pill's perimeter and pushed out along the normal by a wave, so the
-  // bumps are even and the path closes; a second line a little out of
-  // phase gives the sketched-twice look. The phase advances with time, so
-  // the bumps crawl round while Fun is on.
+  // The scalloped line round the Source/Field pill. A point is walked
+  // round the pill's perimeter and pushed out along the normal by a wave
+  // with a whole number of bumps, so the scallops are even. Only about
+  // three quarters of the way round is drawn, like a doodle left
+  // unfinished, and both the bumps and the gap crawl round while Fun is on.
   var PAD = 8;       // px of room the svg has round the pill
   var lineSvg = null, linePaths = null;
 
@@ -1041,18 +1041,18 @@
     return [r + r * Math.cos(a), r + r * Math.sin(a), Math.cos(a), Math.sin(a)];
   }
 
-  function scallop(w, h, out, amp, phase) {
+  function scallop(w, h, out, amp, phase, start, share) {
     var L = 2 * (w - h) + Math.PI * h;
     var bumps = Math.max(8, Math.round(L / 14));
     var n = Math.max(120, bumps * 12);
     var d = "";
-    for (var i = 0; i < n; i++) {
-      var s = L * i / n;
+    for (var i = 0; i <= n * share; i++) {
+      var s = (start + L * i / n) % L;
       var p = around(w, h, s);
       var k = out + amp * Math.sin(2 * Math.PI * bumps * s / L + phase);
       d += (i ? "L" : "M") + (p[0] + p[2] * k).toFixed(1) + " " + (p[1] + p[3] * k).toFixed(1);
     }
-    return d + "Z";
+    return d;
   }
 
   function outline(now) {
@@ -1065,9 +1065,10 @@
     var w = pill.offsetWidth, h = pill.offsetHeight;
     if (!w || !h) return;
     lineSvg.setAttribute("viewBox", (-PAD) + " " + (-PAD) + " " + (w + 2 * PAD) + " " + (h + 2 * PAD));
+    var L = 2 * (w - h) + Math.PI * h;
     var phase = now / 1100;
-    linePaths[0].setAttribute("d", scallop(w, h, 3.6, 2.4, phase));
-    linePaths[1].setAttribute("d", scallop(w, h, 3.6, 2.0, phase + 1.7));
+    var start = ((now / 60000) % 1) * L;   // the gap goes round once a minute
+    linePaths[0].setAttribute("d", scallop(w, h, 4, 2.4, phase, start, 0.72));
   }
 
   // The pill's thumb sits under whichever side is pressed. On a switch it
