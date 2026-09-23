@@ -33,7 +33,15 @@
             'stroke-linecap="round" stroke-linejoin="round"/>' +
     '</svg>';
 
+  // The clearing the pointer opens in the colour. Its centre and radius are
+  // both eased a frame at a time, which is what makes it trail the cursor
+  // instead of snapping to it.
+  var HOLE = 190;      // px: radius of the clearing once it is fully open
+  var EASE = 0.12;
+
   var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var point = { x: 50, y: 50, atX: 50, atY: 50, open: 1, want: 1 };
+  var frame = null;
   var running = false;
   var clock = null;
 
@@ -64,6 +72,42 @@
         root.style.setProperty("--c" + (n + 1), mix(colour, b.set[n], t));
       });
       return;
+    }
+  }
+
+  function step() {
+    point.atX += (point.x - point.atX) * EASE;
+    point.atY += (point.y - point.atY) * EASE;
+    point.open += (point.want - point.open) * EASE;
+
+    root.style.setProperty("--mx", point.atX.toFixed(2) + "%");
+    root.style.setProperty("--my", point.atY.toFixed(2) + "%");
+    root.style.setProperty("--hole", point.open.toFixed(1) + "px");
+
+    if (Math.abs(point.x - point.atX) < 0.04 &&
+        Math.abs(point.y - point.atY) < 0.04 &&
+        Math.abs(point.want - point.open) < 0.4) {
+      frame = null;   // caught up; idle until the pointer moves again
+      return;
+    }
+    frame = requestAnimationFrame(step);
+  }
+
+  function wake() {
+    if (running && frame === null) frame = requestAnimationFrame(step);
+  }
+
+  function onPointerMove(event) {
+    point.x = (event.clientX / window.innerWidth) * 100;
+    point.y = (event.clientY / window.innerHeight) * 100;
+    point.want = HOLE;
+    wake();
+  }
+
+  function onPointerOut(event) {
+    if (event.relatedTarget === null) {   // actually left the window
+      point.want = 1;                     // the colour closes back over
+      wake();
     }
   }
 
@@ -118,8 +162,19 @@
     if (running) {
       paintClock();
       clock = window.setInterval(paintClock, 240000);   // keep up with the hour
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      window.addEventListener("pointerout", onPointerOut, { passive: true });
+      wake();
     } else {
       window.clearInterval(clock);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerout", onPointerOut);
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null;
+      point.open = point.want = 1;
+      ["--mx", "--my", "--hole"].forEach(function (name) {
+        root.style.removeProperty(name);
+      });
       [].forEach.call(document.querySelectorAll(".diver, .splash, .drop"),
         function (el) { el.remove(); });
     }

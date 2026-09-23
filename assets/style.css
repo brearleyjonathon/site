@@ -369,7 +369,17 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
-  opacity: .5;   /* keeps the colour pastel, so black type stays readable */
+  opacity: .6;   /* keeps the colour pastel, so black type stays readable */
+
+  /* The pointer opens a hole in the colour rather than sitting on top of
+     it, so the page shows through clean around the cursor. --mx, --my and
+     --hole are eased by app.js, which is what makes the clearing trail
+     rather than snap. --hole stays at 1px until the pointer first moves,
+     so the page never loads with a clearing parked in the middle of it. */
+  -webkit-mask-image: radial-gradient(circle var(--hole, 1px) at var(--mx, 50%) var(--my, 50%),
+                                      transparent 0%, transparent 30%, #000 100%);
+  mask-image: radial-gradient(circle var(--hole, 1px) at var(--mx, 50%) var(--my, 50%),
+                              transparent 0%, transparent 30%, #000 100%);
 }
 
 .blob {
@@ -385,29 +395,43 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 }
 
 .blob:nth-child(1) {
-  width: 34vmax; height: 34vmax; left:  0%; top:  -6%;
+  width: 46vmax; height: 46vmax; left: -6%; top: -10%;
   background: radial-gradient(closest-side, var(--c1), transparent);
-  animation-duration: 31s;
+  animation-duration: 41s;
 }
 .blob:nth-child(2) {
-  width: 40vmax; height: 40vmax; left: 54%; top: -12%;
+  width: 52vmax; height: 52vmax; left: 50%; top: -16%;
   background: radial-gradient(closest-side, var(--c2), transparent);
-  animation-duration: 37s; animation-delay: -7s;
+  animation-duration: 47s; animation-delay: -9s;
 }
 .blob:nth-child(3) {
-  width: 44vmax; height: 44vmax; left:  2%; top:  44%;
+  width: 58vmax; height: 58vmax; left: -4%; top:  40%;
   background: radial-gradient(closest-side, var(--c3), transparent);
-  animation-duration: 43s; animation-delay: -14s;
+  animation-duration: 53s; animation-delay: -18s;
 }
 .blob:nth-child(4) {
-  width: 38vmax; height: 38vmax; left: 52%; top:  38%;
+  width: 50vmax; height: 50vmax; left: 48%; top:  36%;
   background: radial-gradient(closest-side, var(--c4), transparent);
-  animation-duration: 29s; animation-delay: -21s;
+  animation-duration: 37s; animation-delay: -27s;
 }
 .blob:nth-child(5) {
-  width: 31vmax; height: 31vmax; left: 26%; top:  14%;
+  width: 42vmax; height: 42vmax; left: 22%; top:  10%;
   background: radial-gradient(closest-side, var(--c5), transparent);
-  animation-duration: 47s; animation-delay: -28s;
+  animation-duration: 59s; animation-delay: -36s;
+}
+
+/* Percentages here are of the blob's own size, so each one travels in
+   proportion to how big it is. Eight stops rather than four, so the path
+   curves instead of turning corners. */
+@keyframes blob-drift {
+  0%   { transform: translate(-16%,  10%); }
+  14%  { transform: translate( -2%,  -4%); }
+  28%  { transform: translate( 20%, -14%); }
+  42%  { transform: translate( 15%,   8%); }
+  56%  { transform: translate(  6%,  24%); }
+  70%  { transform: translate(-13%,  12%); }
+  84%  { transform: translate(-22%,  -6%); }
+  100% { transform: translate( 12%,  16%); }
 }
 
 /* A click sends a little figure off the pointer, arcing down into the page
