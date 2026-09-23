@@ -29,8 +29,8 @@
   // little turbulence roughens every edge so it reads as pencil rather than
   // as vector. Most of them share one body, standing with its arms up and
   // then tucked into a ball for the cannonball, and differ only in the
-  // face drawn on the head; the camel and giraffe have shapes of their own
-  // (SHAPES, below). Clicks take turns through the list.
+  // face drawn on the head; the rest have shapes of their own (SHAPES,
+  // below). Clicks take turns through the list.
   function ink(id) {
     return '<defs><filter id="' + id + '" x="-30%" y="-30%" width="160%" height="160%">' +
         '<feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="4" result="n"/>' +
@@ -91,7 +91,7 @@
       '<path d="M18.7 18.6 L21.1 18.8" stroke-width="1.3"/>'
   };
 
-  var ANIMALS = ["bear", "cat", "rabbit", "frog", "duck", "elephant", "camel", "giraffe"];
+  var ANIMALS = ["bear", "cat", "rabbit", "frog", "duck", "elephant", "camel", "giraffe", "penguin", "hippo"];
   var turn = 0;
 
   var BODY_STAND =
@@ -115,9 +115,35 @@
     '<path d="M1.5 25.4 C4.5 21.8 7.5 21.8 10.5 25.2 C13.5 28.6 16.5 28.6 19.5 25.2 ' +
              'C22.5 21.8 25.5 21.8 28.5 25.2 C31.5 28.6 34.5 28.6 37.5 25.4"/>';
 
-  // Two of them are not a face on the shared body but their own shape,
-  // drawn in profile: the camel with its humps and the giraffe with its
-  // neck. Each is drawn standing, tucked, and afloat.
+  // Some are not a face on the shared body but their own shape: the camel
+  // with its humps and the giraffe with its neck, in profile; the penguin
+  // and the hippo head-on. Each is drawn standing, tucked, and afloat.
+  // The hippo's head and the penguin's face are the same in every pose,
+  // so they are drawn once and shifted.
+  var HIPPO_HEAD =
+    '<path d="M12.6 6.6 C9.4 8.4 8.2 13.2 9.6 17.4 C11 21.4 16 22.6 20 22.6 C24 22.6 29 21.4 30.4 17.4 C31.8 13.2 30.6 8.4 27.4 6.6"/>' +
+    '<path d="M12.6 6.6 C13.6 3.8 17.4 3.8 18 6.4"/>' +
+    '<path d="M22 6.4 C22.6 3.8 26.4 3.8 27.4 6.6"/>' +
+    '<path d="M18 6.4 C18.8 5.6 21.2 5.6 22 6.4" stroke-width="1.8"/>' +
+    '<path d="M14 4.4 C13.6 2.6 15.6 1.8 16.4 3.4" stroke-width="1.8"/>' +
+    '<path d="M26 4.4 C26.4 2.6 24.4 1.8 23.6 3.4" stroke-width="1.8"/>' +
+    '<path d="M15.4 6.4 L15.5 6.5" stroke-width="2.6"/>' +
+    '<path d="M24.6 6.4 L24.7 6.5" stroke-width="2.6"/>' +
+    '<path d="M16.2 15.4 C16.6 14.6 17.6 14.6 18 15.4" stroke-width="2"/>' +
+    '<path d="M22 15.4 C22.4 14.6 23.4 14.6 23.8 15.4" stroke-width="2"/>' +
+    '<path d="M12.4 18.6 C15.4 19.8 24.6 19.8 27.6 18.6" stroke-width="1.6"/>' +
+    '<path d="M15.6 19.4 L15.6 21" stroke-width="1.6"/>' +
+    '<path d="M24.4 19.4 L24.4 21" stroke-width="1.6"/>';
+
+  var PENGUIN_FACE =
+    '<path d="M17.4 9.6 L17.5 9.7" stroke-width="2.8"/>' +
+    '<path d="M22.6 9.6 L22.7 9.7" stroke-width="2.8"/>' +
+    '<path d="M18.4 12.2 L21.6 12.2 L20 14.4 L18.4 12.2" stroke-width="1.6"/>';
+
+  function shifted(strokes, dy) {
+    return '<g transform="translate(0 ' + dy + ')">' + strokes + '</g>';
+  }
+
   var SHAPES = {
     camel: {
       stand:
@@ -172,6 +198,63 @@
         '<path d="M11.2 12 C12 12.4 13 12.4 13.8 12.1" stroke-width="1.5"/>' +
         // the humps behind, then the wave
         '<path d="M22.4 25.4 C23 20.4 25.6 19.6 27.2 23.4 C28.4 19.6 31.4 20 32.6 23.6 C32.9 24.4 33.1 25 33.2 25.6"/>' +
+        '<path d="M1.5 25.4 C4.5 21.8 7.5 21.8 10.5 25.2 C13.5 28.6 16.5 28.6 19.5 25.2 ' +
+                 'C22.5 21.8 25.5 21.8 28.5 25.2 C31.5 28.6 34.5 28.6 37.5 25.4"/>'
+    },
+    penguin: {
+      stand:
+        // one loop for head and body, the belly inside it
+        '<path d="M20 4 C13.4 4 10.6 12 11 22 C11.4 32 13.6 39 20 39.4 C26.4 39 28.6 32 29 22 C29.4 12 26.6 4 20.6 4.1"/>' +
+        '<path d="M16.4 14 C13.8 20 14 30 17 36.8 C18 37.4 22 37.4 23 36.8 C26 30 26.2 20 23.6 14" stroke-width="1.6"/>' +
+        PENGUIN_FACE +
+        // flippers up, feet
+        '<path d="M11.6 18 C9 15.6 7.6 12.6 7.4 9.4" stroke-width="2.3"/>' +
+        '<path d="M28.4 18 C31 15.6 32.4 12.6 32.6 9.4" stroke-width="2.3"/>' +
+        '<path d="M13.4 40.8 C14.6 39.4 17.6 39.6 18.4 41.6 C16.6 42.6 14.4 42.4 13.4 40.8" stroke-width="2"/>' +
+        '<path d="M21.6 41.6 C22.4 39.6 25.4 39.4 26.6 40.8 C25.6 42.4 23.4 42.6 21.6 41.6" stroke-width="2"/>',
+      tuck:
+        // rounder, flippers wrapped round the front, feet drawn up
+        '<path d="M20 8 C12.6 8 9.6 16 10.4 24.6 C11.2 33 15 38.6 20 38.8 C25 38.6 28.8 33 29.6 24.6 C30.4 16 27.4 8 20.6 8.1"/>' +
+        '<path d="M16.6 17 C14.6 22 14.8 30 17.2 35.6 C18.2 36.2 21.8 36.2 22.8 35.6 C25.2 30 25.4 22 23.4 17" stroke-width="1.6"/>' +
+        shifted(PENGUIN_FACE, 3.6) +
+        '<path d="M11.2 22 C12.6 27.6 16.2 30.4 21 30.6" stroke-width="2.3"/>' +
+        '<path d="M28.8 22 C27.6 26.8 24.6 29.6 20.6 30.4" stroke-width="2.3"/>' +
+        '<path d="M15.4 36.4 C16.4 34.8 19 35 19.8 36.8 C18.4 37.8 16.4 37.8 15.4 36.4" stroke-width="2"/>' +
+        '<path d="M20.6 36.8 C21.4 35 24 34.8 25 36.4 C24 37.8 22 37.8 20.6 36.8" stroke-width="2"/>',
+      float:
+        // head and shoulders over the wave, flippers resting on it
+        '<path d="M20 7 C14.8 7 12.2 11.6 12.4 18 C12.5 20.6 12.8 22.8 13.4 24.8"/>' +
+        '<path d="M20 7 C25.2 7 27.8 11.6 27.6 18 C27.5 20.6 27.2 22.8 26.6 24.8"/>' +
+        '<path d="M16.4 15.6 C15.4 18.4 15.2 21.6 15.6 24.6" stroke-width="1.6"/>' +
+        '<path d="M23.6 15.6 C24.6 18.4 24.8 21.6 24.4 24.6" stroke-width="1.6"/>' +
+        shifted(PENGUIN_FACE, 2.2) +
+        '<path d="M12.6 20 C10.4 21.6 8.4 22.8 6.4 24" stroke-width="2.3"/>' +
+        '<path d="M27.4 20 C29.6 21.6 31.6 22.8 33.6 24" stroke-width="2.3"/>' +
+        '<path d="M1.5 25.4 C4.5 21.8 7.5 21.8 10.5 25.2 C13.5 28.6 16.5 28.6 19.5 25.2 ' +
+                 'C22.5 21.8 25.5 21.8 28.5 25.2 C31.5 28.6 34.5 28.6 37.5 25.4"/>'
+    },
+    hippo: {
+      stand:
+        HIPPO_HEAD +
+        // a stout body under the head, arms out, feet
+        '<path d="M14.6 22.4 C12.2 26.4 12.4 32.2 14.8 36.6 C16.6 39.6 23.4 39.6 25.2 36.6 C27.6 32.2 27.8 26.4 25.4 22.4"/>' +
+        '<path d="M13.4 26 C10.6 25.2 8 23.6 6.2 21.2" stroke-width="2.3"/>' +
+        '<path d="M26.6 26 C29.4 25.2 32 23.6 33.8 21.2" stroke-width="2.3"/>' +
+        '<path d="M13.4 38.8 C14.6 37.2 17.6 37.4 18.4 39.4 C16.6 40.6 14.4 40.4 13.4 38.8" stroke-width="2"/>' +
+        '<path d="M21.6 39.4 C22.4 37.4 25.4 37.2 26.6 38.8 C25.6 40.4 23.4 40.6 21.6 39.4" stroke-width="2"/>',
+      tuck:
+        shifted(HIPPO_HEAD, 1.5) +
+        // the ball, arms hugging it, feet drawn up
+        '<path d="M15 24 C10.8 26.4 9.8 32 12.6 36 C15.4 40 24.6 40 27.4 36 C30.2 32 29.2 26.4 25 24"/>' +
+        '<path d="M14.2 27.4 C15.2 31.8 18.6 33.8 23.4 33.4" stroke-width="2.3"/>' +
+        '<path d="M25.8 26.8 C26.6 29.6 25.8 32 24 33.4" stroke-width="2.3"/>' +
+        '<path d="M16.4 36.2 C17.6 34.6 20.4 34.8 21.2 36.8 C19.8 37.8 17.6 37.6 16.4 36.2" stroke-width="2"/>' +
+        '<path d="M21.8 35.6 C23 33.8 25.8 34.4 26.2 36.4 C24.8 37.4 22.6 37.2 21.8 35.6" stroke-width="2"/>',
+      float:
+        // the head sits on the water, arms resting either side
+        shifted(HIPPO_HEAD, 2.4) +
+        '<path d="M11 21.6 C8.8 22.8 6.6 23.6 4.4 24.4" stroke-width="2.3"/>' +
+        '<path d="M29 21.6 C31.2 22.8 33.4 23.6 35.6 24.4" stroke-width="2.3"/>' +
         '<path d="M1.5 25.4 C4.5 21.8 7.5 21.8 10.5 25.2 C13.5 28.6 16.5 28.6 19.5 25.2 ' +
                  'C22.5 21.8 25.5 21.8 28.5 25.2 C31.5 28.6 34.5 28.6 37.5 25.4"/>'
     },
