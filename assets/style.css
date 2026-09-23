@@ -477,7 +477,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 
 /* A click sends a little bear off the pointer: it hops, tucks, spins once
    and lands bottom-first in the page, leaving a heave of water, a burst of
-   splash strokes, a few droplets and a word behind. Drawn in ink rather
+   splash strokes and a few droplets behind. Drawn in ink rather
    than in the palette, so it reads against the colour, and doodled rather
    than drafted: the strokes are set in assets/app.js. */
 
@@ -604,28 +604,6 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   100% { opacity: 0; transform: translateY(-20px) scale(1.1); }
 }
 
-/* The word, in the page's own type, popping up beside the splash. */
-.sploosh {
-  position: fixed;
-  z-index: 3;
-  margin: -.6em 0 0 -1.6em;
-  color: var(--text);
-  font-size: 1.05rem;
-  line-height: 1;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transform-origin: 50% 100%;
-  animation: sploosh .85s cubic-bezier(.2, .9, .3, 1.2) .92s forwards;
-}
-
-@keyframes sploosh {
-  0%   { opacity: 1; transform: rotate(-8deg) scale(.4); }
-  30%  { opacity: 1; transform: rotate(-6deg) scale(1); }
-  70%  { opacity: 1; transform: rotate(-6deg) translateY(-4px); }
-  100% { opacity: 0; transform: rotate(-6deg) translateY(-12px); }
-}
-
 .drop {
   position: fixed;
   z-index: 3;
@@ -648,7 +626,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme="fun"] body::after { animation: none; }
   .blob { animation: none; }
-  .diver, .splash, .flicks, .sploosh, .drop { display: none; }
+  .diver, .splash, .flicks, .drop { display: none; }
 }
 
 /* =========================================================================

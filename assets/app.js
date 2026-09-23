@@ -475,13 +475,6 @@
     flicks.innerHTML = FLICKS;
     sink(flicks);
 
-    var word = document.createElement("span");
-    word.className = "sploosh";
-    word.style.left = (landX + (across < 0 ? -1 : 1) * 46) + "px";
-    word.style.top = (landY - 58) + "px";
-    word.textContent = "sploosh!";
-    sink(word);
-
     for (var i = 0; i < 7; i++) {
       var drop = document.createElement("span");
       drop.className = "drop";
@@ -539,7 +532,7 @@
       rush = 0;
       points.forEach(function (pt) { pt.el.style.removeProperty("translate"); });
       points = [];
-      [].forEach.call(document.querySelectorAll(".diver, .splash, .flicks, .sploosh, .drop"),
+      [].forEach.call(document.querySelectorAll(".diver, .splash, .flicks, .drop"),
         function (el) { el.remove(); });
     }
   }
