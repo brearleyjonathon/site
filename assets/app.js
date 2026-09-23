@@ -1025,7 +1025,7 @@
   // round the pill's perimeter and pushed out along the normal by a wave
   // with a whole number of bumps, so the scallops are even. Only about
   // three quarters of the way round is drawn, like a doodle left
-  // unfinished, and both the bumps and the gap crawl round while Fun is on.
+  // unfinished, and the whole line travels round the pill while Fun is on.
   var PAD = 8;       // px of room the svg has round the pill
   var lineSvg = null, linePaths = null;
 
@@ -1067,7 +1067,7 @@
     lineSvg.setAttribute("viewBox", (-PAD) + " " + (-PAD) + " " + (w + 2 * PAD) + " " + (h + 2 * PAD));
     var L = 2 * (w - h) + Math.PI * h;
     var phase = now / 1100;
-    var start = ((now / 60000) % 1) * L;   // the gap goes round once a minute
+    var start = ((now / 9000) % 1) * L;    // the line travels round the pill every nine seconds
     linePaths[0].setAttribute("d", scallop(w, h, 4, 2.4, phase, start, 0.72));
   }
 
