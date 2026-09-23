@@ -10,37 +10,29 @@
   }
 
   // --- Fun mode ----------------------------------------------------------
-  // The backdrop itself is drawn in CSS from --mx / --my. All we do here is
-  // ease those two numbers toward the pointer a frame at a time, so the
-  // colour trails the cursor instead of snapping to it. The loop parks
-  // itself once it has caught up, and a pointer move wakes it again.
+  // Two jobs. --mx / --my carry the pointer, eased a frame at a time, and
+  // position the dot matrix so it trails the cursor. --px / --py are a much
+  // smaller parallax nudge for the backdrop, which otherwise drifts on its
+  // own in CSS rather than chasing the mouse.
 
+  var NUDGE = 16;   // px of parallax at the edge of the viewport
   var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  // The clear lens: its radius opens toward LENS_WAKE while the pointer is
-  // moving and settles back to LENS_REST once it stops.
-  var LENS_REST = 70;
-  var LENS_WAKE = 280;
-  var point = { x: 50, y: 50, atX: 50, atY: 50, lens: LENS_REST, want: LENS_REST };
+  var point = { x: 50, y: 50, atX: 50, atY: 50 };
   var frame = null;
   var running = false;
 
   function step() {
     var dx = point.x - point.atX;
     var dy = point.y - point.atY;
-    point.atX += dx * 0.06;
-    point.atY += dy * 0.06;
-
-    point.want += (LENS_REST - point.want) * 0.03;   // ebbs while the pointer rests
-    var dl = point.want - point.lens;
-    point.lens += dl * 0.08;
+    point.atX += dx * 0.08;
+    point.atY += dy * 0.08;
 
     root.style.setProperty("--mx", point.atX.toFixed(2) + "%");
     root.style.setProperty("--my", point.atY.toFixed(2) + "%");
-    root.style.setProperty("--lens", point.lens.toFixed(1) + "px");
+    root.style.setProperty("--px", (((point.atX - 50) / 50) * NUDGE).toFixed(1) + "px");
+    root.style.setProperty("--py", (((point.atY - 50) / 50) * NUDGE).toFixed(1) + "px");
 
-    var still = Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05;
-    var closed = Math.abs(dl) < 0.4 && Math.abs(point.lens - LENS_REST) < 0.4;
-    if (still && closed) {
+    if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) {
       frame = null;   // caught up; idle until the pointer moves again
       return;
     }
@@ -54,29 +46,31 @@
   function onPointerMove(event) {
     point.x = (event.clientX / window.innerWidth) * 100;
     point.y = (event.clientY / window.innerHeight) * 100;
-    point.want = LENS_WAKE;
+    root.dataset.pointer = "1";   // the matrix stays hidden until now
     wake();
   }
 
-  // A click in Fun mode drops a burst of dots where the pointer is, taking
-  // the next colour from the backdrop's palette.
+  // A click sends a ring out from the pointer, in the next colour of the
+  // backdrop's palette.
   var palette = ["#ff2d55", "#ffb300", "#00c853", "#2979ff", "#aa00ff"];
   var nextColour = 0;
 
-  function stipple(event) {
+  function ripple(event) {
     if (root.getAttribute("data-theme") !== "fun" || motion.matches) return;
     if (event.target.closest("[data-set-theme], [data-set-font], a")) return;
 
-    var dot = document.createElement("span");
-    dot.className = "stipple";
-    dot.style.left = event.clientX + "px";
-    dot.style.top = event.clientY + "px";
-    dot.style.color = palette[nextColour++ % palette.length];
-    dot.addEventListener("animationend", function () { dot.remove(); });
-    document.body.appendChild(dot);
+    var ring = document.createElement("span");
+    ring.className = "ripple";
+    ring.style.left = event.clientX + "px";
+    ring.style.top = event.clientY + "px";
+    ring.style.color = palette[nextColour++ % palette.length];
+    ring.addEventListener("animationend", function (e) {
+      if (e.target === ring) ring.remove();
+    });
+    document.body.appendChild(ring);
   }
 
-  document.addEventListener("click", stipple);
+  document.addEventListener("click", ripple);
 
   function syncFun() {
     var wanted = root.getAttribute("data-theme") === "fun" && !motion.matches;
@@ -90,10 +84,10 @@
       window.removeEventListener("pointermove", onPointerMove);
       if (frame !== null) cancelAnimationFrame(frame);
       frame = null;
-      root.style.removeProperty("--mx");
-      root.style.removeProperty("--my");
-      root.style.removeProperty("--lens");
-      point.lens = point.want = LENS_REST;
+      delete root.dataset.pointer;
+      ["--mx", "--my", "--px", "--py"].forEach(function (name) {
+        root.style.removeProperty(name);
+      });
     }
   }
 

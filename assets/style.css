@@ -346,11 +346,13 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 }
 
 /* =========================================================================
-   Fun — a rainbow that follows the cursor, under unchanged black type
+   Fun — a drifting rainbow, a dot matrix under the pointer, a click ripple
    =========================================================================
-   --mx / --my are percentages written by app.js, eased toward the pointer a
-   frame at a time. With no pointer they stay at 50% and the slow drift
-   carries the whole thing on its own. */
+   The backdrop floats on its own: each colour is one background layer with
+   its own size, and the animation walks all five positions around. The
+   pointer only adds a small parallax nudge through --px / --py, so the
+   motion never feels bolted to the cursor. --mx / --my carry the eased
+   pointer position for the dot matrix. All of it is written by app.js. */
 
 :root[data-theme="fun"] body {
   position: relative;
@@ -361,23 +363,31 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 :root[data-theme="fun"] body::before {
   content: "";
   position: fixed;
-  inset: -35%;
+  inset: -25%;
   z-index: -1;
   pointer-events: none;
   opacity: .5;   /* keeps the colour pastel, so black type stays readable */
-  background:
-    radial-gradient(38vmax 38vmax at var(--mx, 50%) var(--my, 50%),
-                    #ff2d55 0%, transparent 62%),
-    radial-gradient(42vmax 42vmax at calc(100% - var(--mx, 50%)) var(--my, 50%),
-                    #ffb300 0%, transparent 62%),
-    radial-gradient(46vmax 46vmax at var(--mx, 50%) calc(100% - var(--my, 50%)),
-                    #00c853 0%, transparent 62%),
-    radial-gradient(50vmax 50vmax at calc(100% - var(--mx, 50%)) calc(100% - var(--my, 50%)),
-                    #2979ff 0%, transparent 62%),
-    radial-gradient(44vmax 44vmax at 50% 50%,
-                    #aa00ff 0%, transparent 66%),
-    #ffffff;
-  animation: fun-drift 26s ease-in-out infinite alternate;
+  background-color: #ffffff;
+  background-repeat: no-repeat;
+  background-size: 128% 128%, 150% 150%, 168% 168%, 142% 142%, 118% 118%;
+  /* Explicit radii, so the five read as blobs drifting over white rather
+     than one wash filling the page. */
+  background-image:
+    radial-gradient(26vmax 26vmax, #ff2d55 0%, transparent 62%),
+    radial-gradient(30vmax 30vmax, #ffb300 0%, transparent 62%),
+    radial-gradient(34vmax 34vmax, #00c853 0%, transparent 62%),
+    radial-gradient(28vmax 28vmax, #2979ff 0%, transparent 62%),
+    radial-gradient(23vmax 23vmax, #aa00ff 0%, transparent 64%);
+  transform: translate(var(--px, 0px), var(--py, 0px));
+  animation: fun-float 44s ease-in-out infinite alternate;
+}
+
+@keyframes fun-float {
+  0%   { background-position:  8% 12%, 82% 18%, 20% 80%, 74% 70%, 48% 46%; }
+  25%  { background-position: 34% 36%, 58%  4%,  4% 56%, 92% 40%, 64% 76%; }
+  50%  { background-position: 64%  6%, 28% 44%, 42% 94%, 56% 18%, 18% 58%; }
+  75%  { background-position: 22% 70%, 90% 52%, 66% 26%, 14% 64%, 80% 30%; }
+  100% { background-position: 12% 50%, 74% 62%, 70% 34%, 26% 10%, 50% 86%; }
 }
 
 /* Film grain. A tile of SVG noise, multiplied over everything including the
@@ -386,19 +396,13 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 2;          /* over the type and the frost, not just the backdrop */
+  z-index: 2;          /* over the type and the matrix, not just the backdrop */
   pointer-events: none;
   opacity: .16;
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
   background-size: 200px 200px;
   animation: fun-grain .8s steps(1) infinite;
-}
-
-/* A shallow ripple through the text, like heat off a surface. Static, so it
-   costs one pass rather than one a frame. */
-:root[data-theme="fun"] main {
-  filter: url("#fun-warp");
 }
 
 @keyframes fun-grain {
@@ -409,56 +413,69 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   100% { background-position:  24px   36px; }
 }
 
-/* Frosted glass over everything, with a hole punched under the pointer.
-   --lens is the radius of that hole, written by app.js: it opens as the
-   pointer moves and closes again when it rests. */
-.frost { display: none; }
+/* A shallow roll through the text, like heat off a surface. Static, so it
+   costs one pass rather than one a frame. */
+:root[data-theme="fun"] main {
+  filter: url("#fun-warp");
+}
 
-:root[data-theme="fun"] .frost {
+/* The dot matrix. Rides under the pointer, a frame or two behind it, and
+   stays hidden until the pointer has actually moved. */
+.matrix { display: none; }
+
+:root[data-theme="fun"] .matrix {
   display: block;
   position: fixed;
-  inset: 0;
+  left: var(--mx, 50%);
+  top: var(--my, 50%);
+  width: 15rem;
+  height: 15rem;
+  margin: -7.5rem 0 0 -7.5rem;
   z-index: 1;
   pointer-events: none;
-  -webkit-backdrop-filter: blur(1.7px) saturate(1.15);
-  backdrop-filter: blur(1.7px) saturate(1.15);
-  -webkit-mask-image: radial-gradient(circle var(--lens, 90px) at var(--mx, 50%) var(--my, 50%),
-                                      transparent 0%, transparent 42%, #000 100%);
-  mask-image: radial-gradient(circle var(--lens, 90px) at var(--mx, 50%) var(--my, 50%),
-                              transparent 0%, transparent 42%, #000 100%);
+  opacity: 0;
+  color: #16161a;
+  mix-blend-mode: multiply;
+  background-image: radial-gradient(currentColor 28%, transparent 30%);
+  background-size: 8px 8px;
+  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0,0,0,.3) 55%, transparent 78%);
+  mask-image: radial-gradient(circle, #000 0%, rgba(0,0,0,.3) 55%, transparent 78%);
+  transition: opacity .5s ease;
 }
 
-/* A burst of dots under the pointer, one per click, in the next colour of
-   the backdrop's palette. Created and removed by app.js. */
-.stipple {
+:root[data-theme="fun"][data-pointer] .matrix { opacity: .45; }
+
+/* A ring spreading from the click, with a second one just behind it. */
+.ripple {
   position: fixed;
   z-index: 3;
-  width: 18rem;
-  height: 18rem;
-  margin: -9rem 0 0 -9rem;
+  width: 26rem;
+  height: 26rem;
+  margin: -13rem 0 0 -13rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
   pointer-events: none;
-  mix-blend-mode: multiply;
-  background-image: radial-gradient(currentColor 32%, transparent 34%);
-  background-size: 6px 6px;
-  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 38%, transparent 70%);
-  mask-image: radial-gradient(circle, #000 0%, #000 38%, transparent 70%);
-  animation: fun-stipple .7s ease-out forwards;
+  animation: fun-ripple .85s cubic-bezier(.2, .7, .3, 1) forwards;
 }
 
-@keyframes fun-stipple {
-  from { transform: scale(.2); opacity: 1; }
+.ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  animation: fun-ripple .85s cubic-bezier(.2, .7, .3, 1) .15s forwards;
+}
+
+@keyframes fun-ripple {
+  from { transform: scale(.06); opacity: 1; }
   to   { transform: scale(1);   opacity: 0;  }
-}
-
-@keyframes fun-drift {
-  from { transform: rotate(0deg) scale(1);    }
-  to   { transform: rotate(9deg) scale(1.18); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme="fun"] body::before,
   :root[data-theme="fun"] body::after { animation: none; }
-  :root[data-theme="fun"] .frost { display: none; }
+  :root[data-theme="fun"] .matrix { display: none; }
 }
 
 /* =========================================================================
@@ -470,7 +487,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   .controls { display: none; }
   body::before,
   body::after,
-  .frost { display: none; }
+  .matrix { display: none; }
   main { filter: none; }
   .page { max-width: none; padding: 0; }
   a { text-decoration: none; }
