@@ -1083,16 +1083,20 @@
     var box = pill.getBoundingClientRect();
     var to = on.getBoundingClientRect();
     var from = thumb.getBoundingClientRect();   // before the target moves it
-    pill.style.setProperty("--th", (box.height - 4).toFixed(1) + "px");
-    pill.style.setProperty("--tx", (to.left - box.left).toFixed(1) + "px");
-    pill.style.setProperty("--tw", to.width.toFixed(1) + "px");
+    // The thumb sits a little inside the button it marks, so it stays
+    // within the squiggle's band rather than running under it.
+    var IN = 2;
+    var edge = pill.clientLeft;   // the border: `left` is measured inside it
+    pill.style.setProperty("--th", (box.height - 8).toFixed(1) + "px");
+    pill.style.setProperty("--tx", (to.left - box.left - edge + IN).toFixed(1) + "px");
+    pill.style.setProperty("--tw", (to.width - 2 * IN).toFixed(1) + "px");
 
     // A plain re-seat while a hop is still playing only moves its target;
     // the hop keeps going and lands there.
     var mid = thumb.getAnimations().some(function (a) { return a.playState === "running"; });
     if (!hop && mid) return;
 
-    pill.style.setProperty("--fx", (from.left - box.left).toFixed(1) + "px");
+    pill.style.setProperty("--fx", (from.left - box.left - edge).toFixed(1) + "px");
     pill.style.setProperty("--fw", from.width.toFixed(1) + "px");
     thumb.classList.remove("hop");
     if (hop && !motion.matches) {

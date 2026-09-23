@@ -259,8 +259,8 @@ body.ready * {
 
 .thumb {
   position: absolute;
-  top: 2px;
-  bottom: 2px;
+  top: 4px;
+  bottom: 4px;
   left: var(--tx, 2px);
   width: var(--tw, 0);
   border-radius: 999px;
