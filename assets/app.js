@@ -644,6 +644,7 @@
     paintHue();
     sow(now);
     paint(now);
+    if (flying.length && shards.length) scatter();   // the animals shove as they fall
 
     frame = requestAnimationFrame(step);
   }
@@ -743,26 +744,49 @@
     });
   }
 
+  // Whatever is pushing the words about: the pointer, and any animal still
+  // in the air, each with its own reach.
+  var flying = [];   // the <i> of every diver in flight
+
+  function pushers() {
+    var out = [];
+    var sx = window.scrollX, sy = window.scrollY;
+    if (held.x > -9000) out.push({ x: held.x + sx, y: held.y + sy, r: BLAST });
+    for (var i = 0; i < flying.length; i++) {
+      var r = flying[i].getBoundingClientRect();
+      out.push({ x: r.left + r.width / 2 + sx, y: r.top + r.height / 2 + sy,
+                 r: BLAST * (0.55 + r.width / 90) });
+    }
+    return out;
+  }
+
   function scatter() {
-    var cx = held.x + window.scrollX;
-    var cy = held.y + window.scrollY;
-    var reach = BLAST * BLAST;
+    var from = pushers();
 
     for (var i = 0; i < shards.length; i++) {
       var sh = shards[i];
-      var dx = sh.x - cx;
-      var dy = sh.y - cy;
-      var gap = dx * dx + dy * dy;
+      var mx = 0, my = 0, hit = false;
 
-      if (gap < reach) {
+      for (var k = 0; k < from.length; k++) {
+        var src = from[k];
+        var dx = sh.x - src.x;
+        var dy = sh.y - src.y;
+        var gap = dx * dx + dy * dy;
+        if (gap >= src.r * src.r) continue;
         var far = Math.sqrt(gap) || 1;
-        var force = 1 - far / BLAST;
+        var force = 1 - far / src.r;
         var by = force * force * SHOVE * sh.force;
         // Skew the direction a little so the words scatter rather than
         // radiating out in a tidy circle.
         var ax = dx / far, ay = dy / far;
-        sh.el.style.left = ((ax - ay * sh.skew) * by).toFixed(1) + "px";
-        sh.el.style.top = ((ay + ax * sh.skew) * by).toFixed(1) + "px";
+        mx += (ax - ay * sh.skew) * by;
+        my += (ay + ax * sh.skew) * by;
+        hit = true;
+      }
+
+      if (hit) {
+        sh.el.style.left = mx.toFixed(1) + "px";
+        sh.el.style.top = my.toFixed(1) + "px";
         sh.moved = true;
       } else if (sh.moved) {
         sh.el.style.removeProperty("left");
@@ -819,6 +843,7 @@
     settle(el);
     swimmers.push(el);
     document.body.appendChild(el);
+    lineUp();
     while (swimmers.length > CROWD) {
       var gone = swimmers.shift();
       gone.classList.add("gone");
@@ -834,8 +859,25 @@
     el.style.left = left.toFixed(0) + "px";
   }
 
+  // With the serif on they line up, in a neat row from the left in the
+  // order they landed across the page; with the sans they stay where they
+  // landed. `left` eases, so a change of face sends them sliding.
+  var GAP = 6;   // px between neighbours in the row
+
   function lineUp() {
-    swimmers.forEach(settle);
+    if (root.getAttribute("data-font") !== "serif") {
+      swimmers.forEach(settle);
+      return;
+    }
+    var row = swimmers.slice().sort(function (a, b) {
+      return parseFloat(a.dataset.x) - parseFloat(b.dataset.x);
+    });
+    var x = EDGE;
+    row.forEach(function (el) {
+      var width = 44 * parseFloat(el.style.getPropertyValue("--size") || "1");
+      el.style.left = x.toFixed(0) + "px";
+      x += width + GAP;
+    });
   }
 
   function clearRow() {
@@ -869,6 +911,14 @@
     var kind = ANIMALS[turn++ % ANIMALS.length];
     diver.innerHTML = "<i>" + jumper(kind) + "</i>";
     sink(diver);
+    var body = diver.firstChild;
+    flying.push(body);
+    diver.addEventListener("animationend", function (e) {
+      if (e.target !== diver) return;
+      flying.splice(flying.indexOf(body), 1);
+      scatterSoon();   // let the words it passed fall back
+    });
+    wake();
     surfacing.push(window.setTimeout(function () { surface(kind, landX, size); }, flight * 1000 + 550));
 
     var water = document.createElement("span");
@@ -922,7 +972,7 @@
         shatter();
         window.addEventListener("resize", remeasure);
         // The typeface switch changes every word's box, so take them again.
-        typeWatch = new MutationObserver(remeasure);
+        typeWatch = new MutationObserver(function () { remeasure(); lineUp(); });
         typeWatch.observe(root, { attributes: true, attributeFilter: ["data-font"] });
       }
       wake();
@@ -946,6 +996,7 @@
       rush = 0;
       points.forEach(function (pt) { pt.el.style.removeProperty("translate"); });
       points = [];
+      flying = [];
       [].forEach.call(document.querySelectorAll(".diver, .splash, .flicks, .drop"),
         function (el) { el.remove(); });
     }

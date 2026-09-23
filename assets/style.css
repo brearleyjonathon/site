@@ -213,8 +213,25 @@ body.ready * {
 .switch.pill,
 .switch.pill button { border-radius: 999px; }
 
-.switch.pill { position: relative; }
+.switch.pill { position: relative; border-color: transparent; }
 .switch.pill button { position: relative; z-index: 1; }
+
+/* The pill's own border is drawn by a pseudo-element run through the
+   wobble, so the outline wiggles while the labels and the thumb stay
+   crisp. It is a shade darker than the rules, to read as a drawn line. */
+.switch.pill::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1.2px solid var(--muted);
+  border-radius: 999px;
+  filter: url(#pill-wobble);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch.pill::before { filter: none; }
+}
 
 /* The pressed side is marked by the thumb underneath rather than the
    button itself, so it can travel. */
