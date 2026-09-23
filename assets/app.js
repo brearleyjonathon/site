@@ -14,7 +14,7 @@
   // slowly as the pointer travels, and every colour on the page is a near
   // neighbour of it, so wherever two colours overlap they make a third in
   // the same family rather than mud. There are two ways to show it, chosen
-  // by the switch under the theme buttons (data-fun on <html>): "field"
+  // by the pill beside the theme buttons (data-fun on <html>): "field"
   // has five pools of colour behind the page and the pointer clears them
   // to white; "source" has a white page and the pointer lays the colour
   // down. A click sends a small animal off the pointer, into the page and

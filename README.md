@@ -61,13 +61,37 @@ ellipsis (…). URLs are left alone.
 In `content/_site.md`:
 
 - `default_theme` — `auto` (follow the visitor's system), `light`, `dark`, or
-  `fun` (a rainbow that drifts and follows the cursor, under the same black type)
-- `default_font` — `sans` (Helvetica) or `serif` (Baskerville)
+  `fun` (see below). Currently `dark`.
+- `default_font` — `sans` (Helvetica) or `serif` (Baskerville). Currently `serif`.
 - `description` — used by Google and link previews
 - `footer` — the line at the bottom
 
 A visitor's own choice of theme and typeface is remembered in their browser and
 overrides these.
+
+## Fun mode
+
+The third theme, for visitors who want to play. The type stays black on white;
+everything else moves.
+
+- **Colour.** The page sits in one soft family of colour: a single hue and its
+  near neighbours, so overlaps never go muddy. It starts from the time of day
+  and slowly turns as you move the pointer.
+- **Source / Field.** A pill slides out beside the Fun button. *Field* fills the
+  page with colour and the pointer clears paths through it. *Source* leaves the
+  page white and the pointer paints the colour instead. Switching gathers the
+  colour into the button, or blooms it back out. The pill's outline is a
+  hand-drawn scallop that creeps round it.
+- **Words.** Words shuffle out of the pointer's way, and out of the way of
+  anything falling past them.
+- **Animals.** Click anywhere that isn't a link and a doodled animal cannonballs
+  into the bottom of the window with a splash: bear, cat, rabbit, frog, duck,
+  elephant, camel, giraffe, penguin, hippo, in turn. They stay afloat. In the
+  serif they roam about on their own; in the sans they line up and swim
+  together.
+
+None of it prints, and it all holds still for visitors whose system asks for
+reduced motion.
 
 ## Publishing
 
