@@ -642,6 +642,7 @@
     if (rush < 0.01) rush = 0;
     place();
     paintHue();
+    swim(gap);
     sow(now);
     paint(now);
     if (flying.length && shards.length) scatter();   // the animals shove as they fall
@@ -877,6 +878,75 @@
       var width = 44 * parseFloat(el.style.getPropertyValue("--size") || "1");
       el.style.left = x.toFixed(0) + "px";
       x += width + GAP;
+    });
+    // The row picks up swimming from about where the animals already were.
+    var sum = 0;
+    swimmers.forEach(function (el) { sum += el._swim ? el._swim.dx : 0; });
+    school = swimmers.length ? sum / swimmers.length : 0;
+  }
+
+  // Once afloat they swim, by a `translate` on top of the `left` the two
+  // arrangements set. In the serif each roams on its own: it drifts to a
+  // spot of its choosing along the bottom, rests, and sets off again,
+  // turning to face the way it is going. In the sans the whole row swims
+  // together at one pace, back and forth between the edges.
+  var school = 0;        // px the row is carried in the sans
+  var schoolWay = 1;
+  var PACE = 26;         // px a second the row swims at
+
+  function width(el) {
+    return 44 * parseFloat(el.style.getPropertyValue("--size") || "1");
+  }
+
+  function face(el, right) {
+    var svg = el.querySelector("svg");
+    if (svg) svg.style.scale = right ? "-1 1" : "1 1";   // they are drawn facing left
+  }
+
+  function swim(dt) {
+    if (!swimmers.length) return;
+    var W = window.innerWidth;
+
+    if (root.getAttribute("data-font") === "serif") {
+      swimmers.forEach(function (el) {
+        var s = el._swim || (el._swim = { dx: 0, to: 0, speed: 0, wait: 0.5 + Math.random() * 2 });
+        if (s.wait > 0) { s.wait -= dt; return; }
+        if (!s.speed) {
+          var base = parseFloat(el.style.left) || 0;
+          var lo = EDGE - base, hi = W - EDGE - width(el) - base;
+          s.to = lo + Math.random() * Math.max(1, hi - lo);
+          s.speed = 16 + Math.random() * 30;
+          face(el, s.to > s.dx);
+        }
+        var move = s.speed * dt;
+        if (Math.abs(s.to - s.dx) <= move) {
+          s.dx = s.to;
+          s.speed = 0;
+          s.wait = 1 + Math.random() * 4;
+        } else {
+          s.dx += s.to > s.dx ? move : -move;
+        }
+        el.style.translate = s.dx.toFixed(1) + "px 0";
+      });
+      return;
+    }
+
+    var first = Infinity, last = -Infinity;
+    swimmers.forEach(function (el) {
+      var l = parseFloat(el.style.left) || 0;
+      first = Math.min(first, l);
+      last = Math.max(last, l + width(el));
+    });
+    school += schoolWay * PACE * dt;
+    if (first + school < EDGE) { school = EDGE - first; schoolWay = 1; }
+    if (last + school > W - EDGE) { school = Math.max(EDGE - first, W - EDGE - last); schoolWay = -1; }
+    swimmers.forEach(function (el) {
+      el.style.translate = school.toFixed(1) + "px 0";
+      face(el, schoolWay > 0);
+      var s = el._swim || (el._swim = { dx: 0, to: 0, speed: 0, wait: 0 });
+      s.dx = school;
+      s.speed = 0;
+      s.wait = 0.5 + Math.random() * 2;   // so they set off separately when the serif comes back
     });
   }
 
