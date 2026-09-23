@@ -642,6 +642,7 @@
     if (rush < 0.01) rush = 0;
     place();
     paintHue();
+    outline(now);
     sow(now);
     paint(now);
     if (flying.length && shards.length) scatter();   // the animals shove as they fall
@@ -958,6 +959,7 @@
 
     if (running) {
       startHue();
+      outline(0);
       plot();
       canvas = document.querySelector(".trail");
       ctx = canvas ? canvas.getContext("2d") : null;
@@ -1019,6 +1021,55 @@
     syncFun();
   }
 
+  // The scalloped line round the Source/Field pill. A point is walked round
+  // the pill's perimeter and pushed out along the normal by a wave, so the
+  // bumps are even and the path closes; a second line a little out of
+  // phase gives the sketched-twice look. The phase advances with time, so
+  // the bumps crawl round while Fun is on.
+  var PAD = 8;       // px of room the svg has round the pill
+  var lineSvg = null, linePaths = null;
+
+  function around(w, h, s) {
+    var r = h / 2, run = w - h, arc = Math.PI * r, a;
+    if (s < run) return [r + s, 0, 0, -1];
+    s -= run;
+    if (s < arc) { a = -Math.PI / 2 + s / r; return [w - r + r * Math.cos(a), r + r * Math.sin(a), Math.cos(a), Math.sin(a)]; }
+    s -= arc;
+    if (s < run) return [w - r - s, h, 0, 1];
+    s -= run;
+    a = Math.PI / 2 + s / r;
+    return [r + r * Math.cos(a), r + r * Math.sin(a), Math.cos(a), Math.sin(a)];
+  }
+
+  function scallop(w, h, out, amp, phase) {
+    var L = 2 * (w - h) + Math.PI * h;
+    var bumps = Math.max(8, Math.round(L / 14));
+    var n = Math.max(120, bumps * 12);
+    var d = "";
+    for (var i = 0; i < n; i++) {
+      var s = L * i / n;
+      var p = around(w, h, s);
+      var k = out + amp * Math.sin(2 * Math.PI * bumps * s / L + phase);
+      d += (i ? "L" : "M") + (p[0] + p[2] * k).toFixed(1) + " " + (p[1] + p[3] * k).toFixed(1);
+    }
+    return d + "Z";
+  }
+
+  function outline(now) {
+    if (!lineSvg) {
+      lineSvg = document.querySelector(".pill-line");
+      linePaths = lineSvg ? lineSvg.querySelectorAll("path") : null;
+    }
+    if (!lineSvg) return;
+    var pill = lineSvg.parentNode;
+    var w = pill.offsetWidth, h = pill.offsetHeight;
+    if (!w || !h) return;
+    lineSvg.setAttribute("viewBox", (-PAD) + " " + (-PAD) + " " + (w + 2 * PAD) + " " + (h + 2 * PAD));
+    var phase = now / 1100;
+    linePaths[0].setAttribute("d", scallop(w, h, 3.6, 2.4, phase));
+    linePaths[1].setAttribute("d", scallop(w, h, 3.6, 2.0, phase + 1.7));
+  }
+
   // The pill's thumb sits under whichever side is pressed. On a switch it
   // hops: shrinks to a circle in the middle, squashes, and springs out
   // into the other side. Geometry goes in as custom properties, so the
@@ -1049,7 +1100,7 @@
     }
   }
 
-  window.addEventListener("resize", function () { seat(false); });
+  window.addEventListener("resize", function () { seat(false); outline(0); });
 
   document.addEventListener("click", function (event) {
     var button = event.target.closest("[data-set-theme], [data-set-font], [data-set-fun]");
