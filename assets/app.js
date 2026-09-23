@@ -10,18 +10,24 @@
   }
 
   // --- Fun mode ----------------------------------------------------------
-  // The background is left to itself: five blobs drifting on CSS animations,
-  // in colours mixed from the time of day. The only thing that answers the
-  // visitor is the click, which sends a small figure off the pointer, into
-  // the page and under.
+  // One hue runs the whole field. It starts from the time of day and turns
+  // slowly as the pointer travels, and every colour on the page is a near
+  // neighbour of it, so wherever two colours overlap they make a third in
+  // the same family rather than mud. There are two ways to show it, chosen
+  // by the switch under the theme buttons (data-fun on <html>): "field"
+  // has five pools of colour behind the page and the pointer clears them
+  // to white; "cursor" has a white page and the pointer lays the colour
+  // down. A click sends a small animal off the pointer, into the page and
+  // under.
 
-  // Anchors through the day. Between them the colours are mixed by the
-  // hour, so the page warms up and cools down rather than jumping.
+  // Anchors through the day: the hue the field starts on when Fun comes on.
+  // Between them the hue is turned by the hour, the short way round, so the
+  // page warms up and cools down rather than jumping.
   var HOURS = [
-    { at: 3,  set: ["#5566cc", "#3f8fb0", "#6f57bd", "#4a74d6", "#8460c8"] },
-    { at: 8,  set: ["#ff7a8a", "#ffb36b", "#ffd166", "#f78fb3", "#8fc9bd"] },
-    { at: 13, set: ["#ff2d55", "#ffb300", "#00c853", "#2979ff", "#aa00ff"] },
-    { at: 19, set: ["#ff5c7a", "#ff8a3d", "#d94fd0", "#8a5cff", "#ff4f9a"] }
+    { at: 3,  hue: 268 },   // indigo
+    { at: 8,  hue: 28 },    // coral
+    { at: 13, hue: 205 },   // sky
+    { at: 19, hue: 335 }    // magenta
   ];
 
   // A little animal, drawn as if doodled: the head is a loop that overshoots
@@ -399,6 +405,8 @@
   // letters: a span per letter makes some screen readers spell the page out.
   var BLAST = 118;     // px: how close the pointer has to be to move a word
   var SHOVE = 34;      // px: how far the nearest word is pushed
+  var shove = 1;       // the dial: 0 leaves the words alone, 2 doubles it
+  try { shove = Math.max(0, Math.min(2, (parseFloat(localStorage.getItem("fun-scatter")) || 50) / 50)); } catch (e) {}
   var shards = [];
   var page = null;
   var queued = false;
@@ -407,35 +415,101 @@
   var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var canvas = null;
   var ctx = null;
-  var sprite = null;
+  var sprites = {};    // one stamp per colour, drawn on first use
   var grain = 1;       // canvas pixels per css pixel
   var last = { x: 0, y: 0, going: false, sown: 0 };
   var marks = [];
   var frame = null;
   var running = false;
-  var clock = null;
   var typeWatch = null;
 
-  // One clearing, drawn once at a good size and then scaled. Its edge runs
-  // through several stops rather than two, so it reads as a value falling
-  // off through a ramp rather than a disc with a blurred rim.
+  // One mark, drawn once at a good size per colour and then scaled. Its edge
+  // runs through several stops rather than two, so it reads as a value
+  // falling off through a ramp rather than a disc with a blurred rim.
   var RAMP = [
     [0.00, 0.92], [0.22, 0.86], [0.40, 0.70],
     [0.58, 0.46], [0.74, 0.25], [0.88, 0.09], [1.00, 0]
   ];
 
-  function cut() {
+  function stamp(rgb) {
+    var key = rgb.join(",");
+    if (sprites[key]) return sprites[key];
     var size = Math.ceil(HOLE * 2 * grain * TO);
-    sprite = document.createElement("canvas");
+    var sprite = document.createElement("canvas");
     sprite.width = sprite.height = size;
     var edge = sprite.getContext("2d");
     var mid = size / 2;
     var glow = edge.createRadialGradient(mid, mid, 0, mid, mid, mid);
     RAMP.forEach(function (stop) {
-      glow.addColorStop(stop[0], "rgba(255,255,255," + stop[1] + ")");
+      glow.addColorStop(stop[0], "rgba(" + key + "," + stop[1] + ")");
     });
     edge.fillStyle = glow;
     edge.fillRect(0, 0, size, size);
+    sprites[key] = sprite;
+    return sprite;
+  }
+
+  // --- The hue -----------------------------------------------------------
+  var hue = 205;         // the anchor, in degrees
+  var shownHue = null;   // the last one written to the page
+  var SPIN = 0.035;      // degrees of hue per px the pointer travels
+  var SPREAD = 18;       // degrees between neighbouring pools
+
+  function mode() {
+    return root.getAttribute("data-fun") === "cursor" ? "cursor" : "field";
+  }
+
+  // OKLCH to sRGB, so lightness and chroma stay even round the wheel: the
+  // greens come out no louder than the blues. Returns [r, g, b] in 0..255.
+  function tone(l, c, h) {
+    var rad = h * Math.PI / 180;
+    var A = c * Math.cos(rad), B = c * Math.sin(rad);
+    var l_ = l + 0.3963377774 * A + 0.2158037573 * B;
+    var m_ = l - 0.1055613458 * A - 0.0638541728 * B;
+    var s_ = l - 0.0894841775 * A - 1.2914855480 * B;
+    var L = l_ * l_ * l_, M = m_ * m_ * m_, S = s_ * s_ * s_;
+    var lin = [
+       4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S,
+      -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S,
+      -0.0041960863 * L - 0.7034186147 * M + 1.7076147010 * S
+    ];
+    return lin.map(function (v) {
+      v = Math.max(0, Math.min(1, v));
+      v = v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+      return Math.round(v * 255);
+    });
+  }
+
+  function rgb(l, c, h) { return "rgb(" + tone(l, c, h).join(",") + ")"; }
+
+  // Where the hue begins: read from the clock, the short way round between
+  // the two anchors either side of now.
+  function startHue() {
+    var now = new Date();
+    var hour = now.getHours() + now.getMinutes() / 60;
+    for (var i = 0; i < HOURS.length; i++) {
+      var a = HOURS[i], b = HOURS[(i + 1) % HOURS.length];
+      var span = (b.at - a.at + 24) % 24;
+      var into = (hour - a.at + 24) % 24;
+      if (into >= span) continue;
+      var turn = ((b.hue - a.hue) % 360 + 540) % 360 - 180;
+      hue = (a.hue + turn * (into / span) + 360) % 360;
+      break;
+    }
+    shownHue = null;
+    paintHue();
+  }
+
+  // The five pools take the hue and two steps either side of it, at one
+  // lightness and chroma; the base under them is the middle hue, pale.
+  // Written only when the hue has moved enough to see.
+  function paintHue() {
+    if (shownHue !== null && Math.abs(hue - shownHue) < 1.5) return;
+    shownHue = hue;
+    for (var n = 0; n < 5; n++) {
+      root.style.setProperty("--c" + (n + 1), rgb(0.78, 0.16, hue + (n - 2) * SPREAD));
+    }
+    root.style.setProperty("--base", rgb(0.94, 0.045, hue));
   }
 
   function fit() {
@@ -443,7 +517,7 @@
     grain = Math.min(window.devicePixelRatio || 1, 1.5);
     canvas.width = Math.round(window.innerWidth * grain);
     canvas.height = Math.round(window.innerHeight * grain);
-    cut();
+    sprites = {};
     last.going = false;
     marks.length = 0;
   }
@@ -466,6 +540,7 @@
       marks.push({
         x: last.x + dx * (i / hops),
         y: last.y + dy * (i / hops),
+        hue: hue,
         born: now - (hops - i) * 12   // the earliest is furthest along
       });
     }
@@ -475,9 +550,14 @@
     if (marks.length > 90) marks.splice(0, marks.length - 90);
   }
 
+  // In "field" the marks are white and clear the colour behind them; in
+  // "cursor" each is the colour the hue was when it was made, so a long
+  // sweep leaves a slow rainbow behind it.
   function paint(now) {
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var inked = mode() === "cursor";
+    var white = inked ? null : stamp([255, 255, 255]);
 
     var alive = 0;
     for (var i = 0; i < marks.length; i++) {
@@ -490,7 +570,8 @@
       var span = HOLE * (FROM + (TO - FROM) * age) * grain;
       var left = 1 - age;
       ctx.globalAlpha = left * left;
-      ctx.drawImage(sprite, m.x * grain - span, m.y * grain - span, span * 2, span * 2);
+      var img = inked ? stamp(tone(0.74, 0.19, Math.round(m.hue / 6) * 6)) : white;
+      ctx.drawImage(img, m.x * grain - span, m.y * grain - span, span * 2, span * 2);
     }
     marks.length = alive;
     ctx.globalAlpha = 1;
@@ -528,44 +609,6 @@
     scatterSoon();
   }
 
-  function mix(a, b, t) {
-    var out = "#";
-    for (var i = 1; i < 7; i += 2) {
-      var from = parseInt(a.substr(i, 2), 16);
-      var to = parseInt(b.substr(i, 2), 16);
-      var v = Math.round(from + (to - from) * t).toString(16);
-      out += v.length < 2 ? "0" + v : v;
-    }
-    return out;
-  }
-
-  function paintClock() {
-    var now = new Date();
-    var hour = now.getHours() + now.getMinutes() / 60;
-
-    for (var i = 0; i < HOURS.length; i++) {
-      var a = HOURS[i];
-      var b = HOURS[(i + 1) % HOURS.length];
-      var span = (b.at - a.at + 24) % 24;
-      var into = (hour - a.at + 24) % 24;
-      if (into >= span) continue;
-
-      var t = into / span;
-      var blend = [0, 0, 0];
-      a.set.forEach(function (colour, n) {
-        var now = mix(colour, b.set[n], t);
-        root.style.setProperty("--c" + (n + 1), now);
-        for (var c = 0; c < 3; c++) {
-          blend[c] += parseInt(now.substr(1 + c * 2, 2), 16) / a.set.length;
-        }
-      });
-      // The field sits on the average of the five, so it is colour to the
-      // edges instead of blobs floating on white.
-      root.style.setProperty("--base", "rgb(" + blend.map(Math.round).join(",") + ")");
-      return;
-    }
-  }
-
   function step(now) {
     var gap = Math.min((now - (step.beat || now)) / 1000, 0.05);
     step.beat = now;
@@ -574,6 +617,7 @@
     rush -= rush * CALM * gap;
     if (rush < 0.01) rush = 0;
     place();
+    paintHue();
     sow(now);
     paint(now);
 
@@ -589,6 +633,10 @@
   }
 
   function onPointerMove(event) {
+    if (held.x > -9000) {
+      var mx = event.clientX - held.x, my = event.clientY - held.y;
+      hue = (hue + Math.sqrt(mx * mx + my * my) * SPIN) % 360;
+    }
     held.x = event.clientX;
     held.y = event.clientY;
     if (!last.going) {
@@ -685,7 +733,7 @@
       if (gap < reach) {
         var far = Math.sqrt(gap) || 1;
         var force = 1 - far / BLAST;
-        var by = force * force * SHOVE * sh.force;
+        var by = force * force * SHOVE * shove * sh.force;
         // Skew the direction a little so the words scatter rather than
         // radiating out in a tidy circle.
         var ax = dx / far, ay = dy / far;
@@ -775,7 +823,7 @@
 
   function dive(event) {
     if (root.getAttribute("data-theme") !== "fun" || motion.matches) return;
-    if (event.target.closest("[data-set-theme], [data-set-font], a")) return;
+    if (event.target.closest("[data-set-theme], [data-set-font], .fun-controls, a")) return;
 
     // It falls all the way to the water along the bottom of the window,
     // however high the click was, and takes longer from higher up.
@@ -835,8 +883,7 @@
     running = wanted;
 
     if (running) {
-      paintClock();
-      clock = window.setInterval(paintClock, 240000);   // keep up with the hour
+      startHue();
       plot();
       canvas = document.querySelector(".trail");
       ctx = canvas ? canvas.getContext("2d") : null;
@@ -856,7 +903,6 @@
       }
       wake();
     } else {
-      window.clearInterval(clock);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerout", onPointerOut);
       window.removeEventListener("scroll", onScroll);
@@ -865,7 +911,8 @@
       clearRow();
       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
       marks.length = 0;
-      canvas = ctx = sprite = null;
+      canvas = ctx = null;
+      sprites = {};
       last.going = false;
       window.removeEventListener("resize", remeasure);
       if (typeWatch) { typeWatch.disconnect(); typeWatch = null; }
@@ -889,21 +936,40 @@
     document.querySelectorAll("[data-set-font]").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.setFont === font));
     });
+    var fun = mode();
+    document.querySelectorAll("[data-set-fun]").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.setFun === fun));
+    });
+    document.querySelectorAll("[data-set-scatter]").forEach(function (dial) {
+      dial.value = String(Math.round(shove * 50));
+    });
     syncFun();
   }
 
   document.addEventListener("click", function (event) {
-    var button = event.target.closest("[data-set-theme], [data-set-font]");
+    var button = event.target.closest("[data-set-theme], [data-set-font], [data-set-fun]");
     if (!button) return;
 
     if (button.dataset.setTheme) {
       root.setAttribute("data-theme", button.dataset.setTheme);
       save("theme", button.dataset.setTheme);
+    } else if (button.dataset.setFun) {
+      root.setAttribute("data-fun", button.dataset.setFun);
+      save("fun-mode", button.dataset.setFun);
+      marks.length = 0;   // the old marks were the other colour
     } else {
       root.setAttribute("data-font", button.dataset.setFont);
       save("font", button.dataset.setFont);
     }
     sync();
+  });
+
+  document.addEventListener("input", function (event) {
+    var dial = event.target.closest("[data-set-scatter]");
+    if (!dial) return;
+    shove = Math.max(0, Math.min(2, parseFloat(dial.value) / 50));
+    save("fun-scatter", dial.value);
+    scatterSoon();
   });
 
   // Follow the OS only while the visitor has not made their own choice.

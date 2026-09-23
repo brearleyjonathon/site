@@ -184,6 +184,36 @@ body.ready * {
   color: var(--bg);
 }
 
+/* The Fun sub-controls: where the colour is, and how far the words scatter.
+   Only there while Fun is on. */
+.fun-controls {
+  display: none;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+}
+
+:root[data-theme="fun"] .fun-controls { display: flex; }
+
+.dial {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: .01em;
+}
+
+.dial input {
+  width: 7.5rem;
+  margin: 0;
+  accent-color: var(--text);
+  cursor: pointer;
+}
+
 /* =========================================================================
    Sections
    ========================================================================= */
@@ -371,17 +401,20 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   overflow: hidden;
   opacity: .55;   /* keeps the colour pastel, so black type stays readable */
 
-  /* --base is the average of the five, so the field is colour all the way
-     out rather than blobs floating on white. */
+  /* --base is the same hue as the pools, pale, so the field is colour all
+     the way out rather than pools floating on white. */
   background-color: var(--base, #f2eef4);
-
 }
 
-/* Where the pointer has been. app.js stamps soft white into this and takes
-   a little alpha back out of the whole thing every frame, so the path
-   stays clear under the cursor and closes over behind it. It sits inside
-   the field, above the pools, so the white it lays down cancels the colour
-   and the page shows through. */
+/* With the colour coming from the cursor, the page stays white and the
+   pools sit out; the marks on the trail carry the colour instead. */
+:root[data-fun="cursor"] .blobs { background-color: transparent; }
+:root[data-fun="cursor"] .blob { display: none; }
+
+/* Where the pointer has been. app.js redraws this every frame from the
+   marks still alive, each opening out and fading. It sits inside the field,
+   above the pools. In "field" the marks are white, so they cancel the
+   colour and the page shows through; in "cursor" they are the colour. */
 .trail {
   position: absolute;
   inset: 0;
@@ -389,10 +422,10 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   height: 100%;
 }
 
-/* The five colours are written by app.js from the time of day. The values
-   here are the midday set, used until it runs. */
+/* The five colours are written by app.js: one hue and its neighbours,
+   turned by the pointer. The values here are a sky set, used until it runs. */
 :root {
-  --c1: #ff2d55; --c2: #ffb300; --c3: #00c853; --c4: #2979ff; --c5: #aa00ff;
+  --c1: #7fc4e6; --c2: #86c3ef; --c3: #93c0f4; --c4: #a4bcf5; --c5: #b6b7f2;
 }
 
 /* Each is an attractor point: a wide, soft pool of one colour, overlapping

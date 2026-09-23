@@ -34,6 +34,7 @@
   root.setAttribute("data-theme",
     theme === "dark" ? "dark" : theme === "fun" ? "fun" : "light");
   root.setAttribute("data-font", font === "serif" || (!font && defaultFont === "serif") ? "serif" : "sans");
+  try { root.setAttribute("data-fun", localStorage.getItem("fun-mode") === "cursor" ? "cursor" : "field"); } catch (e) {}
 })();
 </script>
 </head>
@@ -66,6 +67,16 @@
       <div class="switch" role="group" aria-label="Typeface">
         <button type="button" data-set-font="sans">Sans</button>
         <button type="button" data-set-font="serif">Serif</button>
+      </div>
+      <div class="fun-controls">
+        <div class="switch" role="group" aria-label="Where the colour is">
+          <button type="button" data-set-fun="field">Colour behind</button>
+          <button type="button" data-set-fun="cursor">Colour from the cursor</button>
+        </div>
+        <label class="dial">
+          <span>Scatter</span>
+          <input type="range" min="0" max="100" step="1" value="50" data-set-scatter aria-label="How far the words scatter from the pointer">
+        </label>
       </div>
     </div>
   </header>
