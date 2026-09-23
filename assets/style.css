@@ -234,22 +234,28 @@ body.ready * {
   transform-origin: 50% 50%;
 }
 
-.thumb.hop { animation: thumb-hop .6s cubic-bezier(.3, .7, .3, 1) both; }
+.thumb.hop { animation: thumb-hop .7s linear both; }
 
-/* Out of one side, into a circle in the middle with a squash and a
-   stretch, then out into the other side with a little overshoot. */
+/* First it draws in to a circle where it is, then the circle crosses to
+   the other side, stretching as it goes, and only then does it open out
+   into the new side with a little overshoot. */
 @keyframes thumb-hop {
   0% {
     left: var(--fx); width: var(--fw); scale: 1;
-    animation-timing-function: cubic-bezier(.5, 0, .7, .6);
+    animation-timing-function: cubic-bezier(.4, 0, .6, 1);
   }
-  42% {
-    left: calc(50% - var(--th) / 2); width: var(--th); scale: 1.22 .86;
-    animation-timing-function: ease-in-out;
+  28% {
+    left: calc(var(--fx) + (var(--fw) - var(--th)) / 2); width: var(--th); scale: 1;
+    animation-timing-function: cubic-bezier(.5, 0, .5, 1);
   }
-  56% {
-    left: calc(50% - var(--th) / 2); width: var(--th); scale: .9 1.14;
-    animation-timing-function: cubic-bezier(.2, .9, .3, 1.35);
+  46% {
+    left: calc((var(--fx) + var(--fw) / 2 + var(--tx) + var(--tw) / 2) / 2 - var(--th) / 2);
+    width: var(--th); scale: 1.3 .82;
+    animation-timing-function: cubic-bezier(.5, 0, .5, 1);
+  }
+  64% {
+    left: calc(var(--tx) + (var(--tw) - var(--th)) / 2); width: var(--th); scale: .92 1.08;
+    animation-timing-function: cubic-bezier(.2, .9, .3, 1.3);
   }
   100% { left: var(--tx); width: var(--tw); scale: 1; }
 }
@@ -543,25 +549,13 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   filter: url("#fun-warp");
 }
 
-/* The hand the animals, the water and the splash are drawn in follows the
-   typeface. With the serif the strokes are run through a loose wobble and
-   given a faint second line a hair off the first, like a sketch gone over
-   twice. With the sans there is no filter at all: square caps and mitred
-   joins turn the same paths into technical drawings, robot versions of
-   themselves. The filter lives in the page's own <svg class="filters">. */
+/* The hand the animals, the water and the splash are drawn in: round caps
+   and a small wobble from the #ink-sketch filter in the page's own
+   <svg class="filters">, so the strokes read as pencil rather than vector. */
 .ink {
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-:root[data-font="serif"] .ink {
-  filter: url(#ink-loose) drop-shadow(.7px .5px 0 rgba(0, 0, 0, .22));
-}
-
-:root[data-font="sans"] .ink {
-  filter: none;
-  stroke-linecap: square;
-  stroke-linejoin: miter;
+  filter: url(#ink-sketch);
 }
 
 /* Every word in the page body becomes one of these while Fun is on, so the

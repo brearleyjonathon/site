@@ -47,11 +47,9 @@
     });
   }
 
-  // The hand itself is chosen in CSS from the typeface: with the serif the
-  // group is run through the #ink-loose filter in the page and drawn with
-  // round caps, a sketch gone over twice; with the sans it gets no filter,
-  // square caps and mitred joins, and the same paths turn into technical
-  // drawings of themselves. The id is kept only to tell the groups apart.
+  // The wobble that makes the strokes read as pencil is the #ink-sketch
+  // filter in the page, applied in CSS to the .ink group, rather than a
+  // filter written into every drawing. The id only tells the groups apart.
   function ink(id) {
     return '<g class="ink ink-' + id + '" fill="none" stroke="currentColor" ' +
          'stroke-width="' + (2.2 * THIN).toFixed(2) + '">';
@@ -981,6 +979,7 @@
     if (!thumb || !on) return;
     var box = pill.getBoundingClientRect();
     var to = on.getBoundingClientRect();
+    var from = thumb.getBoundingClientRect();   // before the target moves it
     pill.style.setProperty("--th", (box.height - 4).toFixed(1) + "px");
     pill.style.setProperty("--tx", (to.left - box.left).toFixed(1) + "px");
     pill.style.setProperty("--tw", to.width.toFixed(1) + "px");
@@ -990,7 +989,6 @@
     var mid = thumb.getAnimations().some(function (a) { return a.playState === "running"; });
     if (!hop && mid) return;
 
-    var from = thumb.getBoundingClientRect();
     pill.style.setProperty("--fx", (from.left - box.left).toFixed(1) + "px");
     pill.style.setProperty("--fw", from.width.toFixed(1) + "px");
     thumb.classList.remove("hop");
