@@ -16,7 +16,7 @@
   // the same family rather than mud. There are two ways to show it, chosen
   // by the switch under the theme buttons (data-fun on <html>): "field"
   // has five pools of colour behind the page and the pointer clears them
-  // to white; "cursor" has a white page and the pointer lays the colour
+  // to white; "source" has a white page and the pointer lays the colour
   // down. A click sends a small animal off the pointer, into the page and
   // under.
 
@@ -355,9 +355,26 @@
            drawing("tuck", "0 0 40 44", 44, 48, "sketch", own ? own.tuck : head(kind, true) + BODY_TUCK);
   }
 
+  // Afloat, each animal is backed by a solid shape in the page colour, so
+  // where two land close together the one in front hides the one behind
+  // like paper cut-outs rather than tangling with it.
+  var BACKS = {
+    shared: '<path d="M20.3 4.7 A8.6 8.6 0 0 0 12.4 17.2 L5 24.8 L35.6 24.8 L28.2 17.2 A8.6 8.6 0 0 0 20.3 4.7 Z"/>',
+    camel: '<path d="M14.6 25.8 L14.6 12.4 C12.4 12.8 10 11.4 10.2 9.2 C11.4 6 17.8 4.6 21.6 7.6 C22.8 9.6 22.4 11.8 20.8 12.6 L20.6 25.8 Z"/>' +
+           '<path d="M22.4 25.8 C23 20.4 25.6 19.6 27.2 23.4 C28.4 19.6 31.4 20 32.6 23.6 C32.9 24.4 33.1 25 33.2 25.8 Z"/>',
+    giraffe: '<path d="M17.4 25.8 L17.6 11.4 C13.4 12.6 10.6 9.4 12.6 6.6 C15 4.4 20.2 4.6 22.2 7.8 L22.6 25.8 Z"/>',
+    penguin: '<path d="M20 7 C14.8 7 12.2 11.6 12.4 18 C12.5 20.6 12.8 22.8 13.4 25.2 L26.6 25.2 C27.2 22.8 27.5 20.6 27.6 18 C27.8 11.6 25.2 7 20 7 Z"/>',
+    hippo: '<path d="M12.6 9 C9.4 10.8 8.2 15.6 9.6 19.8 C11 23.8 16 25 20 25 C24 25 29 23.8 30.4 19.8 C31.8 15.6 30.6 10.8 27.4 9 C26.4 6.2 22.6 6.2 22 8.8 C21.2 8 18.8 8 18 8.8 C17.4 6.2 13.6 6.2 12.6 9 Z"/>'
+  };
+
+  function back(kind) {
+    var shape = BACKS[SHAPES[kind] ? kind : "shared"];
+    return '<g fill="var(--bg, #fff)" stroke="var(--bg, #fff)" stroke-width="3">' + shape + '</g>';
+  }
+
   function floater(kind) {
     var own = SHAPES[kind];
-    return drawing("float", "0 0 40 30", 44, 33, "sketch", own ? own.float : head(kind, true) + BODY_FLOAT);
+    return drawing("float", "0 0 40 30", 44, 33, "sketch", back(kind) + (own ? own.float : head(kind, true) + BODY_FLOAT));
   }
 
   // The water the bear lands in: a wavy line that draws itself outward
@@ -405,8 +422,6 @@
   // letters: a span per letter makes some screen readers spell the page out.
   var BLAST = 118;     // px: how close the pointer has to be to move a word
   var SHOVE = 34;      // px: how far the nearest word is pushed
-  var shove = 1;       // the dial: 0 leaves the words alone, 2 doubles it
-  try { shove = Math.max(0, Math.min(2, (parseFloat(localStorage.getItem("fun-scatter")) || 50) / 50)); } catch (e) {}
   var shards = [];
   var page = null;
   var queued = false;
@@ -456,7 +471,7 @@
   var SPREAD = 18;       // degrees between neighbouring pools
 
   function mode() {
-    return root.getAttribute("data-fun") === "cursor" ? "cursor" : "field";
+    return root.getAttribute("data-fun") === "source" ? "source" : "field";
   }
 
   // OKLCH to sRGB, so lightness and chroma stay even round the wheel: the
@@ -551,12 +566,12 @@
   }
 
   // In "field" the marks are white and clear the colour behind them; in
-  // "cursor" each is the colour the hue was when it was made, so a long
+  // "source" each is the colour the hue was when it was made, so a long
   // sweep leaves a slow rainbow behind it.
   function paint(now) {
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    var inked = mode() === "cursor";
+    var inked = mode() === "source";
     var white = inked ? null : stamp([255, 255, 255]);
 
     var alive = 0;
@@ -733,7 +748,7 @@
       if (gap < reach) {
         var far = Math.sqrt(gap) || 1;
         var force = 1 - far / BLAST;
-        var by = force * force * SHOVE * shove * sh.force;
+        var by = force * force * SHOVE * sh.force;
         // Skew the direction a little so the words scatter rather than
         // radiating out in a tidy circle.
         var ax = dx / far, ay = dy / far;
@@ -940,9 +955,6 @@
     document.querySelectorAll("[data-set-fun]").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.setFun === fun));
     });
-    document.querySelectorAll("[data-set-scatter]").forEach(function (dial) {
-      dial.value = String(Math.round(shove * 50));
-    });
     syncFun();
   }
 
@@ -954,6 +966,11 @@
       root.setAttribute("data-theme", button.dataset.setTheme);
       save("theme", button.dataset.setTheme);
     } else if (button.dataset.setFun) {
+      // The pools are clipped to a circle centred here, so the colour
+      // gathers into the button pressed, or spreads back out from it.
+      var at = button.getBoundingClientRect();
+      root.style.setProperty("--px", (at.left + at.width / 2).toFixed(0) + "px");
+      root.style.setProperty("--py", (at.top + at.height / 2).toFixed(0) + "px");
       root.setAttribute("data-fun", button.dataset.setFun);
       save("fun-mode", button.dataset.setFun);
       marks.length = 0;   // the old marks were the other colour
@@ -964,13 +981,6 @@
     sync();
   });
 
-  document.addEventListener("input", function (event) {
-    var dial = event.target.closest("[data-set-scatter]");
-    if (!dial) return;
-    shove = Math.max(0, Math.min(2, parseFloat(dial.value) / 50));
-    save("fun-scatter", dial.value);
-    scatterSoon();
-  });
 
   // Follow the OS only while the visitor has not made their own choice.
   if (motion.addEventListener) motion.addEventListener("change", syncFun);
