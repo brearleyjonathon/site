@@ -346,48 +346,72 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 }
 
 /* =========================================================================
-   Fun — a drifting rainbow, a dot matrix under the pointer, a click ripple
+   Fun — five drifting blobs the pointer shoves aside, under film grain
    =========================================================================
-   The backdrop floats on its own: each colour is one background layer with
-   its own size, and the animation walks all five positions around. The
-   pointer only adds a small parallax nudge through --px / --py, so the
-   motion never feels bolted to the cursor. --mx / --my carry the eased
-   pointer position for the dot matrix. All of it is written by app.js. */
+   Each blob is its own element so it can carry two motions at once. The
+   CSS animation below owns `transform`, which is the slow independent
+   drift. app.js owns the separate `translate` property, which is the shove
+   away from the pointer. The two compose, so neither has to know about the
+   other. */
 
 :root[data-theme="fun"] body {
   position: relative;
-  z-index: 0;   /* a stacking context, so the backdrop sits above the page
+  z-index: 0;   /* a stacking context, so the blobs sit above the page
                    background and below the type */
 }
 
-:root[data-theme="fun"] body::before {
-  content: "";
+.blobs { display: none; }
+
+:root[data-theme="fun"] .blobs {
+  display: block;
   position: fixed;
-  inset: -25%;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
+  overflow: hidden;
   opacity: .5;   /* keeps the colour pastel, so black type stays readable */
-  background-color: #ffffff;
-  background-repeat: no-repeat;
-  background-size: 128% 128%, 150% 150%, 168% 168%, 142% 142%, 118% 118%;
-  /* Explicit radii, so the five read as blobs drifting over white rather
-     than one wash filling the page. */
-  background-image:
-    radial-gradient(26vmax 26vmax, #ff2d55 0%, transparent 62%),
-    radial-gradient(30vmax 30vmax, #ffb300 0%, transparent 62%),
-    radial-gradient(34vmax 34vmax, #00c853 0%, transparent 62%),
-    radial-gradient(28vmax 28vmax, #2979ff 0%, transparent 62%),
-    radial-gradient(23vmax 23vmax, #aa00ff 0%, transparent 64%);
-  transform: translate(var(--px, 0px), var(--py, 0px));
-  animation: fun-float 44s ease-in-out infinite alternate;
 }
 
-@keyframes fun-float {
-  0%   { background-position:  8% 12%, 82% 18%, 20% 80%, 74% 70%, 48% 46%; }
-  25%  { background-position: 34% 36%, 58%  4%,  4% 56%, 92% 40%, 64% 76%; }
-  50%  { background-position: 64%  6%, 28% 44%, 42% 94%, 56% 18%, 18% 58%; }
-  75%  { background-position: 22% 70%, 90% 52%, 66% 26%, 14% 64%, 80% 30%; }
-  100% { background-position: 12% 50%, 74% 62%, 70% 34%, 26% 10%, 50% 86%; }
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  animation: blob-drift 37s ease-in-out infinite alternate;
+}
+
+.blob:nth-child(1) {
+  width: 34vmax; height: 34vmax; left:  0%; top:  -6%;
+  background: radial-gradient(closest-side, #ff2d55, transparent);
+  animation-duration: 31s;
+}
+.blob:nth-child(2) {
+  width: 40vmax; height: 40vmax; left: 54%; top: -12%;
+  background: radial-gradient(closest-side, #ffb300, transparent);
+  animation-duration: 37s; animation-delay: -7s;
+}
+.blob:nth-child(3) {
+  width: 44vmax; height: 44vmax; left:  2%; top:  44%;
+  background: radial-gradient(closest-side, #00c853, transparent);
+  animation-duration: 43s; animation-delay: -14s;
+}
+.blob:nth-child(4) {
+  width: 38vmax; height: 38vmax; left: 52%; top:  38%;
+  background: radial-gradient(closest-side, #2979ff, transparent);
+  animation-duration: 29s; animation-delay: -21s;
+}
+.blob:nth-child(5) {
+  width: 31vmax; height: 31vmax; left: 26%; top:  14%;
+  background: radial-gradient(closest-side, #aa00ff, transparent);
+  animation-duration: 47s; animation-delay: -28s;
+}
+
+/* Percentages here are of the blob's own size, so each one travels in
+   proportion to how big it is. */
+@keyframes blob-drift {
+  0%   { transform: translate(-16%,  10%); }
+  25%  { transform: translate( 20%, -14%); }
+  50%  { transform: translate(  6%,  24%); }
+  75%  { transform: translate(-22%,  -6%); }
+  100% { transform: translate( 12%,  16%); }
 }
 
 /* Film grain. A tile of SVG noise, multiplied over everything including the
@@ -396,7 +420,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 2;          /* over the type and the matrix, not just the backdrop */
+  z-index: 2;
   pointer-events: none;
   opacity: .16;
   mix-blend-mode: multiply;
@@ -419,63 +443,9 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   filter: url("#fun-warp");
 }
 
-/* The dot matrix. Rides under the pointer, a frame or two behind it, and
-   stays hidden until the pointer has actually moved. */
-.matrix { display: none; }
-
-:root[data-theme="fun"] .matrix {
-  display: block;
-  position: fixed;
-  left: var(--mx, 50%);
-  top: var(--my, 50%);
-  width: 15rem;
-  height: 15rem;
-  margin: -7.5rem 0 0 -7.5rem;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0;
-  color: #16161a;
-  mix-blend-mode: multiply;
-  background-image: radial-gradient(currentColor 28%, transparent 30%);
-  background-size: 8px 8px;
-  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0,0,0,.3) 55%, transparent 78%);
-  mask-image: radial-gradient(circle, #000 0%, rgba(0,0,0,.3) 55%, transparent 78%);
-  transition: opacity .5s ease;
-}
-
-:root[data-theme="fun"][data-pointer] .matrix { opacity: .45; }
-
-/* A ring spreading from the click, with a second one just behind it. */
-.ripple {
-  position: fixed;
-  z-index: 3;
-  width: 26rem;
-  height: 26rem;
-  margin: -13rem 0 0 -13rem;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-  pointer-events: none;
-  animation: fun-ripple .85s cubic-bezier(.2, .7, .3, 1) forwards;
-}
-
-.ripple::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1.5px solid currentColor;
-  border-radius: 50%;
-  animation: fun-ripple .85s cubic-bezier(.2, .7, .3, 1) .15s forwards;
-}
-
-@keyframes fun-ripple {
-  from { transform: scale(.06); opacity: 1; }
-  to   { transform: scale(1);   opacity: 0;  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  :root[data-theme="fun"] body::before,
   :root[data-theme="fun"] body::after { animation: none; }
-  :root[data-theme="fun"] .matrix { display: none; }
+  .blob { animation: none; }
 }
 
 /* =========================================================================
@@ -485,9 +455,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 @media print {
   :root { --bg: #fff; --text: #000; --muted: #444; --faint: #666; --rule: #ccc; }
   .controls { display: none; }
-  body::before,
   body::after,
-  .matrix { display: none; }
+  .blobs { display: none; }
   main { filter: none; }
   .page { max-width: none; padding: 0; }
   a { text-decoration: none; }

@@ -10,30 +10,64 @@
   }
 
   // --- Fun mode ----------------------------------------------------------
-  // Two jobs. --mx / --my carry the pointer, eased a frame at a time, and
-  // position the dot matrix so it trails the cursor. --px / --py are a much
-  // smaller parallax nudge for the backdrop, which otherwise drifts on its
-  // own in CSS rather than chasing the mouse.
+  // The blobs drift on their own in CSS, through `transform`. Here we only
+  // shove them away from the pointer, through the separate `translate`
+  // property, so the two motions compose without fighting.
+  //
+  // A blob's own rect already includes the shove we applied last frame, so
+  // we subtract it back off to get where the blob would be standing
+  // undisturbed. Measuring from there is what keeps it from chasing itself.
 
-  var NUDGE = 16;   // px of parallax at the edge of the viewport
+  var REACH = 430;      // px: how close the pointer has to be to matter
+  var SHOVE = 260;      // px: how far a blob is pushed at point-blank range
+  var EASE = 0.09;
+
   var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  var point = { x: 50, y: 50, atX: 50, atY: 50 };
+  var cursor = { x: 0, y: 0, here: false };
+  var blobs = [];
   var frame = null;
   var running = false;
 
+  function collect() {
+    blobs = [].map.call(document.querySelectorAll(".blob"), function (el) {
+      return { el: el, x: 0, y: 0, toX: 0, toY: 0 };
+    });
+  }
+
+  function aim() {
+    for (var i = 0; i < blobs.length; i++) {
+      var b = blobs[i];
+      if (!cursor.here) { b.toX = b.toY = 0; continue; }
+
+      var r = b.el.getBoundingClientRect();
+      var dx = r.left + r.width / 2 - b.x - cursor.x;
+      var dy = r.top + r.height / 2 - b.y - cursor.y;
+      var away = Math.sqrt(dx * dx + dy * dy) || 1;
+      var near = Math.max(0, 1 - away / REACH);
+      var by = near * near * SHOVE;   // falls off fast, so only close blobs move
+
+      b.toX = (dx / away) * by;
+      b.toY = (dy / away) * by;
+    }
+  }
+
   function step() {
-    var dx = point.x - point.atX;
-    var dy = point.y - point.atY;
-    point.atX += dx * 0.08;
-    point.atY += dy * 0.08;
+    aim();
 
-    root.style.setProperty("--mx", point.atX.toFixed(2) + "%");
-    root.style.setProperty("--my", point.atY.toFixed(2) + "%");
-    root.style.setProperty("--px", (((point.atX - 50) / 50) * NUDGE).toFixed(1) + "px");
-    root.style.setProperty("--py", (((point.atY - 50) / 50) * NUDGE).toFixed(1) + "px");
+    var settled = true;
+    for (var i = 0; i < blobs.length; i++) {
+      var b = blobs[i];
+      b.x += (b.toX - b.x) * EASE;
+      b.y += (b.toY - b.y) * EASE;
+      b.el.style.translate = b.x.toFixed(1) + "px " + b.y.toFixed(1) + "px";
+      if (Math.abs(b.toX - b.x) > 0.3 || Math.abs(b.toY - b.y) > 0.3) settled = false;
+    }
 
-    if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) {
-      frame = null;   // caught up; idle until the pointer moves again
+    // While the pointer is on the page the blobs keep drifting under it, so
+    // the loop has to keep looking. Once it leaves, we only run long enough
+    // for everything to slide back.
+    if (settled && !cursor.here) {
+      frame = null;
       return;
     }
     frame = requestAnimationFrame(step);
@@ -44,33 +78,18 @@
   }
 
   function onPointerMove(event) {
-    point.x = (event.clientX / window.innerWidth) * 100;
-    point.y = (event.clientY / window.innerHeight) * 100;
-    root.dataset.pointer = "1";   // the matrix stays hidden until now
+    cursor.x = event.clientX;
+    cursor.y = event.clientY;
+    cursor.here = true;
     wake();
   }
 
-  // A click sends a ring out from the pointer, in the next colour of the
-  // backdrop's palette.
-  var palette = ["#ff2d55", "#ffb300", "#00c853", "#2979ff", "#aa00ff"];
-  var nextColour = 0;
-
-  function ripple(event) {
-    if (root.getAttribute("data-theme") !== "fun" || motion.matches) return;
-    if (event.target.closest("[data-set-theme], [data-set-font], a")) return;
-
-    var ring = document.createElement("span");
-    ring.className = "ripple";
-    ring.style.left = event.clientX + "px";
-    ring.style.top = event.clientY + "px";
-    ring.style.color = palette[nextColour++ % palette.length];
-    ring.addEventListener("animationend", function (e) {
-      if (e.target === ring) ring.remove();
-    });
-    document.body.appendChild(ring);
+  function onPointerOut(event) {
+    if (event.relatedTarget === null) {   // actually left the window
+      cursor.here = false;
+      wake();
+    }
   }
-
-  document.addEventListener("click", ripple);
 
   function syncFun() {
     var wanted = root.getAttribute("data-theme") === "fun" && !motion.matches;
@@ -78,16 +97,17 @@
     running = wanted;
 
     if (running) {
+      collect();
       window.addEventListener("pointermove", onPointerMove, { passive: true });
+      window.addEventListener("pointerout", onPointerOut, { passive: true });
       wake();
     } else {
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerout", onPointerOut);
       if (frame !== null) cancelAnimationFrame(frame);
       frame = null;
-      delete root.dataset.pointer;
-      ["--mx", "--my", "--px", "--py"].forEach(function (name) {
-        root.style.removeProperty(name);
-      });
+      cursor.here = false;
+      blobs.forEach(function (b) { b.el.style.removeProperty("translate"); });
     }
   }
 
