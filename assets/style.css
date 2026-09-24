@@ -583,8 +583,10 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   100% { background-position:  24px   36px; }
 }
 
-/* A shallow roll through the text, like heat off a surface. Static, so it
-   costs one pass rather than one a frame. */
+/* A shallow roll through the text, like heat off a surface. The noise is
+   static, but the filter runs again over all of main whenever anything in
+   it repaints, which is every time a word is shoved. Touch screens go
+   without it (see the end of this section). */
 :root[data-theme="fun"] main {
   filter: url("#fun-warp");
 }
@@ -807,6 +809,14 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 @keyframes bob {
   0%, 100% { translate: 0 0; rotate: -2deg; }
   50%      { translate: 0 -3px; rotate: 2deg; }
+}
+
+/* Touch screens. The warp is too small to see at arm's length and costs a
+   CPU filter pass over the whole page on every repaint; the crawling grain
+   repaints the whole screen five times a second. Both hold still here. */
+@media (hover: none) and (pointer: coarse) {
+  :root[data-theme="fun"] main { filter: none; }
+  :root[data-theme="fun"] body::after { animation: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
