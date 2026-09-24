@@ -437,12 +437,17 @@
   var held = { x: -9999, y: -9999 };
 
   var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  // Phones and tablets: no hover, and a finger that scrolls the page
+  // rather than pointing at it.
+  var touch = window.matchMedia("(hover: none) and (pointer: coarse)");
+  var FRAME = 30;      // ms: on touch the field is drawn at about 30fps
   var canvas = null;
   var ctx = null;
   var sprites = {};    // one stamp per colour, drawn on first use
   var grain = 1;       // canvas pixels per css pixel
   var last = { x: 0, y: 0, going: false, sown: 0 };
   var marks = [];
+  var drawn = false;   // whether the trail canvas has anything on it
   var frame = null;
   var running = false;
   var typeWatch = null;
@@ -544,6 +549,7 @@
     sprites = {};
     last.going = false;
     marks.length = 0;
+    drawn = false;     // resizing a canvas clears it
   }
 
   // Each clearing is kept rather than burned into the canvas, because it has
@@ -579,6 +585,7 @@
   // sweep leaves a slow rainbow behind it.
   function paint(now) {
     if (!ctx) return;
+    if (!marks.length && !drawn) return;   // already clear; most frames on a phone
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     var inked = mode() === "source";
     var white = inked ? null : stamp([255, 255, 255]);
@@ -598,6 +605,7 @@
       ctx.drawImage(img, m.x * grain - span, m.y * grain - span, span * 2, span * 2);
     }
     marks.length = alive;
+    drawn = alive > 0;
     ctx.globalAlpha = 1;
   }
 
@@ -634,6 +642,12 @@
   }
 
   function step(now) {
+    // The pools drift slowly enough that half the frames are not missed,
+    // and a phone has better things to do with them.
+    if (touch.matches && step.beat && now - step.beat < FRAME) {
+      frame = requestAnimationFrame(step);
+      return;
+    }
     var gap = Math.min((now - (step.beat || now)) / 1000, 0.05);
     step.beat = now;
 
@@ -675,12 +689,31 @@
   }
 
   function onPointerOut(event) {
-    if (event.relatedTarget === null) {   // actually left the window
-      last.going = false;                 // stop cutting; the trail closes over
-      held.x = held.y = -9999;            // and the words fall back in line
-      scatterSoon();
-      wake();
-    }
+    // A finger's pointer goes out the moment the page starts to scroll,
+    // while the finger is still down; touchend decides when it has gone.
+    if (event.pointerType === "touch") return;
+    if (event.relatedTarget === null) letGo();   // actually left the window
+  }
+
+  function letGo() {
+    last.going = false;                 // stop cutting; the trail closes over
+    held.x = held.y = -9999;            // and the words fall back in line
+    scatterSoon();
+    wake();
+  }
+
+  // On a touch screen the finger is the pointer. A drag scrolls the page,
+  // and the browser cancels the pointer as soon as it does, but touchmove
+  // keeps coming for as long as the finger is down. So the trail follows
+  // the thumb while it scrolls, the hue turns with it, and the words part
+  // round it. A tap lays one mark where it lands.
+  function onTouch(event) {
+    var t = event.touches[0];
+    if (t) onPointerMove(t);   // a Touch has clientX and clientY too
+  }
+
+  function onTouchEnd(event) {
+    if (!event.touches.length) letGo();
   }
 
   // --- Words ---------------------------------------------------------------
@@ -1039,6 +1072,10 @@
       window.addEventListener("resize", lineUp);
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       window.addEventListener("pointerout", onPointerOut, { passive: true });
+      window.addEventListener("touchstart", onTouch, { passive: true });
+      window.addEventListener("touchmove", onTouch, { passive: true });
+      window.addEventListener("touchend", onTouchEnd, { passive: true });
+      window.addEventListener("touchcancel", onTouchEnd, { passive: true });
       if (!motion.matches) {
         shatter();
         window.addEventListener("resize", remeasure);
@@ -1050,15 +1087,21 @@
     } else {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerout", onPointerOut);
+      window.removeEventListener("touchstart", onTouch);
+      window.removeEventListener("touchmove", onTouch);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", fit);
       window.removeEventListener("resize", lineUp);
       clearRow();
       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
       marks.length = 0;
+      drawn = false;
       canvas = ctx = null;
       sprites = {};
       last.going = false;
+      held.x = held.y = -9999;   // a finger lifted while Fun was off never said so
       window.removeEventListener("resize", remeasure);
       if (typeWatch) { typeWatch.disconnect(); typeWatch = null; }
       mend();
