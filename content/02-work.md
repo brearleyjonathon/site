@@ -15,7 +15,7 @@
 - **On the Courtyard**, for *Impossible Toronto*, an ongoing research program by [The Neptis Foundation](https://spacingstore.ca/products/impossible-toronto-on-the-courtyard-learning-from-european-blocks), with Studio VAARO, Gabriel Fain and Krista Palen :: 2025
 - **Design of heat-resilient housing in hot-arid regions**, [*Energy and Buildings*](https://www.sciencedirect.com/science/article/pii/S0378778824011198) 328, with David Birge, Zhujing Zhang and Leslie K. Norford :: 2025
 - **Mitigating Peak Load and Heat Stress under Heat Waves by Optimizing Thermostat Setpoint and Fan Speed Schedules**, [*Journal of Building Performance Simulation*](https://www.tandfonline.com/doi/full/10.1080/19401493.2023.2180538) 16(4), with Zhujing Zhang, Kevin J. Kircher, Yuan Cai, David Birge and Leslie K. Norford :: 2023
-- **Bubble Box Eat & Watch**, [*Journal of Architectural Education*](https://www.tandfonline.com/doi/pdf/10.1080/10464883.2018.1410657) 72(1) :: 2018
+- **Bubble Box Eat & Watch**, [*Journal of Architectural Education*](https://www.jaeonline.org/issue-article/bubble-box-eat-watch/) 72(1) :: 2018
 
 ## Exhibitions
 
