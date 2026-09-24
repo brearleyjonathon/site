@@ -543,13 +543,16 @@
 
   function fit() {
     if (!canvas) return;
-    grain = Math.min(window.devicePixelRatio || 1, 1.5);
+    // The marks are soft all the way through, so a phone draws them at one
+    // canvas pixel per css pixel and lets the screen scale them up.
+    grain = touch.matches ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
     canvas.width = Math.round(window.innerWidth * grain);
     canvas.height = Math.round(window.innerHeight * grain);
     sprites = {};
     last.going = false;
     marks.length = 0;
     drawn = false;     // resizing a canvas clears it
+    place();           // the paths are shares of the window, which has changed
   }
 
   // Each clearing is kept rather than burned into the canvas, because it has
@@ -577,7 +580,8 @@
     last.x = held.x;
     last.y = held.y;
     last.sown = now;
-    if (marks.length > 90) marks.splice(0, marks.length - 90);
+    var most = touch.matches ? 40 : 90;
+    if (marks.length > most) marks.splice(0, marks.length - most);
   }
 
   // In "field" the marks are white and clear the colour behind them; in
@@ -639,6 +643,7 @@
     rush = Math.min(rush + Math.abs(y - (onScroll.was || 0)) * 0.05, RUSH);
     onScroll.was = y;
     scatterSoon();
+    wake();
   }
 
   function step(now) {
@@ -651,17 +656,27 @@
     var gap = Math.min((now - (step.beat || now)) / 1000, 0.05);
     step.beat = now;
 
-    drift += gap * (1 + rush);
+    // On touch the pools have no pace of their own: they move only while a
+    // finger or a scroll winds them on, then settle and hold still.
+    drift += gap * ((touch.matches ? 0 : 1) + rush);
     rush -= rush * CALM * gap;
     if (rush < 0.01) rush = 0;
-    place();
+    if (drift !== place.at) { place.at = drift; place(); }
     paintHue();
     swim(gap);
     sow(now);
     paint(now);
     if (flying.length && shards.length) scatter();   // the animals shove as they fall
 
+    // On touch the loop sleeps once nothing is moving; the next touch,
+    // scroll or animal wakes it.
+    if (touch.matches && !busy()) { frame = null; return; }
     frame = requestAnimationFrame(step);
+  }
+
+  function busy() {
+    return rush > 0 || last.going || drawn || marks.length > 0 ||
+           flying.length > 0 || swimmers.length > 0;
   }
 
   function wake() {
@@ -705,11 +720,17 @@
   // On a touch screen the finger is the pointer. A drag scrolls the page,
   // and the browser cancels the pointer as soon as it does, but touchmove
   // keeps coming for as long as the finger is down. So the trail follows
-  // the thumb while it scrolls, the hue turns with it, and the words part
-  // round it. A tap lays one mark where it lands.
+  // the thumb while it scrolls, the hue turns with it, and the pools are
+  // wound on by how far it travels. The words are left to the animals.
+  // A tap lays one mark where it lands.
   function onTouch(event) {
     var t = event.touches[0];
-    if (t) onPointerMove(t);   // a Touch has clientX and clientY too
+    if (!t) return;
+    if (held.x > -9000) {
+      var mx = t.clientX - held.x, my = t.clientY - held.y;
+      rush = Math.min(rush + Math.sqrt(mx * mx + my * my) * 0.05, RUSH);
+    }
+    onPointerMove(t);   // a Touch has clientX and clientY too
   }
 
   function onTouchEnd(event) {
@@ -785,7 +806,9 @@
   function pushers() {
     var out = [];
     var sx = window.scrollX, sy = window.scrollY;
-    if (held.x > -9000) out.push({ x: held.x + sx, y: held.y + sy, r: BLAST });
+    // A finger is not a pointer the words should dodge: on touch only the
+    // animals move them.
+    if (held.x > -9000 && !touch.matches) out.push({ x: held.x + sx, y: held.y + sy, r: BLAST });
     for (var i = 0; i < flying.length; i++) {
       var r = flying[i].getBoundingClientRect();
       out.push({ x: r.left + r.width / 2 + sx, y: r.top + r.height / 2 + sy,
@@ -867,6 +890,7 @@
 
   function surface(kind, x, size) {
     if (!running) return;
+    wake();   // on touch the loop may have gone to sleep since the dive
     var el = document.createElement("span");
     el.className = "swimmer";
     el.innerHTML = floater(kind);
