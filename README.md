@@ -121,7 +121,7 @@ laptop.
 ```
 content/     what you write          <- you live here
 templates/   the page shell
-assets/      style.css, app.js
+assets/      style.css, app.js, favicons, images
 build.py     the build (one file, no dependencies)
 dist/        generated output        <- never edit, never commit
 ```
