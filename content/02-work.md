@@ -3,10 +3,10 @@
 ## Lectures and Design Reviews
 
 - **Water in Architecture**, guest lecture and design review for Design Studio 5, [The New School](https://www.newschool.edu/) :: 2025
-- **Engineered Natural Ventilation for Climate Resilient Buildings and Occupants**, [NESEA BuildingEnergy NYC]([https://nesea.org/](https://nesea.org/users/jonathon-brearley)) :: 2025
-- **Natural Ventilation and Passive House in Adaptive Reuse**, Regenerative Metropolis, [Passive House New York]([https://www.phnyc.org/](https://www.instagram.com/p/DPAUmwMjXAJ/)) :: 2025
-- **Natural Ventilation at the Irving Institute for Energy and Society**, [NESEA Pro Tour]([https://nesea.org](https://nesea.org/be-event/pro-tour-transforming-expanding-existing-building-dartmouth-college-campus?fbclid=IwY2xjawUiX7tleHRuA2FlbQIxMABwZG9mBWJyaWQRMXJaWDhGM090cmt2Mm9PMlpzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEe01QQZKf34M3TSbbEtnL1ieQqifVU9k1CyRNnTbNTslyuNllulNXiAyNJUhU_aem_prT7xwUo_90kqrOyRGlgUQ)/) :: 2025
-- **Design reviewer and guest lecturer**, Solar Decathlon studio, [The Cooper Union]([https://cooper.edu/](https://cooper.edu/academics/vertically-integrated-projects/teams/solar-decathlon)) :: 2024 -- present
+- **Engineered Natural Ventilation for Climate Resilient Buildings and Occupants**, [NESEA BuildingEnergy NYC](https://nesea.org/users/jonathon-brearley) :: 2025
+- **Natural Ventilation and Passive House in Adaptive Reuse**, Regenerative Metropolis, [Passive House New York]([https://www.phnyc.org/](https://www.instagram.com/p/DPAUmwMjXAJ/) :: 2025
+- **Natural Ventilation at the Irving Institute for Energy and Society**, [NESEA Pro Tour](https://nesea.org/be-event/pro-tour-transforming-expanding-existing-building-dartmouth-college-campus?fbclid=IwY2xjawUiX7tleHRuA2FlbQIxMABwZG9mBWJyaWQRMXJaWDhGM090cmt2Mm9PMlpzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEe01QQZKf34M3TSbbEtnL1ieQqifVU9k1CyRNnTbNTslyuNllulNXiAyNJUhU_aem_prT7xwUo_90kqrOyRGlgUQ) :: 2025
+- **Design reviewer and guest lecturer**, Solar Decathlon studio, [The Cooper Union](https://cooper.edu/academics/vertically-integrated-projects/teams/solar-decathlon) :: 2024 -- present
 
 ## Publications
 
