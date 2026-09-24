@@ -23,4 +23,4 @@
 - **Anthropocene**, a sculpture for the 50th anniversary of Oregon's Bike Bill, [Portland State University](https://archinect.com/psuarchitecture/release/bicycle-bill-sculpture-designed-by-psu-architecture-professor-and-students-unveiled), with Aaron Whelton, Kip Olkowski, Griffin Lutz, Molly Jacobs, and Kagan Reardon :: 2019
 - **Rejected Projections**, a digital exhibition of *Rooms* for 9^3 :: 2019
 - **Treeline Stage**, designer of the music stage at [Pickathon](https://www.theplan.it/eng/award-2019-Special-Projects/2018-pickathon-treeline-stage) :: 2018
-- **Extracurricular PSU**, a drawing in a collaborative exhibition of faculty and student work, [AIA Portland](https://www.aiaportland.org/) :: 2018
+- **Extracurricular PSU**, a drawing made for Andrew Santa Lucia in an exhibition of faculty work, [AIA Portland](https://web.archive.org/web/20181007021343/https://www.pdx.edu/architecture/events/extracurricular-the%E2%80%8B-%E2%80%8Bbuildings%E2%80%8B-speculations%E2%80%8B-%E2%80%8Band%E2%80%8B-research%E2%80%8B-%E2%80%8Bof%E2%80%8B-%E2%80%8Bfaculty%E2%80%8B-%E2%80%8Bat%E2%80%8B-%E2%80%8Bpsu-school?delta=0) :: 2018
