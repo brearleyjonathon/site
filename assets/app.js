@@ -557,31 +557,74 @@
 
   // Each clearing is kept rather than burned into the canvas, because it has
   // to keep opening out after it is made. The canvas is redrawn each frame
-  // from the ones still alive.
-  function sow(now) {
-    if (!last.going) return;
+  // from the ones still alive. Whatever draws, the pointer or an animal,
+  // has its own `from` ({x, y, going, sown}), and `size` scales its marks
+  // against HOLE; `apart` is the px of travel that earns one.
+  function sow(from, x, y, now, size, apart) {
+    if (!from.going) return;
 
-    var dx = held.x - last.x;
-    var dy = held.y - last.y;
+    var dx = x - from.x;
+    var dy = y - from.y;
     var far = Math.sqrt(dx * dx + dy * dy);
-    if (now - last.sown < SEED && far < STEP) return;
+    if (now - from.sown < SEED && far < apart) return;
 
-    // Space them along the way the pointer came, so a quick sweep opens a
-    // ribbon rather than a row of dots.
-    var hops = Math.max(1, Math.min(Math.round(far / STEP), 12));
+    // Space them along the way it came, so a quick sweep opens a ribbon
+    // rather than a row of dots.
+    var hops = Math.max(1, Math.min(Math.round(far / apart), 12));
     for (var i = 1; i <= hops; i++) {
       marks.push({
-        x: last.x + dx * (i / hops),
-        y: last.y + dy * (i / hops),
+        x: from.x + dx * (i / hops),
+        y: from.y + dy * (i / hops),
         hue: hue,
+        size: size,
+        life: LIFE,
         born: now - (hops - i) * 12   // the earliest is furthest along
       });
     }
-    last.x = held.x;
-    last.y = held.y;
-    last.sown = now;
-    var most = touch.matches ? 40 : 90;
+    from.x = x;
+    from.y = y;
+    from.sown = now;
+    cull();
+  }
+
+  function cull() {
+    var most = touch.matches ? 60 : 90;
     if (marks.length > most) marks.splice(0, marks.length - most);
+  }
+
+  // The animals draw too. While one is in the air it lays a narrower
+  // ribbon down its fall and turns the hue as it goes, and where it lands
+  // the colour (or, in "field", the white) opens out wide from the water.
+  // On touch the animals are the only thing that draws.
+  var WAKE = 0.7;          // an animal's marks, against the pointer's
+  var WAKE_APART = 30;     // px of fall between them
+  var BLOOM = 1.7;         // the one where it lands
+  var BLOOM_LIFE = 3200;   // ms, a little longer than the rest
+
+  function trailAnimals(now) {
+    for (var i = 0; i < flying.length; i++) {
+      var body = flying[i];
+      var r = body.getBoundingClientRect();
+      var x = r.left + r.width / 2, y = r.top + r.height / 2;
+      var t = body._trail;
+      if (!t) {
+        t = body._trail = { x: x, y: y, px: x, py: y, going: true, sown: 0 };
+      } else {
+        var mx = x - t.px, my = y - t.py;
+        hue = (hue + Math.sqrt(mx * mx + my * my) * SPIN) % 360;
+        t.px = x;
+        t.py = y;
+      }
+      sow(t, x, y, now, WAKE, WAKE_APART);
+    }
+  }
+
+  function bloom(x, y) {
+    if (!running) return;
+    marks.push({ x: x, y: y, hue: hue, size: BLOOM, life: BLOOM_LIFE,
+                 born: performance.now() });
+    cull();
+    wake();
   }
 
   // In "field" the marks are white and clear the colour behind them; in
@@ -597,12 +640,12 @@
     var alive = 0;
     for (var i = 0; i < marks.length; i++) {
       var m = marks[i];
-      var age = (now - m.born) / LIFE;
+      var age = (now - m.born) / m.life;
       if (age >= 1) continue;
       marks[alive++] = m;
 
       // Opens out as it goes, and thins as it opens.
-      var span = HOLE * (FROM + (TO - FROM) * age) * grain;
+      var span = HOLE * m.size * (FROM + (TO - FROM) * age) * grain;
       var left = 1 - age;
       ctx.globalAlpha = left * left;
       var img = inked ? stamp(tone(0.74, 0.19, Math.round(m.hue / 6) * 6)) : white;
@@ -664,7 +707,10 @@
     if (drift !== place.at) { place.at = drift; place(); }
     paintHue();
     swim(gap);
-    sow(now);
+    // On touch the finger winds the pools and turns the hue but leaves no
+    // trail of its own; the animals draw instead.
+    if (!touch.matches) sow(last, held.x, held.y, now, 1, STEP);
+    if (flying.length) trailAnimals(now);
     paint(now);
     if (flying.length && shards.length) scatter();   // the animals shove as they fall
 
@@ -1044,6 +1090,7 @@
       if (e.target !== diver) return;
       flying.splice(flying.indexOf(body), 1);
       scatterSoon();   // let the words it passed fall back
+      bloom(landX, landY);
     });
     wake();
     surfacing.push(window.setTimeout(function () { surface(kind, landX, size); }, flight * 1000 + 550));
