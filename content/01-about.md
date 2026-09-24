@@ -8,4 +8,4 @@ Jon studied architecture at Portland State University before going to MIT, where
 
 At MIT he co-chaired the [IDSA Boston](https://www.idsa.org/communities/chapter/boston/) chapter with [Sheng-Hung Lee](https://www.shenghunglee.com/) and the [Architecture Student Council](https://architecture.mit.edu/student-groups) with [Ginevra D'Agostino](https://liminalfutures.com/ginevra-dagostino-eng). He was also part of the design and planning collective [Group Project](http://groupproject.us/index.html#info).
 
-Born in New Mexico, Jon is always hunting for a proper [breakfast burrito](breakfast-burrito.jpg). He lives in Brooklyn, and when he isn't working his shift at the [PSFC](https://www.foodcoop.com/) he is probably baking [biscochitos](biscochito.png) or starting a side project he may or may not finish.
+Born in New Mexico, Jon is always hunting for a proper [breakfast burrito](breakfast-burrito.jpg). He lives in Brooklyn, and when he isn't working his shift at the [PSFC](https://www.foodcoop.com/) he is probably baking [biscochitos](assets/biscochito.png) or starting a side project he may or may not finish.
