@@ -4,7 +4,7 @@
 
 name: Jonathon Brearley
 title: Jonathon Brearley
-tagline: Creative approaches to building performance and climate-responsive design.
+tagline: Creative approaches to climate-responsive design in the built environment
 description: Jon Brearley is a Brooklyn-based building scientist at Transsolar, working on climate-responsive design for projects around the world
 
 # Your live URL, once you have one.
