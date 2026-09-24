@@ -20,7 +20,7 @@
 ## Exhibitions
 
 - **Part Objects**, *Precarious* models and digital animations, Keller Gallery, MIT :: 2019
-- **Anthropocene**, a sculpture for the 50th anniversary of Oregon's Bike Bill, [Portland State University]([https://www.pdx.edu/](https://archinect.com/psuarchitecture/release/bicycle-bill-sculpture-designed-by-psu-architecture-professor-and-students-unveiled)) with Aaron Whelton, Kip Olkowski, Griffin Lutz, Kip Olkowski, Molly Jacobs, and Kagan Reardon :: 2019
+- **Anthropocene**, a sculpture for the 50th anniversary of Oregon's Bike Bill, [Portland State University](https://archinect.com/psuarchitecture/release/bicycle-bill-sculpture-designed-by-psu-architecture-professor-and-students-unveiled) with Aaron Whelton, Kip Olkowski, Griffin Lutz, Kip Olkowski, Molly Jacobs, and Kagan Reardon :: 2019
 - **Rejected Projections**, a digital exhibition of *Rooms* for 9^3 :: 2019
-- **Treeline Stage**, designer of the music stage at [Pickathon]([https://pickathon.com/](https://www.theplan.it/eng/award-2019-Special-Projects/2018-pickathon-treeline-stage)) :: 2018
+- **Treeline Stage**, designer of the music stage at [Pickathon](https://www.theplan.it/eng/award-2019-Special-Projects/2018-pickathon-treeline-stage) :: 2018
 - **Extracurricular PSU**, a drawing in a collaborative exhibition of faculty and student work, [AIA Portland](https://www.aiaportland.org/) :: 2018
