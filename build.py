@@ -176,10 +176,13 @@ def render_figure(images, base):
     In a row each image's share of the width is its aspect ratio, so they
     all come out the same height. Each links to its own file, full size.
     An .mp4 or .webm in the same syntax becomes a video with controls, and
-    a .json becomes a chart (see render_chart).
+    a .json becomes a chart (see render_chart). Two files joined by | are
+    one picture with a second under it (see render_reveal).
     """
     if len(images) == 1 and images[0][1].lower().endswith(".json"):
         return render_chart(images[0][0], images[0][1], base)
+    if len(images) == 1 and "|" in images[0][1]:
+        return render_reveal(images[0][0], images[0][1], base)
     parts = []
     for alt, src in images:
         size = image_size(base / src) if base and "://" not in src else None
@@ -205,6 +208,27 @@ def render_figure(images, base):
         )
     css = "figure row" if len(images) > 1 else "figure"
     return '<figure class="%s">%s</figure>' % (css, "".join(parts))
+
+
+def render_reveal(alt, src, base):
+    """Two images in one place, the second under the first.
+
+    ![Cool | Heated](a.webp|b.webp): hovering, or a tap, shows the second
+    (app.js keeps it shown on a tap). Made for the thermochromic paintings,
+    photographed before and after heat, so the two must share a size.
+    """
+    first, second = [s.strip() for s in src.split("|", 1)]
+    alts = [a.strip() for a in alt.split(" | ", 1)]
+    alts += alts[:1] * (2 - len(alts))
+    size = image_size(base / first) if base else None
+    attrs = ' width="%d" height="%d"' % size if size else ""
+    imgs = [
+        '<img%s src="%s" alt="%s"%s loading="lazy" decoding="async">'
+        % (cls, html.escape(s, quote=True), html.escape(a, quote=True), attrs)
+        for cls, s, a in (("", first, alts[0]), (' class="under"', second, alts[1]))
+    ]
+    return ('<figure class="figure reveal"><div class="pair" role="button" tabindex="0" '
+            'aria-pressed="false">%s</div></figure>' % "".join(imgs))
 
 
 def render_chart(title, src, base):

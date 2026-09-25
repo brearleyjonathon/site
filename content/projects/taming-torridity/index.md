@@ -5,13 +5,11 @@ credit: Thesis for the Master of Architecture and the Master of Science in Build
 description: New housing forms for heat resilience. How American houses hold up in a heat wave and a power cut, and a hamlet of homes designed for both.
 ---
 
-![Painting of the hamlet from above: red roofs, courtyards and gardens across four suburban plots, in thermochromic paint on wood](01.webp)
+![Painting of the hamlet from above: red roofs, courtyards and gardens across four suburban plots, in thermochromic paint on wood | The same painting with heat applied: the greens and reds have faded to pale pinks and yellows](01.webp|01-heat.webp)
 
 Heat waves are getting hotter, longer and more frequent. When everyone turns on the air conditioning at once the grid strains, and sometimes it fails, leaving people in houses that were never meant to work without power. Most new American homes are single-family houses, low and spread out, built to the minimum energy code.
 
-This thesis asks what it would take for those houses to hold up in a heat wave, with the power on and with it off. The first half is a simulation study, and the second turns what it found into buildings. The drawings are painted in thermochromic paint, which fades as it warms, so with heat applied they show the heat wave.
-
-![The same painting with heat applied: the greens and reds have faded to pale pinks and yellows](02.webp)
+This thesis asks what it would take for those houses to hold up in a heat wave, with the power on and with it off. The first half is a simulation study, and the second turns what it found into buildings. The drawings are painted in thermochromic paint, which fades as it warms, so with heat applied they show the heat wave. Hover over a painting, or tap it, to apply the heat.
 
 ## One hot week in four cities
 
@@ -31,19 +29,23 @@ The design work is set in Phoenix, in 2050 weather, and keeps code-minimum walls
 
 **Ground.** Bedrooms go into a basement, lit by light wells, clerestories or skylights. In a power cut the lower floor stays far cooler, and in four of the six basement layouts tested it never passed 32 °C. In a heat wave the family can live downstairs: cooling only the basement and letting the upper floor run free with its windows open cuts cooling per person by 63%.
 
-![Ground House: a hipped-roof house lifted off its plan, with the bedrooms in the basement below, painted on a blue ground](03.webp)
+![Ground House: a hipped-roof house lifted off its plan, with the bedrooms in the basement below, painted on a blue ground | Ground House with heat applied, the blue faded to pale yellow](03.webp|03-heat.webp)
 
 **Party walls.** Houses that share a wall or a floor have less of themselves in the sun and more people to share the cooling. Two houses side by side save 5% per person; an apartment under a house saves 19%. The shared wall also brings neighbours close, which counts in a disaster, and lets one plot hold more than one kind of home.
 
-![Shared House: a large house and a smaller apartment under one roof, painted on a blue ground](04.webp)
+![Shared House: a large house and a smaller apartment under one roof, painted on a blue ground | Shared House with heat applied, the blue faded to pale pink](04.webp|04-heat.webp)
 
 **Nests.** A cool room is set inside the house, wrapped by the others as a buffer. Cooling only the nest, for the whole family, cuts cooling per person by a third to a half, though cooling one ordinary corner room does about as well. The nest earns its place in a power cut, when the larger ones stay cooler than the rooms around them for longer, even if they still pass 32 °C.
 
-![Nest House: a dark roof lifted off a plan of rooms wrapped around a central nest, painted on a green ground](05.webp)
+![Nest House: a dark roof lifted off a plan of rooms wrapped around a central nest, painted on a green ground | Nest House with heat applied, the dark roof faded to pink and the green to cream](05.webp|05-heat.webp)
 
 Huddle House puts the three moves together, as three homes in one building.
 
-![Huddle House: three homes stacked in exploded view, with bedrooms below ground, painted on yellow and green](06.webp)
+![Huddle House: three homes stacked in exploded view, with bedrooms below ground, painted on yellow and green | Huddle House with heat applied, faded to yellows](06.webp|06-heat.webp)
+
+In a power cut, the ground does the most. Each house is set here against the IECC house through the same hot week, and the power goes out on the second afternoon.
+
+![Heat index inside, once the power goes out](outage.json)
 
 ## A heat resilient hamlet
 
@@ -55,11 +57,9 @@ The hamlet brings the moves to four suburban plots in Phoenix, between two stree
 
 Built to the code, the hamlet uses only 6% less cooling per person than a code house on a plot of its own. The savings come from how it is used in a heat wave: cooling only the rooms below ground takes that to 41%, and to 53% with Passive House construction. If the power fails, those rooms pass 32 °C for half the hours a code house would, or, in the one and two bedroom homes, for almost none.
 
-![Exploded view of the hamlet, roofs lifted above the plans and basements below, painted on blue](09.webp)
+![Exploded view of the hamlet, roofs lifted above the plans and basements below, painted on blue | The same exploded view with heat applied, faded to pinks and lilacs](09.webp|09-heat.webp)
 
 ![The hamlet in a heat wave](hamlet.json)
-
-![The same exploded view with heat applied, faded to pinks and lilacs](10.webp)
 
 The last scenario is the most hopeful. On the hottest evening the neighbours gather in the one or two houses with the biggest air conditioners and turn the rest off. The hamlet then uses 45% less cooling per person than a code house: a heat wave party.
 

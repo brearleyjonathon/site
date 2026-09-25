@@ -469,6 +469,30 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 
 .figure.row > * { flex: var(--ratio, 1) 1 0; min-width: 0; }
 
+/* A picture with a second under it: the thermochromic paintings, heated.
+   Hovering fades the heated one in, slowly, as the paint would; a tap or
+   Enter holds it (app.js sets aria-pressed). */
+.reveal .pair {
+  display: grid;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.reveal .pair > img { grid-area: 1 / 1; }
+
+.reveal .under {
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+
+.reveal .pair[aria-pressed="true"] .under { opacity: 1; }
+
+@media (hover: hover) {
+  .reveal .pair:hover .under { opacity: 1; }
+}
+
+.reveal .pair:focus-visible { outline: 1px solid var(--focus); outline-offset: 3px; }
+
 /* A chart (chart.js): horizontal bars in the page's ink, hollow for the
    reference and solid for the thing being tested, so no colour is needed.
    Each bar is a button: hover, focus or a tap says what it is below. */
@@ -495,7 +519,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   font-size: .8125em;
 }
 
-.chart-legend li { display: flex; align-items: center; gap: .4rem; }
+.chart-legend li { display: flex; align-items: center; gap: .4rem; margin: 0; }
 
 .key {
   display: inline-block;
@@ -505,6 +529,49 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 }
 
 .key.solid { background: var(--text); }
+
+/* A line's key is a short stroke in the line's own style. */
+.key.line {
+  width: 1.4rem;
+  height: 0;
+  border: 0;
+  border-top: 1.5px solid var(--text);
+  background: none;
+}
+
+.key.line.dotted { border-top-style: dotted; border-top-width: 2px; opacity: .6; }
+.key.line.thin { border-top-width: 1px; opacity: .6; }
+.key.line.dashed { border-top-style: dashed; }
+.key.line.solid { border-top-width: 3px; }
+
+/* A line chart: one SVG, drawn by chart.js at the width it is given. */
+.chart-plot.lines {
+  display: block;
+  cursor: crosshair;
+  touch-action: pan-y;   /* a finger across it reads the hours; the page still scrolls */
+}
+
+.chart-plot.lines:focus-visible { outline: 1px solid var(--focus); outline-offset: 4px; }
+.chart-plot.lines svg { display: block; overflow: visible; }
+
+.chart-plot .grid line { stroke: var(--rule); stroke-opacity: .15; }
+.chart-plot text {
+  fill: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-plot .mark line { stroke: var(--text); stroke-opacity: .5; stroke-dasharray: 4 3; }
+.chart-plot .event line { stroke: var(--text); stroke-opacity: .5; }
+
+.chart-plot .series { fill: none; stroke: var(--text); stroke-linejoin: round; stroke-linecap: round; }
+.chart-plot .series.dotted { stroke-width: 1.5; stroke-dasharray: 0 3.5; stroke-opacity: .6; }
+.chart-plot .series.thin { stroke-width: 1; stroke-opacity: .6; }
+.chart-plot .series.dashed { stroke-width: 1.5; stroke-dasharray: 5 3.5; stroke-linecap: butt; }
+.chart-plot .series.solid { stroke-width: 2.75; }
+
+.chart-plot .cross { stroke: var(--text); stroke-width: 1; opacity: 0; }
+.chart-plot .cross.on { opacity: .8; }
 
 .chart-axis {
   margin: 0 0 .3rem;

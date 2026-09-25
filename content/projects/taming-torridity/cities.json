@@ -70,7 +70,7 @@
    "axis": "Wh per m² of floor, over the week"
   },
   "Phoenix / Peak cooling": {
-   "unit": "Wh/m²",
+   "unit": "W/m²",
    "max": 12.5,
    "note": "The peak grows far less than the week: 6 to 7% by 2080 in Phoenix. Passive House cuts it by more than a third.",
    "compare": {
@@ -107,7 +107,7 @@
      ]
     }
    ],
-   "axis": "Wh per m² of floor, in the peak hour"
+   "axis": "W per m² of floor, in the peak hour"
   },
   "Phoenix / Hours too hot": {
    "unit": "hours",
@@ -190,7 +190,7 @@
    "axis": "Wh per m² of floor, over the week"
   },
   "Austin / Peak cooling": {
-   "unit": "Wh/m²",
+   "unit": "W/m²",
    "max": 12.5,
    "note": "Austin's peak grows by 8% by 2080, in both houses. Passive House cuts it by a quarter.",
    "compare": {
@@ -227,7 +227,7 @@
      ]
     }
    ],
-   "axis": "Wh per m² of floor, in the peak hour"
+   "axis": "W per m² of floor, in the peak hour"
   },
   "Austin / Hours too hot": {
    "unit": "hours",
@@ -310,7 +310,7 @@
    "axis": "Wh per m² of floor, over the week"
   },
   "Miami / Peak cooling": {
-   "unit": "Wh/m²",
+   "unit": "W/m²",
    "max": 12.5,
    "note": "Miami has the highest peak. Passive House cuts it by 35 to 41%, and it grows by 7 to 15% by 2080.",
    "compare": {
@@ -347,7 +347,7 @@
      ]
     }
    ],
-   "axis": "Wh per m² of floor, in the peak hour"
+   "axis": "W per m² of floor, in the peak hour"
   },
   "Miami / Hours too hot": {
    "unit": "hours",
@@ -430,7 +430,7 @@
    "axis": "Wh per m² of floor, over the week"
   },
   "DC / Peak cooling": {
-   "unit": "Wh/m²",
+   "unit": "W/m²",
    "max": 12.5,
    "note": "DC's Passive House peak grows the most of any, 20% by 2080, but is still 13% under the code house.",
    "compare": {
@@ -467,7 +467,7 @@
      ]
     }
    ],
-   "axis": "Wh per m² of floor, in the peak hour"
+   "axis": "W per m² of floor, in the peak hour"
   },
   "DC / Hours too hot": {
    "unit": "hours",

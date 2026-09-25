@@ -1443,3 +1443,17 @@
     requestAnimationFrame(function () { document.body.classList.add("ready"); });
   });
 })();
+
+// A picture with a second under it (build.py's render_reveal): hovering
+// shows the second, and a tap, a click or Enter holds it there.
+(function () {
+  document.querySelectorAll(".reveal .pair").forEach(function (pair) {
+    function flip() {
+      pair.setAttribute("aria-pressed", String(pair.getAttribute("aria-pressed") !== "true"));
+    }
+    pair.addEventListener("click", flip);
+    pair.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); }
+    });
+  });
+})();
