@@ -1,6 +1,6 @@
 ---
 title: Accommodations
-date: 2020
+date: December 2020
 description: A multi-phased, mixed-income housing strategy for construction and migrant workers in Chon Buri, Thailand.
 ---
 
