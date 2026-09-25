@@ -213,6 +213,10 @@ body.ready * {
   transition: opacity .35s ease .1s, translate .35s cubic-bezier(.2, .8, .3, 1) .1s, visibility 0s;
 }
 
+/* Project pages have no Fun mode: the switch there is Light and Dark. */
+:root[data-page="project"] [data-set-theme="fun"],
+:root[data-page="project"] .fun-controls { display: none; }
+
 .switch.pill,
 .switch.pill button { border-radius: 999px; }
 
@@ -630,14 +634,6 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   filter: url("#fun-warp");
 }
 
-/* A project page is mostly images, and two of them animate: a filter over
-   all of main would run again on every frame of those. There the warp
-   goes on the text blocks alone, which is all it was for. */
-:root[data-theme="fun"] main:has(.figure) { filter: none; }
-:root[data-theme="fun"] main:has(.figure) .section > :not(.figure) {
-  filter: url("#fun-warp");
-}
-
 /* The hand the animals, the water and the splash are drawn in: round caps
    and a small wobble from the #ink-sketch filter in the page's own
    <svg class="filters">, so the strokes read as pencil rather than vector. */
@@ -862,8 +858,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
    CPU filter pass over the whole page on every repaint; the crawling grain
    repaints the whole screen five times a second. Both hold still here. */
 @media (hover: none) and (pointer: coarse) {
-  :root[data-theme="fun"] main,
-  :root[data-theme="fun"] main:has(.figure) .section > :not(.figure) { filter: none; }
+  :root[data-theme="fun"] main { filter: none; }
   :root[data-theme="fun"] body::after { animation: none; }
 }
 
@@ -885,7 +880,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   body::after,
   .blobs,
   .swimmer { display: none; }
-  main, main .section > * { filter: none !important; }
+  main { filter: none; }
   .page { max-width: none; padding: 0; }
   a { text-decoration: none; }
 }

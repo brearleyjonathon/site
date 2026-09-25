@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{lang}}">
+<html lang="{{lang}}" data-page="{{page}}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -35,6 +35,9 @@
       ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : defaultTheme;
   }
+  // Project pages have no Fun mode. Show them light, the page Fun is drawn
+  // on, and leave the saved choice alone so the home page is still Fun.
+  if (theme === "fun" && root.getAttribute("data-page") === "project") theme = "light";
   root.setAttribute("data-theme",
     theme === "dark" ? "dark" : theme === "fun" ? "fun" : "light");
   root.setAttribute("data-font", font === "serif" || (!font && defaultFont === "serif") ? "serif" : "sans");

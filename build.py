@@ -325,6 +325,7 @@ def fill(template, site, sections, root="", title=None, description=None):
         heading = '<a href="%s">%s</a>' % (root or "./", heading)
 
     page = template
+    page = page.replace("{{page}}", "project" if title else "home")
     page = page.replace("{{root}}", root)
     page = page.replace("{{name}}", heading)
     page = page.replace("{{title}}", html.escape(
