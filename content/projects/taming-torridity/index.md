@@ -13,7 +13,7 @@ This thesis asks what it would mean for those houses to withstand a heat wave: a
 
 ## Four cities, one heat wave
 
-A representative single-family house was modeled and simulated in Phoenix, Austin, Miami and Washington DC. Two variants followed: one was modeled to the local energy code (assumed as IECC) and one to the Passive House (PHI) standard, the gold standard for efficiency. Each was run through the hottest week of the year in historic weather and using morphed weather projected for 2020, 2050 and 2080 under a high-emissions scenario. The first case examines power on with results that measure the energy it takes over the week to keep the house cool, as well as the peak cooling power, which is most important for mitigating grid strain. In the second case, a power outage on the second afternoon of a heat wave measures the number of hours the indoor conditions pass a heat index of 32 °C, where heat exhaustion becomes possible.
+A representative single-family house was modeled and simulated in Phoenix, Austin, Miami and Washington DC. Two variants followed: one was modeled to the local energy code (assumed as IECC) and one to the Passive House (PHIUS+ 2018) standard, the gold standard for efficiency. Each was run through the hottest week of the year in historic weather and using morphed weather projected for 2020, 2050 and 2080 under a high-emissions scenario. The first case examines power on with results that measure the energy it takes over the week to keep the house cool, as well as the peak cooling power, which is most important for mitigating grid strain. In the second case, a power outage on the second afternoon of a heat wave measures the number of hours the indoor conditions pass a heat index of 32 °C, where heat exhaustion becomes possible.
 
 ![Cooling and heat over one hot week, in four cities](cities.json)
 
@@ -29,7 +29,7 @@ Phoenix comes through the four-city study remarkably well: neither house passes 
 
 EnergyPlus calculates heat moving through a wall and slab in one dimension, from one temperature to another. The ground is three-dimensional and slow, taking months to warm and cool, so every way of modeling it is a simplification, like most areas of building energy simulation. 
 
-The typical modeling rule of thumb assigns the ground a fixed temperature for each month usually around 18 °C, 2 K under the typical zone set point. Others assign monthly values from EnergyPlus's slab and basement preprocessors, which is what is used for the four-city study. For more complex ground models, EnergyPlus offers Ground Domain and Kiva, which instead work out heat flow in two dimensions, hour by hour. 
+The simplest approaches give the ground a fixed temperature: the EnergyPlus default of 18 °C, or a rule of thumb of 2 K under the thermostat. Others assign monthly values from EnergyPlus's slab and basement preprocessors, which is what is used for the four-city study. For more complex ground models, EnergyPlus offers Ground Domain and Kiva, which instead work out heat flow in two dimensions, hour by hour. 
 
 For a house on an uninsulated slab, which the energy code allows in hot climates, the choice of modeling approach changes the results by nearly four times, which is what we see above. With insulation under the slab, the methods roughly agree.
 
@@ -69,7 +69,7 @@ In a power outage, the ground does the most. Each house is set here against the 
 
 ## A hamlet
 
-The hamlet brings the moves to four suburban plots in Phoenix, between two streets. From the street it looks like its neighbors, with low houses, private entrances and gardens, but it houses about thirty people, roughly three times as many as before. The three-bedroom houses have bedrooms in the ground, and the one and two bedroom homes and the studios sit a little below grade, reached by driveways at either side.
+The hamlet brings the moves to four suburban plots in Phoenix, between two streets. From the street it looks like its neighbors, with low houses, private entrances and gardens, but it houses about thirty people, roughly twice as many as before. The three-bedroom houses have bedrooms in the ground, and the one and two bedroom homes and the studios sit a little below grade, reached by driveways at either side.
 
 ![Ground plan of the hamlet: houses, courtyards, gardens and two driveways across four plots](07.webp)
 
