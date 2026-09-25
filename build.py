@@ -167,6 +167,30 @@ def image_size(path):
     return None
 
 
+def is_ink(path):
+    """True for a PNG or WebP with an alpha channel.
+
+    Such an image is a drawing in ink on nothing: black lines whose weight
+    is in their opacity. It gets class="ink", and the dark theme turns the
+    ink white. Photographs are saved flat, without alpha, and are left alone.
+    """
+    try:
+        with open(path, "rb") as f:
+            head = f.read(32)
+    except OSError:
+        return False
+    if head[:8] == b"\x89PNG\r\n\x1a\n":
+        return head[25] in (4, 6)   # grey or RGB, with alpha
+    if head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        if head[12:16] == b"VP8X":
+            # Alpha, but not an animation: animated WebPs carry the alpha
+            # flag even when every frame is opaque.
+            return bool(head[20] & 0x10) and not head[20] & 0x02
+        if head[12:16] == b"VP8L":
+            return bool(int.from_bytes(head[21:25], "little") >> 28 & 1)
+    return False
+
+
 IMAGE_RE = re.compile(r"^!\[([^\]]*)\]\(([^)\s]+)\)$")
 
 
@@ -202,9 +226,10 @@ def render_figure(images, base):
         if size and len(images) == 1 and size[0] < 608:
             # Narrower than the column: never stretched past its own width.
             style = ' style="max-width: %dpx"' % size[0]
+        ink = ' class="ink"' if base and "://" not in src and is_ink(base / html.unescape(src)) else ""
         parts.append(
-            '<a href="%s"%s><img src="%s" alt="%s"%s loading="lazy" decoding="async"></a>'
-            % (src, style, src, label, attrs)
+            '<a href="%s"%s><img%s src="%s" alt="%s"%s loading="lazy" decoding="async"></a>'
+            % (src, style, ink, src, label, attrs)
         )
     css = "figure row" if len(images) > 1 else "figure"
     return '<figure class="%s">%s</figure>' % (css, "".join(parts))

@@ -21,7 +21,21 @@ A single-family house was modelled in Phoenix, Austin, Miami and Washington DC, 
 - Passive House cut the peak by 30% and the week's cooling by 33%, on average across the cities and climates.
 - Without power, almost every house passed 32 °C for most of the week. Passive House helped only where its slab sat directly on the ground. In DC, where the slab is insulated as the standard asks, it did worse than the code house: the insulation keeps out the cool of the earth along with its heat.
 
-That last finding set the direction for the rest. In a hot climate the ground is a heat sink, and how it is modelled matters: the ground methods in EnergyPlus disagree widely, so the thesis compares them, proposes a simpler one that agrees with the detailed ones, and builds Jerboa, a toolset that brings them into Grasshopper.
+## The ground under the model
+
+Phoenix comes through the four-city study remarkably well: neither house passes 32 °C until 2080. Later in the thesis a code house built the same way, in the same hot week of 2050 weather, passes it for 122 of the 128 hours without power. The biggest change between the two is the model of the ground under it.
+
+EnergyPlus works out heat moving through a wall in one dimension, from one temperature to another. The ground is three-dimensional and slow, taking months to warm and cool, so every way of modelling it simplifies somewhere. Most give the ground a fixed temperature for each month: the EnergyPlus default of 18 °C, a rule of thumb of 2 °C under the thermostat, or monthly values from EnergyPlus's slab and basement preprocessors, which is what the four-city study used. Ground Domain and Kiva instead work out the soil itself, in two dimensions, hour by hour.
+
+For a house on an uninsulated slab, which the energy code allows in hot climates, the choice changes the answer by nearly four times. With insulation under the slab, the methods roughly agree.
+
+![Six ways to model the same ground](ground.json)
+
+The power cut shows it more starkly. Here the same house loses power on the second afternoon, and the ground is modelled three of those ways.
+
+![The same power cut, three ways](methods.json)
+
+It is easy to miss. Every method runs without complaint, and in a large building the ground is a small part of the whole. In a small house on a slab it is a large part, and in a power cut it is the one cool thing the house still touches. The thesis compares the methods, proposes a simple one for basements that agrees with the detailed ones, and releases [Jerboa](https://www.food4rhino.com/en/app/jerboa), a toolset that brings them into Grasshopper. The design work that follows uses Ground Domain.
 
 ## Three moves
 
@@ -39,7 +53,7 @@ The design work is set in Phoenix, in 2050 weather, and keeps code-minimum walls
 
 ![Nest House: a dark roof lifted off a plan of rooms wrapped around a central nest, painted on a green ground | Nest House with heat applied, the dark roof faded to pink and the green to cream](05.webp|05-heat.webp)
 
-Huddle House puts the three moves together, as three homes in one building.
+**Huddle House.** The three moves together, as three homes in one building.
 
 ![Huddle House: three homes stacked in exploded view, with bedrooms below ground, painted on yellow and green | Huddle House with heat applied, faded to yellows](06.webp|06-heat.webp)
 

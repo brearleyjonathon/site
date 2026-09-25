@@ -112,7 +112,7 @@
   "Phoenix / Hours too hot": {
    "unit": "hours",
    "max": 128,
-   "note": "Phoenix's slabs are uninsulated, and the ground keeps both houses under a heat index of 32 °C until 2080. The Passive House never passes it.",
+   "note": "Phoenix looks the safest of the four: neither house passes a heat index of 32 °C until 2080. How much of that is Phoenix, and how much the model of the ground, is taken up below.",
    "compare": {
     "to": "series",
     "name": "the IECC house"

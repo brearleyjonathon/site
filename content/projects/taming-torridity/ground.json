@@ -1,0 +1,247 @@
+{
+ "axis": "Cooling a year, kWh per m² of floor, one single-storey house",
+ "switches": [
+  {
+   "label": "City",
+   "options": [
+    "Phoenix",
+    "Austin"
+   ]
+  },
+  {
+   "label": "Slab",
+   "options": [
+    "No insulation",
+    "R10 under the slab"
+   ]
+  }
+ ],
+ "legend": [
+  [
+   "hollow",
+   "A fixed ground temperature each month"
+  ],
+  [
+   "solid",
+   "The soil worked out hour by hour"
+  ]
+ ],
+ "sets": {
+  "Phoenix / No insulation": {
+   "unit": "kWh/m²",
+   "max": 30,
+   "note": "On a bare slab the methods disagree by nearly four times. The preprocessor used in the four-city study gives a quarter less cooling than Kiva.",
+   "compare": {
+    "to": "row",
+    "row": 5,
+    "name": "Kiva"
+   },
+   "rows": [
+    {
+     "label": "EnergyPlus default, 18 °C",
+     "values": [
+      7.2
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Rule of thumb, 2 °C under the thermostat",
+     "values": [
+      15.0
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Slab preprocessor, as in the four-city study",
+     "values": [
+      20.6
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "FC factor",
+     "values": [
+      25.7
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Ground Domain",
+     "values": [
+      27.3
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Kiva",
+     "values": [
+      27.9
+     ],
+     "style": "solid"
+    }
+   ]
+  },
+  "Phoenix / R10 under the slab": {
+   "unit": "kWh/m²",
+   "max": 30,
+   "note": "With insulation under the slab the ground matters less, and every method lands within 4 kWh/m² of the others.",
+   "compare": {
+    "to": "row",
+    "row": 5,
+    "name": "Kiva"
+   },
+   "rows": [
+    {
+     "label": "EnergyPlus default, 18 °C",
+     "values": [
+      22.3
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Rule of thumb, 2 °C under the thermostat",
+     "values": [
+      24.0
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Slab preprocessor, as in the four-city study",
+     "values": [
+      25.0
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "FC factor",
+     "values": [
+      25.8
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Ground Domain",
+     "values": [
+      26.3
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Kiva",
+     "values": [
+      24.4
+     ],
+     "style": "solid"
+    }
+   ]
+  },
+  "Austin / No insulation": {
+   "unit": "kWh/m²",
+   "max": 30,
+   "note": "Austin's bare slab spreads the methods even wider. The preprocessor gives over a third less cooling than Kiva.",
+   "compare": {
+    "to": "row",
+    "row": 5,
+    "name": "Kiva"
+   },
+   "rows": [
+    {
+     "label": "EnergyPlus default, 18 °C",
+     "values": [
+      6.5
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Rule of thumb, 2 °C under the thermostat",
+     "values": [
+      13.9
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Slab preprocessor, as in the four-city study",
+     "values": [
+      16.6
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "FC factor",
+     "values": [
+      23.5
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Ground Domain",
+     "values": [
+      24.3
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Kiva",
+     "values": [
+      26.6
+     ],
+     "style": "solid"
+    }
+   ]
+  },
+  "Austin / R10 under the slab": {
+   "unit": "kWh/m²",
+   "max": 30,
+   "note": "With insulation under the slab, Austin's methods land within 4 kWh/m² of each other too.",
+   "compare": {
+    "to": "row",
+    "row": 5,
+    "name": "Kiva"
+   },
+   "rows": [
+    {
+     "label": "EnergyPlus default, 18 °C",
+     "values": [
+      20.6
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Rule of thumb, 2 °C under the thermostat",
+     "values": [
+      22.6
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Slab preprocessor, as in the four-city study",
+     "values": [
+      23.5
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "FC factor",
+     "values": [
+      24.0
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Ground Domain",
+     "values": [
+      23.8
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Kiva",
+     "values": [
+      21.7
+     ],
+     "style": "solid"
+    }
+   ]
+  }
+ }
+}

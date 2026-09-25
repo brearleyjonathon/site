@@ -14,8 +14,9 @@
 // [[style, name], ...] with style "hollow" or "solid". A bar takes its
 // row's style if it has one, else its legend entry's. max fixes the scale,
 // so one measure compares across views. compare, if given, is
-// {to: "series" | "row", name}: pointing at a bar says how it differs from
-// the first series in its row, or from the first row.
+// {to: "series" | "row", name, row?}: pointing at a bar says how it differs
+// from the first series in its row, or from a row (the first, or the one
+// numbered row, counting from 0).
 //
 // Lines (type "lines"): x {max, step, label}, y {min, max, ticks}, unit,
 // marks [{y, label}] for level lines, event {x, label} for a moment, and
@@ -128,7 +129,8 @@
       var text = name + row.label + ": " + number(v) + " " + set.unit;
       var c = set.compare;
       if (c && c.to === "series" && j > 0) text += differ(v, row.values[0], c.name);
-      if (c && c.to === "row" && r > 0) text += differ(v, set.rows[0].values[j], c.name);
+      var base = c && c.to === "row" ? c.row || 0 : -1;
+      if (base >= 0 && r !== base) text += differ(v, set.rows[base].values[j], c.name);
       return text + ".";
     }
 
