@@ -1,6 +1,6 @@
 ---
 title: Safest At The Top Of The Hill
-date: August 2017
+date: June 2017
 description: Moving the density of Chamanga, Ecuador, to higher ground after the 2016 earthquake, through places of social capital.
 ---
 
