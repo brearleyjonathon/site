@@ -1,6 +1,7 @@
 ---
 title: Bubble Box: Eat & Watch
 date: April 2017
+credit: Portland State University, third-year design studio with Andrew Santa Lucia
 description: An assemblage of imagined volumes turned into architecture, drawn as a circus of shapes and spaces. Published in the Journal of Architectural Education.
 ---
 

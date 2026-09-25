@@ -449,12 +449,16 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 
 .figure video { background: #000; }
 
-/* The date under a project's title, where the old site had it. */
-.project > .date {
-  margin: -.9rem 0 0;
+/* The date under a project's title, where the old site had it, and the
+   credit under that: the school, the studio, and anyone it was made with. */
+.project > .date,
+.project > .credit {
   color: var(--muted);
   font-size: .875em;
 }
+
+.project > .date { margin: -.9rem 0 0; }
+.project > .credit { margin: .15rem 0 0; }
 
 /* Two or more in a row. Each takes a share of the width equal to its
    aspect ratio (set per image by build.py), so they meet at one height. */

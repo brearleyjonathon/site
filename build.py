@@ -414,6 +414,9 @@ def build():
         heading = "<h2>%s</h2>" % render_inline(title)
         if meta.get("date"):
             heading += '\n<p class="date">%s</p>' % render_inline(meta["date"])
+        if meta.get("credit"):
+            # Where the project was made, and with whom.
+            heading += '\n<p class="credit">%s</p>' % render_inline(meta["credit"])
         article = (
             '<article id="%s" class="section project">\n%s\n%s\n</article>'
             % (html.escape(folder.name, quote=True), heading, render_markdown(body, base=folder))

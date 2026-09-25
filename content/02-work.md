@@ -1,5 +1,14 @@
 # Work
 
+## Publications
+
+- **Acoustically Protected Natural Ventilation**, [*Facade Tectonics World Congress 2026*](https://www.facadetectonics.org/events/2026wc/sessions/2a-climate-threat-adaptations-sanjeev-tankha), with Erik Olsen and Olivia Chen :: 2026
+- **Implementing Thermal Re-regulation in the Public Domain**, for *Heatwave*, the Bahrain Pavilion at the [Venice Biennale](https://www.archdaily.com/1029758/bahrains-2025-venice-biennale-pavilion-addresses-the-global-issue-of-extreme-heat), with Viola Zhang :: 2025
+- **On the Courtyard**, for *Impossible Toronto*, an ongoing research program by [The Neptis Foundation](https://spacingstore.ca/products/impossible-toronto-on-the-courtyard-learning-from-european-blocks), with Studio VAARO, Gabriel Fain and Krista Palen :: 2025
+- **Design of heat-resilient housing in hot-arid regions**, [*Energy and Buildings*](https://www.sciencedirect.com/science/article/pii/S0378778824011198) 328, with David Birge, Zhujing Zhang and Leslie K. Norford :: 2025
+- **Mitigating Peak Load and Heat Stress under Heat Waves by Optimizing Thermostat Setpoint and Fan Speed Schedules**, [*Journal of Building Performance Simulation*](https://www.tandfonline.com/doi/full/10.1080/19401493.2023.2180538) 16(4), with Zhujing Zhang, Kevin J. Kircher, Yuan Cai, David Birge and Leslie K. Norford :: 2023
+- **Bubble Box Eat & Watch**, [*Journal of Architectural Education*](https://www.jaeonline.org/issue-article/bubble-box-eat-watch/) 72(1) :: 2018
+
 ## Studio
 
 - [**Pinch Point**](pinch-point/), a transit hub at Oak Grove as an anchor for density where Boston’s parks pinch its growth :: 2021
@@ -18,15 +27,6 @@
 - **Natural Ventilation and Passive House in Adaptive Reuse**, Regenerative Metropolis, [Passive House New York](https://www.instagram.com/p/DPAUmwMjXAJ/) :: 2025
 - **Natural Ventilation at the Irving Institute for Energy and Society**, [NESEA Pro Tour](https://nesea.org/be-event/pro-tour-transforming-expanding-existing-building-dartmouth-college-campus) :: 2025
 - **Design reviewer and guest lecturer**, Solar Decathlon studio, [The Cooper Union](https://cooper.edu/academics/vertically-integrated-projects/teams/solar-decathlon) :: 2024 -- present
-
-## Publications
-
-- **Acoustically Protected Natural Ventilation**, [*Facade Tectonics World Congress 2026*](https://www.facadetectonics.org/events/2026wc/sessions/2a-climate-threat-adaptations-sanjeev-tankha), with Erik Olsen and Olivia Chen :: 2026
-- **Implementing Thermal Re-regulation in the Public Domain**, for *Heatwave*, the Bahrain Pavilion at the [Venice Biennale](https://www.archdaily.com/1029758/bahrains-2025-venice-biennale-pavilion-addresses-the-global-issue-of-extreme-heat), with Viola Zhang :: 2025
-- **On the Courtyard**, for *Impossible Toronto*, an ongoing research program by [The Neptis Foundation](https://spacingstore.ca/products/impossible-toronto-on-the-courtyard-learning-from-european-blocks), with Studio VAARO, Gabriel Fain and Krista Palen :: 2025
-- **Design of heat-resilient housing in hot-arid regions**, [*Energy and Buildings*](https://www.sciencedirect.com/science/article/pii/S0378778824011198) 328, with David Birge, Zhujing Zhang and Leslie K. Norford :: 2025
-- **Mitigating Peak Load and Heat Stress under Heat Waves by Optimizing Thermostat Setpoint and Fan Speed Schedules**, [*Journal of Building Performance Simulation*](https://www.tandfonline.com/doi/full/10.1080/19401493.2023.2180538) 16(4), with Zhujing Zhang, Kevin J. Kircher, Yuan Cai, David Birge and Leslie K. Norford :: 2023
-- **Bubble Box Eat & Watch**, [*Journal of Architectural Education*](https://www.jaeonline.org/issue-article/bubble-box-eat-watch/) 72(1) :: 2018
 
 ## Exhibitions
 
