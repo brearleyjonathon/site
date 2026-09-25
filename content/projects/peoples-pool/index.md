@@ -1,6 +1,7 @@
 ---
 title: The People's Pool
 date: 2019
+credit: MIT, Core 2 studio, with Hugh Ebdy and Ryan Wu
 description: An alternative history of the WPA pools, told in print through one public pool on Coney Island, from its opening in 1924 to its reclamation in 2056.
 ---
 
