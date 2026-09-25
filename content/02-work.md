@@ -19,11 +19,24 @@
 - [**Pinch Point**](pinch-point/), a transit hub at Oak Grove as an anchor for density where Boston’s parks pinch its growth :: 2021
 - [**Accommodations**](accommodations/), mixed-income housing for construction and migrant workers in Chon Buri, Thailand :: 2020
 - [**The Y**](the-y/), a YMCA for Coney Island built from one continuous surface :: 2020
+- [**Deep Cut**](deep-cut-winery/), a winery cut into a steep slope in the Valle de Guadalupe, held open by steel sheet piles :: 2019
+- [**Village Square Pavilion**](village-square-pavillion/), a canopy of bamboo trusses and fiberglass for a village square in China, built at full size :: 2019
+- [**Graphic Precarity**](graphic-precarity/), a model that carries Peter Halley and Alessandro Mendini's collaboration into three dimensions :: 2019
+- [**Anthropocene**](anthropocene/), a sculpture of steel pipes that abstracts the air moving past a cyclist :: 2019
 - [**Particle Theater**](deconstructed-theater/), a theater taken apart into figures, in three performances :: 2018
 - [**For the Masculine Griever**](for-the-masculine-griever/), a place for those who grieve by doing :: 2018
 - [**Funerary Landscape**](on-being-and-void/), a field of remembrance, memorial and burial :: 2018
 - [**Safest At The Top Of The Hill**](you-are-safest/), moving Chamanga, Ecuador, to higher ground after the 2016 earthquake :: 2017
 - [**Bubble Box: Eat & Watch**](bubble-box-eat-watch/), imagined volumes turned into architecture, published in the *Journal of Architectural Education* :: 2017
+
+## Smalls
+
+- [**Moynihan Train Hall**](moynihan-train-hall-case-study/), a case study of what keeping the Farley Post Office's trusses meant for the hall's grid shells :: 2022
+- [**Additive Timber**](additive-timber/), a workshop on building modules in timber, extended into buildings :: 2021
+- [**The People's Pool**](peoples-pool/), an alternative history of the WPA pools, told in print from 1924 to 2056 :: 2019
+- [**Chair**](chair/), a plywood chair that tilts between working and relaxing :: 2019
+- [**Portland Wall**](portland-wall/), street lamps and a craftsman door on a wall for Portland :: 2017
+- [**Reassemble**](collage/), computer parts collaged into four new figures :: 2017
 
 ## Lectures and Design Reviews
 
@@ -35,8 +48,8 @@
 
 ## Exhibitions
 
-- **Part Objects**, *Precarious* models and digital animations, Keller Gallery, MIT :: 2019
-- **Anthropocene**, a sculpture for the 50th anniversary of Oregon's Bike Bill, [Portland State University](https://archinect.com/psuarchitecture/release/bicycle-bill-sculpture-designed-by-psu-architecture-professor-and-students-unveiled), with Aaron Whelton, Kip Olkowski, Griffin Lutz, Molly Jacobs, and Kagan Reardon :: 2019
+- [**Part Objects**](graphic-precarity/), *Precarious* models and digital animations, Keller Gallery, MIT :: 2019
+- [**Anthropocene**](anthropocene/), a sculpture celebrating Oregon's 1971 Bike Bill, for the Oregon Environmental Council's 50th anniversary, [Portland State University](https://archinect.com/psuarchitecture/release/bicycle-bill-sculpture-designed-by-psu-architecture-professor-and-students-unveiled), with Aaron Whelton, Kip Olkowski, Griffin Lutz, Molly Jacobs, and Kagan Reardon :: 2019
 - **Rejected Projections**, a digital exhibition of *Rooms* for 9^3 :: 2019
 - **Treeline Stage**, designer of the music stage at [Pickathon](https://www.theplan.it/eng/award-2019-Special-Projects/2018-pickathon-treeline-stage) :: 2018
-- **Extracurricular PSU**, a drawing made for Andrew Santa Lucia in an exhibition of faculty work, [AIA Portland](https://web.archive.org/web/20181007021343/https://www.pdx.edu/architecture/events/extracurricular-the%E2%80%8B-%E2%80%8Bbuildings%E2%80%8B-speculations%E2%80%8B-%E2%80%8Band%E2%80%8B-research%E2%80%8B-%E2%80%8Bof%E2%80%8B-%E2%80%8Bfaculty%E2%80%8B-%E2%80%8Bat%E2%80%8B-%E2%80%8Bpsu-school?delta=0) :: 2018
+- [**Extracurricular PSU**](portland-wall/), a drawing made for Andrew Santa Lucia in an exhibition of faculty work, [AIA Portland](https://web.archive.org/web/20181007021343/https://www.pdx.edu/architecture/events/extracurricular-the%E2%80%8B-%E2%80%8Bbuildings%E2%80%8B-speculations%E2%80%8B-%E2%80%8Band%E2%80%8B-research%E2%80%8B-%E2%80%8Bof%E2%80%8B-%E2%80%8Bfaculty%E2%80%8B-%E2%80%8Bat%E2%80%8B-%E2%80%8Bpsu-school?delta=0) :: 2017
