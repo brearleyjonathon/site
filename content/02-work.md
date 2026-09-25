@@ -12,6 +12,7 @@
 ## Thesis
 
 - [**Taming Torridity**](taming-torridity/), new housing forms for heat resilience, for the MArch and SMBT at MIT :: 2022
+- [**Jerboa**](https://www.food4rhino.com/en/app/jerboa), a Grasshopper toolset for modelling the ground under a building in EnergyPlus, released with the thesis :: 2022
 
 ## Studio
 
