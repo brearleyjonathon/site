@@ -9,7 +9,7 @@
 - [**For the Masculine Griever**](for-the-masculine-griever/), a place for those who grieve by doing :: 2018
 - [**Funerary Landscape**](on-being-and-void/), a field of remembrance, memorial and burial :: 2018
 - [**Safest At The Top Of The Hill**](you-are-safest/), moving Chamanga, Ecuador, to higher ground after the 2016 earthquake :: 2017
-- [**Bubble Box: Eat & Watch**](bubble-box-eat-watch/), published in the *Journal of Architectural Education* :: 2017
+- [**Bubble Box: Eat & Watch**](bubble-box-eat-watch/), imagined volumes turned into architecture, published in the *Journal of Architectural Education* :: 2017
 
 ## Lectures and Design Reviews
 
