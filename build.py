@@ -142,6 +142,16 @@ def image_size(path):
         if chunk == b"VP8 ":
             w, h = struct.unpack("<HH", data[26:30])
             return w & 0x3FFF, h & 0x3FFF
+    if data[4:8] == b"ftyp":
+        # MP4: the video track's header carries its display size, as 16.16
+        # fixed point. The audio track's is zero, so take the first that isn't.
+        for match in re.finditer(b"tkhd", data):
+            at = match.end()
+            skip = 76 if data[at] == 0 else 88   # version 0 or 1 header
+            w, h = struct.unpack(">II", data[at + skip:at + skip + 8])
+            if w and h:
+                return w >> 16, h >> 16
+        return None
     if data[:2] == b"\xff\xd8":
         i = 2
         while i + 9 < len(data):
@@ -164,16 +174,30 @@ def render_figure(images, base):
 
     In a row each image's share of the width is its aspect ratio, so they
     all come out the same height. Each links to its own file, full size.
+    An .mp4 or .webm in the same syntax becomes a video with controls.
     """
     parts = []
     for alt, src in images:
         size = image_size(base / src) if base and "://" not in src else None
         attrs = ' width="%d" height="%d"' % size if size else ""
         style = ' style="--ratio: %.4f"' % (size[0] / size[1]) if size and len(images) > 1 else ""
+        label = html.escape(alt, quote=True)
         src = html.escape(src, quote=True)
+        if src.lower().endswith((".mp4", ".webm")):
+            # Played on request, like the old site's player. #t= makes
+            # Safari show the first frame instead of a blank box.
+            parts.append(
+                '<span class="clip"%s><video src="%s#t=0.001" controls playsinline '
+                'preload="metadata"%s%s></video></span>'
+                % (style, src, attrs, ' aria-label="%s"' % label if label else "")
+            )
+            continue
+        if size and len(images) == 1 and size[0] < 608:
+            # Narrower than the column: never stretched past its own width.
+            style = ' style="max-width: %dpx"' % size[0]
         parts.append(
             '<a href="%s"%s><img src="%s" alt="%s"%s loading="lazy" decoding="async"></a>'
-            % (src, style, src, html.escape(alt, quote=True), attrs)
+            % (src, style, src, label, attrs)
         )
     css = "figure row" if len(images) > 1 else "figure"
     return '<figure class="%s">%s</figure>' % (css, "".join(parts))
@@ -385,14 +409,19 @@ def build():
     for path in projects:
         folder = path.parent
         meta, body = split_frontmatter(path.read_text(encoding="utf-8"))
+        title = meta.get("title", folder.name)
+        # The title and date come from the frontmatter, not the body.
+        heading = "<h2>%s</h2>" % render_inline(title)
+        if meta.get("date"):
+            heading += '\n<p class="date">%s</p>' % render_inline(meta["date"])
         article = (
-            '<article id="%s" class="section project">\n%s\n</article>'
-            % (html.escape(folder.name, quote=True), render_markdown(body, base=folder))
+            '<article id="%s" class="section project">\n%s\n%s\n</article>'
+            % (html.escape(folder.name, quote=True), heading, render_markdown(body, base=folder))
         )
         out = DIST / folder.name
         out.mkdir()
         page = fill(template, site, [article], root="../",
-                    title=meta.get("title", folder.name), description=meta.get("description"))
+                    title=title, description=meta.get("description"))
         (out / "index.html").write_text(page, encoding="utf-8")
         for item in folder.iterdir():
             if item.is_file() and item.name != "index.md" and not item.name.startswith("."):

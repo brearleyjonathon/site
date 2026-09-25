@@ -1,8 +1,15 @@
 # Work
 
-## Projects
+## Studio
 
+- [**Pinch Point**](pinch-point/), a transit hub at Oak Grove as an anchor for density where Boston’s parks pinch its growth :: 2021
 - [**Accommodations**](accommodations/), mixed-income housing for construction and migrant workers in Chon Buri, Thailand :: 2020
+- [**The Y**](the-y/), a YMCA for Coney Island built from one continuous surface :: 2020
+- [**Particle Theater**](deconstructed-theater/), a theater taken apart into figures, in three performances :: 2018
+- [**For the Masculine Griever**](for-the-masculine-griever/), a place for those who grieve by doing :: 2018
+- [**Funerary Landscape**](on-being-and-void/), a field of remembrance, memorial and burial :: 2018
+- [**Safest At The Top Of The Hill**](you-are-safest/), moving Chamanga, Ecuador, to higher ground after the 2016 earthquake :: 2017
+- [**Bubble Box: Eat & Watch**](bubble-box-eat-watch/), published in the *Journal of Architectural Education* :: 2017
 
 ## Lectures and Design Reviews
 

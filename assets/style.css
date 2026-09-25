@@ -433,22 +433,27 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
    Figures — the images on a project page
    ========================================================================= */
 
-/* The text keeps its measure; the images step out past it on both sides,
-   up to 60rem, since drawings at the width of a paragraph are too small to
-   read. The width is taken from the viewport, less a gutter each side, and
-   centred on the column. */
-.figure {
-  --wide: min(60rem, 100vw - 2 * var(--gutter));
-  width: var(--wide);
-  margin: 2.5rem 0 2.5rem calc((100% - var(--wide)) / 2);
-}
+/* Images sit in the text column, at its full width. Each links to its own
+   file, so a board too dense to read here can be opened full size. */
+.figure { margin: 2rem 0; }
 
-.figure a { display: block; }
+.figure a,
+.figure .clip { display: block; margin: 0 auto; }
 
-.figure img {
+.figure img,
+.figure video {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.figure video { background: #000; }
+
+/* The date under a project's title, where the old site had it. */
+.project > .date {
+  margin: -.9rem 0 0;
+  color: var(--muted);
+  font-size: .875em;
 }
 
 /* Two or more in a row. Each takes a share of the width equal to its
@@ -458,7 +463,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   gap: .75rem;
 }
 
-.figure.row a { flex: var(--ratio, 1) 1 0; min-width: 0; }
+.figure.row > * { flex: var(--ratio, 1) 1 0; min-width: 0; }
 
 /* The site name is the way home on a project page. */
 .name a { text-decoration: none; }
@@ -498,7 +503,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 
   /* A row of images would be too small side by side here; stack them. */
   .figure.row { flex-direction: column; }
-  .figure.row a { flex: none; }
+  .figure.row > * { flex: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
