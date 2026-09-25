@@ -14,6 +14,7 @@ No dependencies. Python 3.8+. Nothing to install, nothing to keep updated.
 
 import html
 import http.server
+import json
 import os
 import re
 import shutil
@@ -174,8 +175,11 @@ def render_figure(images, base):
 
     In a row each image's share of the width is its aspect ratio, so they
     all come out the same height. Each links to its own file, full size.
-    An .mp4 or .webm in the same syntax becomes a video with controls.
+    An .mp4 or .webm in the same syntax becomes a video with controls, and
+    a .json becomes a chart (see render_chart).
     """
+    if len(images) == 1 and images[0][1].lower().endswith(".json"):
+        return render_chart(images[0][0], images[0][1], base)
     parts = []
     for alt, src in images:
         size = image_size(base / src) if base and "://" not in src else None
@@ -201,6 +205,21 @@ def render_figure(images, base):
         )
     css = "figure row" if len(images) > 1 else "figure"
     return '<figure class="%s">%s</figure>' % (css, "".join(parts))
+
+
+def render_chart(title, src, base):
+    """A chart: the .json beside the page, inlined for chart.js to draw.
+
+    The alt text is the chart's title. Inlined rather than fetched, so the
+    page needs no second request and works opened straight from disk.
+    """
+    data = (base / src).read_text(encoding="utf-8") if base else "{}"
+    json.loads(data)  # fail the build on a broken file, not the page
+    return (
+        '<figure class="figure chart">\n<figcaption class="chart-title">%s</figcaption>\n'
+        '<script type="application/json">%s</script>\n</figure>'
+        % (render_inline(title), data.strip().replace("</", "<\\/"))
+    )
 
 
 # --------------------------------------------------------------------------

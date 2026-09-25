@@ -9,6 +9,10 @@
 - **Mitigating Peak Load and Heat Stress under Heat Waves by Optimizing Thermostat Setpoint and Fan Speed Schedules**, [*Journal of Building Performance Simulation*](https://www.tandfonline.com/doi/full/10.1080/19401493.2023.2180538) 16(4), with Zhujing Zhang, Kevin J. Kircher, Yuan Cai, David Birge and Leslie K. Norford :: 2023
 - **Bubble Box Eat & Watch**, [*Journal of Architectural Education*](https://www.jaeonline.org/issue-article/bubble-box-eat-watch/) 72(1) :: 2018
 
+## Thesis
+
+- [**Taming Torridity**](taming-torridity/), new housing forms for heat resilience, for the MArch and SMBT at MIT :: 2022
+
 ## Studio
 
 - [**Pinch Point**](pinch-point/), a transit hub at Oak Grove as an anchor for density where Boston’s parks pinch its growth :: 2021

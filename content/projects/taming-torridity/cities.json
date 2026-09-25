@@ -1,0 +1,513 @@
+{
+ "switches": [
+  {
+   "label": "City",
+   "options": [
+    "Phoenix",
+    "Austin",
+    "Miami",
+    "DC"
+   ]
+  },
+  {
+   "label": "Measure",
+   "options": [
+    "Week's cooling",
+    "Peak cooling",
+    "Hours too hot"
+   ]
+  }
+ ],
+ "legend": [
+  [
+   "hollow",
+   "IECC house"
+  ],
+  [
+   "solid",
+   "Passive House"
+  ]
+ ],
+ "sets": {
+  "Phoenix / Week's cooling": {
+   "unit": "Wh/m²",
+   "max": 1600,
+   "note": "Phoenix gains the most from Passive House: about half the cooling of the code house, in every climate.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      734,
+      376
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      736,
+      405
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      930,
+      473
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      1077,
+      570
+     ]
+    }
+   ],
+   "axis": "Wh per m² of floor, over the week"
+  },
+  "Phoenix / Peak cooling": {
+   "unit": "Wh/m²",
+   "max": 12.5,
+   "note": "The peak grows far less than the week: 6 to 7% by 2080 in Phoenix. Passive House cuts it by more than a third.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      6.84,
+      4.19
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      6.97,
+      4.33
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      7.15,
+      4.43
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      7.28,
+      4.48
+     ]
+    }
+   ],
+   "axis": "Wh per m² of floor, in the peak hour"
+  },
+  "Phoenix / Hours too hot": {
+   "unit": "hours",
+   "max": 128,
+   "note": "Phoenix's slabs are uninsulated, and the ground keeps both houses under a heat index of 32 °C until 2080. The Passive House never passes it.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      0,
+      0
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      0,
+      0
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      0,
+      0
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      18,
+      0
+     ]
+    }
+   ],
+   "axis": "Hours over a heat index of 32 °C, of the 128 without power"
+  },
+  "Austin / Week's cooling": {
+   "unit": "Wh/m²",
+   "max": 1600,
+   "note": "In Austin, Passive House saves about a third, and both houses need over 40% more cooling by 2080.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      842,
+      544
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      979,
+      624
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      1095,
+      694
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      1220,
+      778
+     ]
+    }
+   ],
+   "axis": "Wh per m² of floor, over the week"
+  },
+  "Austin / Peak cooling": {
+   "unit": "Wh/m²",
+   "max": 12.5,
+   "note": "Austin's peak grows by 8% by 2080, in both houses. Passive House cuts it by a quarter.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      7.79,
+      5.75
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      8.11,
+      5.95
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      8.34,
+      6.12
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      8.44,
+      6.24
+     ]
+    }
+   ],
+   "axis": "Wh per m² of floor, in the peak hour"
+  },
+  "Austin / Hours too hot": {
+   "unit": "hours",
+   "max": 128,
+   "note": "In Austin the two houses are alike until 2050. After that the Passive House has about a fifth fewer hours over a heat index of 32 °C.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      15,
+      13
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      44,
+      43
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      91,
+      70
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      100,
+      78
+     ]
+    }
+   ],
+   "axis": "Hours over a heat index of 32 °C, of the 128 without power"
+  },
+  "Miami / Week's cooling": {
+   "unit": "Wh/m²",
+   "max": 1600,
+   "note": "Miami needs the most cooling of the four. Passive House saves a third of it, in every climate.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      1116,
+      738
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      1271,
+      844
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      1376,
+      911
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      1576,
+      1034
+     ]
+    }
+   ],
+   "axis": "Wh per m² of floor, over the week"
+  },
+  "Miami / Peak cooling": {
+   "unit": "Wh/m²",
+   "max": 12.5,
+   "note": "Miami has the highest peak. Passive House cuts it by 35 to 41%, and it grows by 7 to 15% by 2080.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      11.29,
+      6.65
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      11.08,
+      7.18
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      11.66,
+      7.54
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      12.13,
+      7.71
+     ]
+    }
+   ],
+   "axis": "Wh per m² of floor, in the peak hour"
+  },
+  "Miami / Hours too hot": {
+   "unit": "hours",
+   "max": 128,
+   "note": "In Miami the airtight Passive House has far fewer hours over a heat index of 32 °C: 14 against 48 now, 60 against 96 by 2080.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      48,
+      14
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      77,
+      31
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      91,
+      41
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      96,
+      60
+     ]
+    }
+   ],
+   "axis": "Hours over a heat index of 32 °C, of the 128 without power"
+  },
+  "DC / Week's cooling": {
+   "unit": "Wh/m²",
+   "max": 1600,
+   "note": "DC saves the least from Passive House, 15 to 18%. Both houses need 36 to 41% more cooling by 2080.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      826,
+      702
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      911,
+      764
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      1020,
+      839
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      1169,
+      957
+     ]
+    }
+   ],
+   "axis": "Wh per m² of floor, over the week"
+  },
+  "DC / Peak cooling": {
+   "unit": "Wh/m²",
+   "max": 12.5,
+   "note": "DC's Passive House peak grows the most of any, 20% by 2080, but is still 13% under the code house.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      7.79,
+      6.22
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      7.91,
+      6.74
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      8.23,
+      7.11
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      8.62,
+      7.46
+     ]
+    }
+   ],
+   "axis": "Wh per m² of floor, in the peak hour"
+  },
+  "DC / Hours too hot": {
+   "unit": "hours",
+   "max": 128,
+   "note": "In DC the Passive House is worse than the code house: its insulated slab cuts it off from the cool of the ground.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      64,
+      74
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      89,
+      102
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      114,
+      115
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      125,
+      125
+     ]
+    }
+   ],
+   "axis": "Hours over a heat index of 32 °C, of the 128 without power"
+  }
+ }
+}

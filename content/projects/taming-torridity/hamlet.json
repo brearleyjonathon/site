@@ -1,0 +1,138 @@
+{
+ "switches": [
+  {
+   "label": "Measure",
+   "options": [
+    "Cooling",
+    "Hours too hot"
+   ]
+  }
+ ],
+ "legend": [
+  [
+   "hollow",
+   "One house on its own plot"
+  ],
+  [
+   "solid",
+   "The hamlet"
+  ]
+ ],
+ "sets": {
+  "Cooling": {
+   "unit": "kWh a person",
+   "max": 50,
+   "note": "Cooling per person over the hot week in Phoenix, 2050 weather. The hamlet as built saves 6%; the savings come from how it is used.",
+   "compare": {
+    "to": "row",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "IECC house",
+     "values": [
+      48.8
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Passive House",
+     "values": [
+      40.1
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Hamlet",
+     "values": [
+      45.8
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Hamlet, Passive House materials",
+     "values": [
+      39.7
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Hamlet, full Passive House",
+     "values": [
+      34.8
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Hamlet, cooling only the cool rooms",
+     "values": [
+      28.6
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Hamlet, heat wave party",
+     "values": [
+      26.8
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Hamlet, Passive House, upper floors off",
+     "values": [
+      23.1
+     ],
+     "style": "solid"
+    }
+   ],
+   "axis": "kWh a person, over the hot week"
+  },
+  "Hours too hot": {
+   "unit": "hours",
+   "max": 128,
+   "note": "In the 128 hours after the power goes out; the houses with a lower floor are measured in the rooms below ground. A full bar is every hour.",
+   "compare": {
+    "to": "row",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "IECC house",
+     "values": [
+      122
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Passive House",
+     "values": [
+      114
+     ],
+     "style": "hollow"
+    },
+    {
+     "label": "Three bedroom, lower floor",
+     "values": [
+      62
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "One and two bedroom, lower floor",
+     "values": [
+      3
+     ],
+     "style": "solid"
+    },
+    {
+     "label": "Studio",
+     "values": [
+      67
+     ],
+     "style": "solid"
+    }
+   ],
+   "axis": "Hours over a heat index of 32 °C, of the 128 without power"
+  }
+ }
+}
