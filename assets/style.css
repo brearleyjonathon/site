@@ -450,8 +450,10 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 .figure video { background: #000; }
 
 /* A drawing in ink on a clear ground (build.py's is_ink): black on the
-   light page, turned white on the dark one. */
-[data-theme="dark"] .figure img.ink { filter: invert(1); }
+   light page, turned white on the dark one. The hue turn puts any colour
+   back after the invert (grey is unchanged), so a pale blue wash comes out
+   a deep blue rather than orange. */
+[data-theme="dark"] .figure img.ink { filter: invert(1) hue-rotate(180deg); }
 
 /* The date under a project's title, where the old site had it, and the
    credit under that: the school, the studio, and anyone it was made with. */
