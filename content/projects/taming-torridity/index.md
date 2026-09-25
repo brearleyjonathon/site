@@ -9,11 +9,11 @@ description: New housing forms for heat resilience. How American houses hold up 
 
 Heat waves are getting hotter, longer and more frequent. When everyone turns on the air conditioning at once the grid strains, and sometimes it fails, leaving people in houses that were never designed to work without power. Most new American homes are single-family houses, low and spread out, built to the minimum energy code, if that.
 
-This thesis asks what it would mean for those houses to withstand a heat wave, to both make the city most resilient by reducing peak power demand, and passively, if the power goes out. The first half of the research is a simulation study, and the second turns to the application and design of housing. The thesis representational artifacts are primarily thermochromic paintings, which change color when heat is applied. *On this page, hover over the image (or tap it on mobile) to see the state changed once heat was applied.
+This thesis asks what it would mean for those houses to withstand a heat wave: actively, by reducing peak power demand so the city is more resilient, and passively, if the power goes out. The first half of the research is a simulation study, and the second turns to the application and design of housing. The thesis representational artifacts are primarily thermochromic paintings, which change color when heat is applied. *On this page, hover over a painting (or tap it on mobile) to see it once heat was applied.*
 
 ## Four cities, one heat wave
 
-A representative single-family house was modelled and simulated in Phoenix, Austin, Miami and Washington DC Two variants followed: one was modelled to the local energy code (assumed as IECC) and one to the Passive House (PHI) standard, the gold standard for efficiency. Each was run through the hottest week of the year using in historic weather and using morphed weather projected for 2020, 2050 and 2080 under a high-emissions scenario. The first case examines power on with results that measure the energy it takes over the week to keep the house cool, as well as the peak cooling power, which is most important for mitigating grid strain. In the second case, a the power outage on the second afternoon of a heat wave measures the number of hours the indoor conditions pass a heat index of 32 °C, where heat exhaustion becomes possible.
+A representative single-family house was modeled and simulated in Phoenix, Austin, Miami and Washington DC. Two variants followed: one was modeled to the local energy code (assumed as IECC) and one to the Passive House (PHI) standard, the gold standard for efficiency. Each was run through the hottest week of the year in historic weather and using morphed weather projected for 2020, 2050 and 2080 under a high-emissions scenario. The first case examines power on with results that measure the energy it takes over the week to keep the house cool, as well as the peak cooling power, which is most important for mitigating grid strain. In the second case, a power outage on the second afternoon of a heat wave measures the number of hours the indoor conditions pass a heat index of 32 °C, where heat exhaustion becomes possible.
 
 ![Cooling and heat over one hot week, in four cities](cities.json)
 
@@ -21,27 +21,27 @@ A representative single-family house was modelled and simulated in Phoenix, Aust
 - The peak hour of cooling, the load that strains the grid, grows by 20% at most by 2080. **20% is not trivial.**
 - The cooling energy over the whole week grows by about 40%, mostly at night, when the house cannot cool itself down through natural ventilation. **The grid can manage that; a family already stretched by its bills may not.**
 - **Passive House cut the peak by 30% and the week's cooling by 33%, on average across the cities and climates.**
-- Without power, almost every house passed 32 °C for most of the week. **Passive House helped only where its slab sat directly on the ground. In DC, where the slab is insulated as the standard asks, it did worse than the code house**. This is one of the biggest findings: insulation decouples the building from ground, a significant sink during hot days.
+- Without power, almost every house passed 32 °C for most of the week. **Passive House helped only where its slab sat directly on the ground. In DC, where the slab is insulated as the standard asks, it did worse than the code house**. This is one of the biggest findings: insulation decouples the building from the ground, a significant heat sink during hot days.
 
 ## The significance of the ground model
 
 Phoenix comes through the four-city study remarkably well: neither house passes 32 °C until 2080. Later in the thesis a code house built the same way, in the same hot week of 2050 weather, passes it for 122 of the 128 hours without power. The biggest change between the two is the model of the ground beneath the slab.
 
-EnergyPlus calculated heat moving through a wall and  slab in one dimension, from one temperature to another. The ground is three-dimensional and slow, taking months to warm and cool, so every way of modelling is is a simplification, like most areas of building energy simulation. 
+EnergyPlus calculates heat moving through a wall and slab in one dimension, from one temperature to another. The ground is three-dimensional and slow, taking months to warm and cool, so every way of modeling it is a simplification, like most areas of building energy simulation. 
 
-The typical modeling rule of thumb assigns the ground a fixed temperature for each month usually around 18 °C, 2 K under the typical zone set point. Others assign monthly values from EnergyPlus's slab and basement preprocessors, which is what is used for the four-city study. More complex ground models, EnergyPlus uses Ground Domain and Kiva which instead work two dimensionsional heat flow, hour by hour. 
+The typical modeling rule of thumb assigns the ground a fixed temperature for each month usually around 18 °C, 2 K under the typical zone set point. Others assign monthly values from EnergyPlus's slab and basement preprocessors, which is what is used for the four-city study. For more complex ground models, EnergyPlus offers Ground Domain and Kiva, which instead work out heat flow in two dimensions, hour by hour. 
 
-For a house on an uninsulated slab, which the energy code allows in hot climates, the choice of modeling approach changes the results answer by nearly four times, which is what we see above. With insulation under the slab, the methods roughly agree.
+For a house on an uninsulated slab, which the energy code allows in hot climates, the choice of modeling approach changes the results by nearly four times, which is what we see above. With insulation under the slab, the methods roughly agree.
 
 ![Six ways to model the same ground](ground.json)
 
-The power outage shows it more starkly. Here the same house loses power on the second afternoon, and the ground is modelled three of those ways.
+The power outage shows it more starkly. Here the same house loses power on the second afternoon, and the ground is modeled three of those ways.
 
 ![The same power cut, three ways](methods.json)
 
-It is easy to miss. Every method runs without complaint, and in a large building the ground is a small part of the whole. Also, most building energy simulations are intended to capture annual energy and peak loads where these rules of thumb becomes less consequential in a larger picture. However, in a focused week long simulation in a small house, the ground relationship becomes very significant. 
+It is easy to miss. Every method runs without complaint, and in a large building the ground is a small part of the whole. Also, most building energy simulations are intended to capture annual energy and peak loads where these rules of thumb become less consequential in a larger picture. However, in a focused week long simulation in a small house, the ground relationship becomes very significant. 
 
-The thesis compares the several available methods for modeling ground couples slabs, proposes a simplified analytical approach is based on results from detail Kiva and Ground Domain models. Exposure of these methods, and the analytical method are released in a Grasshopper plugin called [Jerboa](https://www.food4rhino.com/en/app/jerboa). Design work that follows uses Ground Domain.
+The thesis compares the several available methods for modeling ground-coupled slabs and basements, and proposes a simplified analytical approach based on results from detailed Kiva and Ground Domain models. These methods, and the analytical one, are released in a Grasshopper plugin called [Jerboa](https://www.food4rhino.com/en/app/jerboa). Design work that follows uses Ground Domain.
 
 ## Three moves
 
@@ -83,7 +83,7 @@ Built to the code, the hamlet uses only 6% less cooling per person than a code h
 
 The last scenario is the most hopeful. On the hottest evening the neighbors gather in the one or two houses with the biggest air conditioners and turn the rest off. The hamlet then uses 45% less cooling per person than a code house: a heat wave party.
 
-![Plan of the heat wave party: neighbours gathered in two houses, the other homes left uncooled](11.webp)
+![Plan of the heat wave party: neighbors gathered in two houses, the other homes left uncooled](11.webp)
 
 ---
 
