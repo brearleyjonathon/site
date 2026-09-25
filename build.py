@@ -6,7 +6,8 @@ Build the portfolio.
     python3 build.py --serve   build, then serve at http://localhost:8000
 
 Reads every Markdown file in content/ (except those starting with "_"),
-renders each one as a section of a single page, and writes dist/.
+renders each one as a section of the home page, renders each folder in
+content/projects/ as a page of its own, and writes dist/.
 
 No dependencies. Python 3.8+. Nothing to install, nothing to keep updated.
 """
@@ -16,6 +17,7 @@ import http.server
 import os
 import re
 import shutil
+import struct
 import sys
 import threading
 from pathlib import Path
@@ -24,6 +26,7 @@ ROOT = Path(__file__).parent.resolve()
 CONTENT = ROOT / "content"
 TEMPLATES = ROOT / "templates"
 ASSETS = ROOT / "assets"
+PROJECTS = CONTENT / "projects"
 DIST = ROOT / "dist"
 
 
@@ -108,6 +111,75 @@ def render_item(text):
 
 
 # --------------------------------------------------------------------------
+# Images
+# --------------------------------------------------------------------------
+
+def image_size(path):
+    """(width, height) read from a PNG, GIF, WebP or JPEG header, else None.
+
+    Written into the <img> tag so the page keeps its layout while images
+    load: the Fun mode measures every word once, and a late image pushing
+    the text down would leave those positions wrong.
+    """
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return None
+
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return struct.unpack(">II", data[16:24])
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return struct.unpack("<HH", data[6:10])
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        chunk = data[12:16]
+        if chunk == b"VP8X":
+            w = int.from_bytes(data[24:27], "little") + 1
+            h = int.from_bytes(data[27:30], "little") + 1
+            return w, h
+        if chunk == b"VP8L":
+            bits = int.from_bytes(data[21:25], "little")
+            return (bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1
+        if chunk == b"VP8 ":
+            w, h = struct.unpack("<HH", data[26:30])
+            return w & 0x3FFF, h & 0x3FFF
+    if data[:2] == b"\xff\xd8":
+        i = 2
+        while i + 9 < len(data):
+            if data[i] != 0xFF:
+                i += 1
+                continue
+            marker = data[i + 1]
+            if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+                h, w = struct.unpack(">HH", data[i + 5:i + 9])
+                return w, h
+            i += 2 + struct.unpack(">H", data[i + 2:i + 4])[0]
+    return None
+
+
+IMAGE_RE = re.compile(r"^!\[([^\]]*)\]\(([^)\s]+)\)$")
+
+
+def render_figure(images, base):
+    """Consecutive image lines become one <figure>; two or more sit in a row.
+
+    In a row each image's share of the width is its aspect ratio, so they
+    all come out the same height. Each links to its own file, full size.
+    """
+    parts = []
+    for alt, src in images:
+        size = image_size(base / src) if base and "://" not in src else None
+        attrs = ' width="%d" height="%d"' % size if size else ""
+        style = ' style="--ratio: %.4f"' % (size[0] / size[1]) if size and len(images) > 1 else ""
+        src = html.escape(src, quote=True)
+        parts.append(
+            '<a href="%s"%s><img src="%s" alt="%s"%s loading="lazy" decoding="async"></a>'
+            % (src, style, src, html.escape(alt, quote=True), attrs)
+        )
+    css = "figure row" if len(images) > 1 else "figure"
+    return '<figure class="%s">%s</figure>' % (css, "".join(parts))
+
+
+# --------------------------------------------------------------------------
 # Block Markdown
 # --------------------------------------------------------------------------
 
@@ -117,8 +189,11 @@ HEADING_RE = re.compile(r"^(#{1,6})\s+(.*)$")
 RULE_RE = re.compile(r"^(-{3,}|\*{3,}|_{3,})$")
 
 
-def render_markdown(text, heading_offset=1):
-    """Markdown to HTML. Headings are demoted by heading_offset levels."""
+def render_markdown(text, heading_offset=1, base=None):
+    """Markdown to HTML. Headings are demoted by heading_offset levels.
+
+    base is the folder image paths are relative to, for reading their sizes.
+    """
     lines = text.replace("\r\n", "\n").split("\n")
     out = []
     i = 0
@@ -131,6 +206,7 @@ def render_markdown(text, heading_offset=1):
             or BULLET_RE.match(s)
             or NUMBER_RE.match(s)
             or RULE_RE.match(s)
+            or IMAGE_RE.match(s)
             or s.startswith("> ")
         )
 
@@ -160,7 +236,15 @@ def render_markdown(text, heading_offset=1):
             while i < len(lines) and lines[i].strip().startswith(">"):
                 quote.append(lines[i].strip().lstrip(">").strip())
                 i += 1
-            out.append("<blockquote>%s</blockquote>" % render_markdown("\n".join(quote), heading_offset))
+            out.append("<blockquote>%s</blockquote>" % render_markdown("\n".join(quote), heading_offset, base))
+            continue
+
+        if IMAGE_RE.match(stripped):
+            images = []
+            while i < len(lines) and IMAGE_RE.match(lines[i].strip()):
+                images.append(IMAGE_RE.match(lines[i].strip()).groups())
+                i += 1
+            out.append(render_figure(images, base))
             continue
 
         for pattern, tag in ((BULLET_RE, "ul"), (NUMBER_RE, "ol")):
@@ -226,6 +310,42 @@ def section_id(path):
     return re.sub(r"^\d+[-_]", "", name).replace("_", "-")
 
 
+def fill(template, site, sections, root="", title=None, description=None):
+    """Put one page's sections into the template.
+
+    root is the way back to the top of the site ("" on the home page, "../"
+    on a project page), so the shared assets resolve from either. A page
+    with a title of its own also gets the site name as a link home.
+    """
+    name = site.get("name", "Portfolio")
+    tagline = site.get("tagline", "")
+    site_title = site.get("title", name)
+    heading = html.escape(name, quote=False)
+    if title:
+        heading = '<a href="%s">%s</a>' % (root or "./", heading)
+
+    page = template
+    page = page.replace("{{root}}", root)
+    page = page.replace("{{name}}", heading)
+    page = page.replace("{{title}}", html.escape(
+        "%s – %s" % (title, site_title) if title else site_title, quote=True))
+    page = page.replace("{{description}}", html.escape(
+        description or site.get("description", ""), quote=True))
+    page = page.replace("{{url}}", html.escape(site.get("url", ""), quote=True))
+    page = page.replace("{{lang}}", html.escape(site.get("lang", "en"), quote=True))
+    page = page.replace("{{default_theme}}", html.escape(site.get("default_theme", "auto"), quote=True))
+    page = page.replace("{{default_font}}", html.escape(site.get("default_font", "sans"), quote=True))
+    page = page.replace(
+        "{{tagline}}",
+        '<p class="tagline">%s</p>' % render_inline(tagline) if tagline else "",
+    )
+    page = page.replace(
+        "{{footer}}",
+        render_inline(site.get("footer", "")) if site.get("footer") else "",
+    )
+    return page.replace("{{sections}}", "\n\n".join(sections))
+
+
 def build():
     site_file = CONTENT / "_site.md"
     if not site_file.exists():
@@ -239,7 +359,7 @@ def build():
     sections = []
     for path in sources:
         meta, body = split_frontmatter(path.read_text(encoding="utf-8"))
-        rendered = render_markdown(body)
+        rendered = render_markdown(body, base=CONTENT)
         if not rendered.strip():
             continue
         sections.append(
@@ -249,41 +369,44 @@ def build():
 
     template = (TEMPLATES / "base.html").read_text(encoding="utf-8")
 
-    name = site.get("name", "Portfolio")
-    tagline = site.get("tagline", "")
-    page = template
-    page = page.replace("{{name}}", html.escape(name, quote=False))
-    page = page.replace("{{title}}", html.escape(site.get("title", name), quote=True))
-    page = page.replace("{{description}}", html.escape(site.get("description", ""), quote=True))
-    page = page.replace("{{url}}", html.escape(site.get("url", ""), quote=True))
-    page = page.replace("{{lang}}", html.escape(site.get("lang", "en"), quote=True))
-    page = page.replace("{{default_theme}}", html.escape(site.get("default_theme", "auto"), quote=True))
-    page = page.replace("{{default_font}}", html.escape(site.get("default_font", "sans"), quote=True))
-    page = page.replace(
-        "{{tagline}}",
-        '<p class="tagline">%s</p>' % render_inline(tagline) if tagline else "",
-    )
-    page = page.replace(
-        "{{footer}}",
-        render_inline(site.get("footer", "")) if site.get("footer") else "",
-    )
-    page = page.replace("{{sections}}", "\n\n".join(sections))
-
     if DIST.exists():
         shutil.rmtree(DIST)
     DIST.mkdir(parents=True)
-    (DIST / "index.html").write_text(page, encoding="utf-8")
+    (DIST / "index.html").write_text(fill(template, site, sections), encoding="utf-8")
 
     for asset in ASSETS.iterdir():
         if asset.is_file() and not asset.name.startswith("."):
             shutil.copy2(asset, DIST / asset.name)
 
+    # Each folder in content/projects/ is a page at /<folder>/: its index.md
+    # is the text, and everything else in the folder is copied beside it.
+    projects = sorted(p for p in PROJECTS.glob("*/index.md")) if PROJECTS.exists() else []
+    for path in projects:
+        folder = path.parent
+        meta, body = split_frontmatter(path.read_text(encoding="utf-8"))
+        article = (
+            '<article id="%s" class="section project">\n%s\n</article>'
+            % (html.escape(folder.name, quote=True), render_markdown(body, base=folder))
+        )
+        out = DIST / folder.name
+        out.mkdir()
+        page = fill(template, site, [article], root="../",
+                    title=meta.get("title", folder.name), description=meta.get("description"))
+        (out / "index.html").write_text(page, encoding="utf-8")
+        for item in folder.iterdir():
+            if item.is_file() and item.name != "index.md" and not item.name.startswith("."):
+                shutil.copy2(item, out / item.name)
+
     # Tell GitHub Pages not to run the output through Jekyll.
     (DIST / ".nojekyll").write_text("", encoding="utf-8")
 
-    print("built dist/ -- %d section%s" % (len(sections), "" if len(sections) == 1 else "s"))
+    print("built dist/ -- %d section%s, %d project%s" % (
+        len(sections), "" if len(sections) == 1 else "s",
+        len(projects), "" if len(projects) == 1 else "s"))
     for path in sources:
         print("  %s -> #%s" % (path.name, section_id(path)))
+    for path in projects:
+        print("  projects/%s -> /%s/" % (path.parent.name, path.parent.name))
 
 
 def newest_source_time():
@@ -312,7 +435,8 @@ def serve(port=8000):
             super().__init__(*args, directory=str(DIST), **kwargs)
 
         def do_GET(self):
-            if self.path in ("/", "/index.html"):
+            # Any page, not just the home page: a project page is /<name>/.
+            if self.path.split("?")[0].endswith(("/", ".html")):
                 with lock:
                     latest = newest_source_time()
                     if latest > state["built"]:

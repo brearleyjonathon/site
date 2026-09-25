@@ -1,5 +1,9 @@
 # Work
 
+## Projects
+
+- [**Accommodations**](accommodations/), mixed-income housing for construction and migrant workers in Chon Buri, Thailand :: 2020
+
 ## Lectures and Design Reviews
 
 - **Water in Architecture**, guest lecture and design review for Design Studio 5, [The New School](https://www.newschool.edu/) :: 2025

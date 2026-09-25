@@ -426,6 +426,41 @@ ul.rows, ol.rows {
 ul.rows li, ol.rows li { margin-bottom: .7em; }
 
 /* =========================================================================
+   Figures — the images on a project page
+   ========================================================================= */
+
+/* The text keeps its measure; the images step out past it on both sides,
+   up to 60rem, since drawings at the width of a paragraph are too small to
+   read. The width is taken from the viewport, less a gutter each side, and
+   centred on the column. */
+.figure {
+  --wide: min(60rem, 100vw - 2 * var(--gutter));
+  width: var(--wide);
+  margin: 2.5rem 0 2.5rem calc((100% - var(--wide)) / 2);
+}
+
+.figure a { display: block; }
+
+.figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Two or more in a row. Each takes a share of the width equal to its
+   aspect ratio (set per image by build.py), so they meet at one height. */
+.figure.row {
+  display: flex;
+  gap: .75rem;
+}
+
+.figure.row a { flex: var(--ratio, 1) 1 0; min-width: 0; }
+
+/* The site name is the way home on a project page. */
+.name a { text-decoration: none; }
+.name a:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+
+/* =========================================================================
    Colophon
    ========================================================================= */
 
@@ -456,6 +491,10 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   li.row .item-main,
   li.row .item-meta { display: inline; margin-left: 0; }
   li.row .item-meta::before { content: " \00B7  "; }
+
+  /* A row of images would be too small side by side here; stack them. */
+  .figure.row { flex-direction: column; }
+  .figure.row a { flex: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -588,6 +627,14 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
    it repaints, which is every time a word is shoved. Touch screens go
    without it (see the end of this section). */
 :root[data-theme="fun"] main {
+  filter: url("#fun-warp");
+}
+
+/* A project page is mostly images, and two of them animate: a filter over
+   all of main would run again on every frame of those. There the warp
+   goes on the text blocks alone, which is all it was for. */
+:root[data-theme="fun"] main:has(.figure) { filter: none; }
+:root[data-theme="fun"] main:has(.figure) .section > :not(.figure) {
   filter: url("#fun-warp");
 }
 
@@ -815,7 +862,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
    CPU filter pass over the whole page on every repaint; the crawling grain
    repaints the whole screen five times a second. Both hold still here. */
 @media (hover: none) and (pointer: coarse) {
-  :root[data-theme="fun"] main { filter: none; }
+  :root[data-theme="fun"] main,
+  :root[data-theme="fun"] main:has(.figure) .section > :not(.figure) { filter: none; }
   :root[data-theme="fun"] body::after { animation: none; }
 }
 
@@ -837,7 +885,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   body::after,
   .blobs,
   .swimmer { display: none; }
-  main { filter: none; }
+  main, main .section > * { filter: none !important; }
   .page { max-width: none; padding: 0; }
   a { text-decoration: none; }
 }
