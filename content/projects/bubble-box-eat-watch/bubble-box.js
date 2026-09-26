@@ -1345,6 +1345,8 @@
       return at < 1.3;
     });
     tube.frames = f; tube.rad = rad;
+    tube.len = 0;
+    for (k = 1; k < f.n; k++) tube.len += length(sub(f.pts[k], f.pts[k - 1]));
     if (share(tube) < 1) tubeFill(f, rad, tube.skin.shape.p, tube.skin.shape.n);
     if (share(tube) > 0) latticeFill(f, rad, tube.ribs.shape.p, tube.ribs.shape.n);
 
@@ -1427,7 +1429,7 @@
     bodies.forEach(function (o) {
       if (o.kind !== "person") place(o);
     });
-    people.forEach(function (o) { pose(o, t, arch); });
+    people.forEach(function (o) { pose(o, t, dt, arch); });
 
     // The sweep: in each body that changes, the diagram's things are cut
     // away from below and the architecture's grow up in their place.
@@ -1448,7 +1450,7 @@
 
   // Where each person is and how they stand, and their four parts put
   // there. Walkers step; the seated sit with their legs out in front.
-  function pose(o, t, arch) {
+  function pose(o, t, dt, arch) {
     // Indoors, in a room still solid, nobody can be seen: skip them.
     o.hidden = o.inside ? share(o.inside) <= 0 || (o.bubble && !o.bubble.skin.visible) : false;
     o.parts.forEach(function (th) { th.visible = !o.hidden; });
@@ -1478,21 +1480,22 @@
       yaw = h.yaw + o.spot[3];
       lift = 0.5 * hop(t - h.t0, 0.8);
     } else if (o.role === "tube" || o.role === "mouth") {
-      var f = tube.frames, n = f.n, j, along;
+      // On the tube's floor: the lowest point of its ring, where it is.
+      var f = tube.frames, n = f.n, at = n - 1, back = false;
       if (o.role === "tube") {
-        var u = (t * o.speed / 14 + o.phase) % 2, back = u > 1;
-        along = lerp(o.from, o.to, back ? 2 - u : u);
-        j = Math.round(along * (n - 1));
+        var u = (t * o.speed / (tube.len * (o.to - o.from)) + o.phase) % 2;
+        back = u > 1;
+        at = lerp(o.from, o.to, back ? 2 - u : u) * (n - 1);
         walking = true;
         dist = t * o.speed;
-      } else {
-        j = n - 1;
       }
-      var tan = f.tan[j], down = norm(sub([0, -1, 0], scale(tan, -tan[1])));
-      root = add(f.pts[j], scale(down, tube.rad[j] - 0.06));
+      var j = Math.min(Math.floor(at), n - 2), fr = at - j;
+      var tan = norm(mix(f.tan[j], f.tan[j + 1], fr)), rr = lerp(tube.rad[j], tube.rad[j + 1], fr);
+      var down = norm(sub([0, -1, 0], scale(tan, -tan[1])));
+      root = add(mix(f.pts[j], f.pts[j + 1], fr), scale(down, rr - 0.06));
       if (o.role === "mouth") root = sub(root, scale(tan, 0.35));
       var flat = norm([tan[0], 0, tan[2]]);
-      if (o.role === "tube" && back) flat = scale(flat, -1);
+      if (back) flat = scale(flat, -1);
       yaw = Math.atan2(flat[0], flat[2]);
     } else {
       root = o.root;
@@ -1500,6 +1503,12 @@
       if (o.place === theater && arch) lift = 0.45 * hop(t - theater.t0 - (o.stride % 1) * 0.3, 0.5);
     }
     lift += 0.55 * hop(t - o.t0, 0.5);
+    // Walkers turn round at the end of their street rather than flip.
+    if (walking && o.facing != null && dt > 0) {
+      var turnTo = Math.atan2(Math.sin(yaw - o.facing), Math.cos(yaw - o.facing));
+      yaw = o.facing + turnTo * Math.min(1, dt * 7);
+    }
+    o.facing = yaw;
     dress(o, root, yaw, walking ? dist / 0.7 * Math.PI + o.stride : 0, sits, lift);
   }
 
@@ -1647,7 +1656,7 @@
     }
   }
 
-  var clock = 0, last = 0, running = false, seen = false;
+  var clock = 0, last = 0, running = false, seen = false, dead = false;
 
   // The view: held where a drag leaves it, then eased back to the
   // drawing's own, swaying a little round it when nobody is holding it.
@@ -1665,7 +1674,7 @@
   }
 
   function frame(now) {
-    if (!running) return;
+    if (!running || dead) return;
     var dt = last ? Math.min((now - last) / 1000, 0.05) : 0;
     last = now;
     if (!reduce.matches) clock += dt;
@@ -1685,13 +1694,20 @@
   }
 
   function start() {
-    if (running) return;
+    if (running || dead) return;
     running = true;
     last = 0;
     requestAnimationFrame(frame);
   }
 
   function stop() { running = false; }
+
+  try {
+    solid = compile(SOLID_VS, SOLID_FS);
+    ink = compile(INK_VS, INK_FS);
+  } catch (err) {
+    return;   // the still stays
+  }
 
   // --- Controls -------------------------------------------------------------
   // A switch for diagram or architecture, a button for full screen, and a
@@ -1857,12 +1873,6 @@
 
   // --- Set up ---------------------------------------------------------------
 
-  try {
-    solid = compile(SOLID_VS, SOLID_FS);
-    ink = compile(INK_VS, INK_FS);
-  } catch (err) {
-    return;   // the still stays
-  }
   blank = gl.createVertexArray();
   build();
   update(0, 0);
@@ -1898,4 +1908,17 @@
     new ResizeObserver(function () { if (seen || full) start(); }).observe(stage);
   }
   if (touch.addEventListener) touch.addEventListener("change", say);
+
+  // If the browser takes the GPU back (a phone putting the tab away can),
+  // the still comes back and stays.
+  canvas.addEventListener("webglcontextlost", function (e) {
+    e.preventDefault();
+    dead = true;
+    enlarge(false);
+    figure.classList.remove("on");
+    if (still) still.removeAttribute("aria-hidden");
+    controls.remove();
+    hint.remove();
+    canvas.remove();
+  });
 })();
