@@ -3,10 +3,10 @@
   {
    "label": "City",
    "options": [
-    "Phoenix",
     "Austin",
     "Miami",
-    "DC"
+    "DC",
+    "Phoenix"
    ]
   },
   {
@@ -29,126 +29,6 @@
   ]
  ],
  "sets": {
-  "Phoenix / Week's cooling": {
-   "unit": "Wh/m²",
-   "max": 1600,
-   "note": "Phoenix gains the most from Passive House: about half the cooling of the code house, in every climate.",
-   "compare": {
-    "to": "series",
-    "name": "the IECC house"
-   },
-   "rows": [
-    {
-     "label": "Historic",
-     "values": [
-      734,
-      376
-     ]
-    },
-    {
-     "label": "2020",
-     "values": [
-      736,
-      405
-     ]
-    },
-    {
-     "label": "2050",
-     "values": [
-      930,
-      473
-     ]
-    },
-    {
-     "label": "2080",
-     "values": [
-      1077,
-      570
-     ]
-    }
-   ],
-   "axis": "Wh per m² of floor, over the week"
-  },
-  "Phoenix / Peak cooling": {
-   "unit": "W/m²",
-   "max": 12.5,
-   "note": "The peak grows far less than the week: 6 to 7% by 2080 in Phoenix. Passive House cuts it by more than a third.",
-   "compare": {
-    "to": "series",
-    "name": "the IECC house"
-   },
-   "rows": [
-    {
-     "label": "Historic",
-     "values": [
-      6.84,
-      4.19
-     ]
-    },
-    {
-     "label": "2020",
-     "values": [
-      6.97,
-      4.33
-     ]
-    },
-    {
-     "label": "2050",
-     "values": [
-      7.15,
-      4.43
-     ]
-    },
-    {
-     "label": "2080",
-     "values": [
-      7.28,
-      4.48
-     ]
-    }
-   ],
-   "axis": "W per m² of floor, in the peak hour"
-  },
-  "Phoenix / Hours too hot": {
-   "unit": "hours",
-   "max": 128,
-   "note": "Phoenix looks the safest of the four: neither house passes a heat index of 32 °C until 2080. How much of that is Phoenix, and how much the model of the ground, is taken up below.",
-   "compare": {
-    "to": "series",
-    "name": "the IECC house"
-   },
-   "rows": [
-    {
-     "label": "Historic",
-     "values": [
-      0,
-      0
-     ]
-    },
-    {
-     "label": "2020",
-     "values": [
-      0,
-      0
-     ]
-    },
-    {
-     "label": "2050",
-     "values": [
-      0,
-      0
-     ]
-    },
-    {
-     "label": "2080",
-     "values": [
-      18,
-      0
-     ]
-    }
-   ],
-   "axis": "Hours over a heat index of 32 °C, of the 128 without power"
-  },
   "Austin / Week's cooling": {
    "unit": "Wh/m²",
    "max": 1600,
@@ -504,6 +384,126 @@
      "values": [
       125,
       125
+     ]
+    }
+   ],
+   "axis": "Hours over a heat index of 32 °C, of the 128 without power"
+  },
+  "Phoenix / Week's cooling": {
+   "unit": "Wh/m²",
+   "max": 1600,
+   "note": "Phoenix gains the most from Passive House: about half the cooling of the code house, in every climate.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      734,
+      376
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      736,
+      405
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      930,
+      473
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      1077,
+      570
+     ]
+    }
+   ],
+   "axis": "Wh per m² of floor, over the week"
+  },
+  "Phoenix / Peak cooling": {
+   "unit": "W/m²",
+   "max": 12.5,
+   "note": "The peak grows far less than the week: 6 to 7% by 2080 in Phoenix. Passive House cuts it by more than a third.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      6.84,
+      4.19
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      6.97,
+      4.33
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      7.15,
+      4.43
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      7.28,
+      4.48
+     ]
+    }
+   ],
+   "axis": "W per m² of floor, in the peak hour"
+  },
+  "Phoenix / Hours too hot": {
+   "unit": "hours",
+   "max": 128,
+   "note": "Phoenix looks the safest of the four: neither house passes a heat index of 32 °C until 2080. How much of that is Phoenix, and how much the model of the ground, is taken up below.",
+   "compare": {
+    "to": "series",
+    "name": "the IECC house"
+   },
+   "rows": [
+    {
+     "label": "Historic",
+     "values": [
+      0,
+      0
+     ]
+    },
+    {
+     "label": "2020",
+     "values": [
+      0,
+      0
+     ]
+    },
+    {
+     "label": "2050",
+     "values": [
+      0,
+      0
+     ]
+    },
+    {
+     "label": "2080",
+     "values": [
+      18,
+      0
      ]
     }
    ],
