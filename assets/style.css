@@ -499,6 +499,73 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 
 .reveal .pair:focus-visible { outline: 1px solid var(--focus); outline-offset: 3px; }
 
+/* A drawing that moves (build.py's render_live): the page's own script
+   draws it in a canvas laid over the still it was traced from. The still
+   holds the place until the first frame is drawn, and stays where there
+   is no WebGL, and in print. The ground is clear, so the page shows
+   through the way the paper does in the drawing. */
+.live .stage { position: relative; }
+
+.live .stage img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: opacity .6s ease;
+}
+
+.live canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity .6s ease;
+  touch-action: pan-y;   /* a sideways drag turns it; up and down still scroll */
+  cursor: grab;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.live canvas:active { cursor: grabbing; }
+.live canvas:focus-visible { outline: 1px solid var(--focus); outline-offset: 3px; }
+.live.on canvas { opacity: 1; }
+.live.on .stage img { opacity: 0; }
+
+/* Under it, the switches the script makes: what it shows, and full
+   screen. Then a line saying what a hand can do, like a chart's readout. */
+.live-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-top: .9rem;
+}
+
+.live-hint {
+  margin: .6rem 0 0;
+  color: var(--muted);
+  font-size: .8125em;
+}
+
+/* Full screen: the figure takes the whole window (and the screen, where
+   the browser allows), and the page under it stops scrolling. */
+html.live-full { overflow: hidden; }
+
+.live.full {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--gutter) 1rem;
+  background: var(--bg);
+}
+
+.live.full .stage { flex: 1 1 auto; min-height: 0; }
+.live.full .stage img { display: none; }
+.live.full canvas { touch-action: none; outline: none; }
+
 /* A chart (chart.js): horizontal bars in the page's ink, hollow for the
    reference and solid for the thing being tested, so no colour is needed.
    Each bar is a button: hover, focus or a tap says what it is below. */
@@ -1076,6 +1143,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 @media print {
   :root { --bg: #fff; --text: #000; --muted: #444; --faint: #666; --rule: #ccc; }
   .controls { display: none; }
+  .live canvas, .live-controls { display: none; }
+  .live.on .stage img { opacity: 1; }
   body::after,
   .blobs,
   .swimmer { display: none; }

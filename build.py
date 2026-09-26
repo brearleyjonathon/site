@@ -201,10 +201,13 @@ def render_figure(images, base):
     all come out the same height. Each links to its own file, full size.
     An .mp4 or .webm in the same syntax becomes a video with controls, and
     a .json becomes a chart (see render_chart). Two files joined by | are
-    one picture with a second under it (see render_reveal).
+    one picture with a second under it (see render_reveal), unless the
+    first is a .js, which draws the picture live (see render_live).
     """
     if len(images) == 1 and images[0][1].lower().endswith(".json"):
         return render_chart(images[0][0], images[0][1], base)
+    if len(images) == 1 and images[0][1].split("|")[0].strip().lower().endswith(".js"):
+        return render_live(images[0][0], images[0][1], base)
     if len(images) == 1 and "|" in images[0][1]:
         return render_reveal(images[0][0], images[0][1], base)
     parts = []
@@ -254,6 +257,28 @@ def render_reveal(alt, src, base):
     ]
     return ('<figure class="figure reveal"><div class="pair" role="button" tabindex="0" '
             'aria-pressed="false">%s</div></figure>' % "".join(imgs))
+
+
+def render_live(alt, src, base):
+    """A drawing that moves: a script beside the page draws it in a canvas.
+
+    ![alt](scene.js|still.webp): the still is the drawing the script
+    brings to life. It sits under the canvas, so it is what shows while
+    the script loads, where there is no WebGL, and in print, and its size
+    sets the figure's shape. The script is loaded at the foot of the page
+    (build collects it from data-script), before app.js, so any switches
+    it makes are sized with the rest.
+    """
+    parts = [s.strip() for s in src.split("|", 1)]
+    script, still = parts[0], parts[1] if len(parts) > 1 else ""
+    img = ""
+    if still:
+        size = image_size(base / still) if base else None
+        attrs = ' width="%d" height="%d"' % size if size else ""
+        img = '<img src="%s" alt="%s"%s decoding="async">' % (
+            html.escape(still, quote=True), html.escape(alt, quote=True), attrs)
+    return ('<figure class="figure live" data-script="%s"><div class="stage">%s</div></figure>'
+            % (html.escape(script, quote=True), img))
 
 
 def render_chart(title, src, base):
@@ -402,12 +427,13 @@ def section_id(path):
     return re.sub(r"^\d+[-_]", "", name).replace("_", "-")
 
 
-def fill(template, site, sections, root="", title=None, description=None):
+def fill(template, site, sections, root="", title=None, description=None, scripts=()):
     """Put one page's sections into the template.
 
     root is the way back to the top of the site ("" on the home page, "../"
     on a project page), so the shared assets resolve from either. A page
     with a title of its own also gets the site name as a link home.
+    scripts are the page's own, from its live figures, loaded before app.js.
     """
     name = site.get("name", "Portfolio")
     tagline = site.get("tagline", "")
@@ -436,6 +462,8 @@ def fill(template, site, sections, root="", title=None, description=None):
         "{{footer}}",
         render_inline(site.get("footer", "")) if site.get("footer") else "",
     )
+    page = page.replace(
+        "{{scripts}}", "".join('<script src="%s"></script>\n' % s for s in scripts))
     return page.replace("{{sections}}", "\n\n".join(sections))
 
 
@@ -491,8 +519,10 @@ def build():
         )
         out = DIST / folder.name
         out.mkdir()
+        # A live figure's script sits in the folder with its images.
+        scripts = list(dict.fromkeys(re.findall(r'data-script="([^"]+)"', article)))
         page = fill(template, site, [article], root="../",
-                    title=title, description=meta.get("description"))
+                    title=title, description=meta.get("description"), scripts=scripts)
         (out / "index.html").write_text(page, encoding="utf-8")
         for item in folder.iterdir():
             if item.is_file() and item.name != "index.md" and not item.name.startswith("."):
