@@ -12,10 +12,10 @@ Pinch Point builds on a hypothesis that a series of large nature reserves and pa
 
 ![The hub from above, with its bus, rail, bicycle and pedestrian connections](10.webp)
 
-![Roof: plans of the site and of the canopy over the hub](13.webp)
+![Plans of the roof over the hub: the site drawn in line, and the canopy rendered](13.webp)
 
 ![Transect: a section through the hub, with towers beyond](16.webp)
 
-![Aerial photographs of Oak Grove, existing and proposed](17.webp)
+![Aerial photographs of Oak Grove, as it is on the left and with the hub on the right](17.webp)
 
 ![Rendering of the plaza, the canopy and the towers beyond it](18.webp)
