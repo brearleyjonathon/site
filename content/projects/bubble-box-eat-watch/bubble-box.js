@@ -1824,7 +1824,7 @@
       return;
     }
     if (press) press.moved += Math.abs(dx) + Math.abs(dy);
-    var turnBy = 0.36 * DEG * 800 / Math.max(stage.clientWidth, 400);
+    var turnBy = Math.PI / Math.max(stage.clientWidth, 300);   // across the whole width is half a turn
     view.az -= dx * turnBy;
     if (full || e.pointerType === "mouse") view.el = clamp(view.el + dy * turnBy * 0.7, 4 * DEG, 88 * DEG);
   });
