@@ -455,6 +455,12 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
    a deep blue rather than orange. */
 [data-theme="dark"] .figure img.ink { filter: invert(1) hue-rotate(180deg); }
 
+/* An image with a version for the dark page (build.py's dark_twin): only
+   the one for the theme shows. !important so that it holds against any
+   rule that shows an image, like the riso print's still. */
+[data-theme="dark"] .for-light,
+:root:not([data-theme="dark"]) .for-dark { display: none !important; }
+
 /* The date under a project's title, where the old site had it, and the
    credit under that: the school, the studio, and anyone it was made with. */
 .project > .date,
@@ -1087,6 +1093,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   .blobs,
   .swimmer { display: none; }
   main { filter: none; }
+  .for-dark { display: none !important; }
+  .for-light { display: block !important; }
   .page { max-width: none; padding: 0; }
   a { text-decoration: none; }
 }

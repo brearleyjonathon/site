@@ -12,6 +12,7 @@ content/projects/ as a page of its own, and writes dist/.
 No dependencies. Python 3.8+. Nothing to install, nothing to keep updated.
 """
 
+import hashlib
 import html
 import http.server
 import json
@@ -206,7 +207,9 @@ def render_figure(images, base):
     An .mp4 or .webm in the same syntax becomes a video with controls, and
     a .json becomes a chart (see render_chart), and an .html is inlined
     (see render_embed). Two files joined by | are one picture with a second
-    under it (see render_reveal).
+    under it (see render_reveal). An image with a sibling named <name>-dark
+    (02.webp and 02-dark.webp) is written twice, and the page shows the one
+    for its theme (see dark_twin).
     """
     if len(images) == 1 and images[0][1].lower().endswith(".json"):
         return render_chart(images[0][0], images[0][1], base)
@@ -234,12 +237,31 @@ def render_figure(images, base):
             # Narrower than the column: never stretched past its own width.
             style = ' style="max-width: %dpx"' % size[0]
         ink = ' class="ink"' if base and "://" not in src and is_ink(base / html.unescape(src)) else ""
-        parts.append(
-            '<a href="%s"%s><img%s src="%s" alt="%s"%s loading="lazy" decoding="async"></a>'
-            % (src, style, ink, src, label, attrs)
-        )
+        twin = dark_twin(base, html.unescape(src))
+        pair = [(' class="for-light"', src), (' class="for-dark"', html.escape(twin, quote=True))] if twin else [("", src)]
+        for cls, file in pair:
+            parts.append(
+                '<a%s href="%s"%s><img%s src="%s" alt="%s"%s loading="lazy" decoding="async"></a>'
+                % (cls, file, style, ink if not cls else "", file, label, attrs)
+            )
     css = "figure row" if len(images) > 1 else "figure"
     return '<figure class="%s">%s</figure>' % (css, "".join(parts))
+
+
+def dark_twin(base, src):
+    """The dark theme's version of an image, if there is one beside it.
+
+    02.webp is the collage with white gutters, 02-dark.webp the same with
+    black; 03.webp the plans, 03-dark.webp with black and white swapped and
+    the colour kept. Both are in the page; CSS hides the one for the other
+    theme, and a hidden lazy image is never fetched. The two must share a
+    size. The -dark file is not linked by name from the Markdown.
+    """
+    if not base or "://" in src:
+        return None
+    path = base / src
+    twin = path.with_name(path.stem + "-dark" + path.suffix)
+    return twin.name if twin.exists() else None
 
 
 def render_reveal(alt, src, base):
@@ -283,9 +305,18 @@ def render_embed(alt, src, base):
 
     For a one-off interactive piece, like the Bubble Box riso print, whose
     fragment carries its style and a script beside it. {{alt}} in the
-    fragment becomes the alt text.
+    fragment becomes the alt text, and {{v:riso.js}} a fingerprint of that
+    file for its link (riso.js?v=...), so a browser holding the old script
+    fetches the new one: GitHub Pages lets it keep a file for ten minutes,
+    and a new page with an old script has buttons that do nothing.
     """
     fragment = (base / src).read_text(encoding="utf-8") if base else ""
+
+    def version(match):
+        path = base / match.group(1) if base else None
+        return hashlib.sha1(path.read_bytes()).hexdigest()[:10] if path and path.exists() else ""
+
+    fragment = re.sub(r"\{\{v:([^}]+)\}\}", version, fragment)
     return '<figure class="figure embed">\n%s\n</figure>' % (
         fragment.strip().replace("{{alt}}", html.escape(alt, quote=True)))
 

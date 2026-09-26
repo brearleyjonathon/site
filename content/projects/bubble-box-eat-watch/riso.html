@@ -1,7 +1,7 @@
 <!-- The collage pulled on a four-drum risograph (riso.js draws it). build.py
      inlines this into the page as a figure, with the image line's alt text
-     in the two places marked. The still, 02.webp, stands in without WebGL 2
-     and in print. -->
+     in the two places marked. The still, 02.webp (02-dark.webp on the dark page), stands in
+     without WebGL 2 and in print. -->
 <style>
   .riso { --paper: #f2f2f0; }
   [data-theme="dark"] .riso { --paper: #1c1c20; }
@@ -132,7 +132,8 @@
       <span class="switch"><button type="button" id="riso-close">Close</button></span>
     </div>
   </div>
-  <img class="riso-still" src="02.webp" alt="{{alt}}" width="1468" height="1670" loading="lazy" decoding="async">
+  <img class="riso-still for-light" src="02.webp" alt="{{alt}}" width="1468" height="1670" loading="lazy" decoding="async">
+  <img class="riso-still for-dark" src="02-dark.webp" alt="{{alt}}" width="1468" height="1670" loading="lazy" decoding="async">
   <div class="riso-controls">
     <div class="switch" role="group" aria-label="Look closer">
       <button type="button" id="riso-in">Closer</button>
@@ -150,4 +151,4 @@
   <div class="riso-inks" id="riso-inks" role="group" aria-label="Ink in each drum"></div>
   <p class="riso-note" id="riso-hint">Double-click the print to look closer and drag to move about. Each reprint lands a little off register.</p>
 </div>
-<script src="riso.js" defer></script>
+<script src="riso.js?v={{v:riso.js}}" defer></script>
