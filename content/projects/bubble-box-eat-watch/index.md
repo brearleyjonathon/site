@@ -11,7 +11,7 @@ Professor Andrew Santa Lucia’s third-year design studio engaged with the pract
 
 Published in the [*Journal of Architectural Education*](https://www.jaeonline.org/issue-article/bubble-box-eat-watch/) 72(1), 2018.
 
-![Collage of drawings of the interior and the facades](02.webp)
+![Collage of drawings of the interior and the facades, printed on a four-drum risograph: frames cut by diagonals show the black box theater cut open with dancers, the cafe under pink rib domes, the letters BUBBLE, BOX and EAT WATCH on a pink plaza, and sections through the tube, the theater and the offices, with people walking the plazas, dancing and talking](riso.html)
 
 ![Four plans](03.webp)
 

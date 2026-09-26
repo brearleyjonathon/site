@@ -1,0 +1,144 @@
+<!-- The collage pulled on a four-drum risograph (riso.js draws it). build.py
+     inlines this into the page as a figure, with the image line's alt text
+     in the two places marked. The still, 02.webp, stands in without WebGL 2
+     and in print. -->
+<style>
+  .riso { --paper: #f2f2f0; }
+  [data-theme="dark"] .riso { --paper: #1c1c20; }
+
+  /* The print keeps its room while it is full screen. */
+  .riso-wrap { aspect-ratio: 0.8695; }
+  .riso-sheet { position: relative; width: 100%; height: 100%; background: var(--paper); }
+  .riso-sheet canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: pan-y;
+    cursor: zoom-in;
+    outline: none;
+  }
+  .riso-sheet canvas.close-up { cursor: grab; touch-action: none; }
+  .riso-sheet canvas.close-up:active { cursor: grabbing; }
+  .riso-sheet canvas:focus-visible { outline: 1px solid var(--focus); outline-offset: 3px; }
+  .riso-sheet .switch { position: absolute; top: .75rem; right: .75rem; display: none; background: var(--bg); }
+  .riso-sheet.full {
+    position: fixed;
+    z-index: 20;
+    box-shadow: 0 0 0 100vmax var(--bg);
+  }
+  .riso-sheet.full canvas { touch-action: none; }
+  .riso-sheet.full .switch { display: inline-flex; }
+
+  /* .riso in front, to outrank .figure img. */
+  .riso .riso-still { display: none; }
+  .riso.bare .riso-wrap,
+  .riso.bare .riso-controls,
+  .riso.bare .riso-inks,
+  .riso.bare .riso-note { display: none; }
+  .riso.bare .riso-still { display: block; }
+
+  .riso-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .9rem;
+  }
+
+  /* A drum to a cell: its place in the run, its ink, the slider through
+     every ink, and this pull's line from the job ticket. */
+  .riso-inks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 1.5rem;
+    margin-top: 1.1rem;
+  }
+  .riso-ink { display: grid; gap: .3rem; align-content: start; }
+  .riso-role,
+  .riso-spec {
+    color: var(--muted);
+    font-size: .8125em;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+  }
+  .riso-load {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size-adjust: var(--x-height);   /* the UA button font shorthand resets this */
+    text-align: left;
+    cursor: pointer;
+  }
+  .riso-chip { width: .7rem; height: .7rem; flex: none; border: 1px solid; }
+  .riso-load:hover .riso-name { text-decoration: underline; text-decoration-thickness: 1px; }
+  .riso-load[aria-pressed="false"] .riso-name { color: var(--muted); text-decoration: line-through; }
+  .riso-load:focus-visible { outline: 1px solid var(--focus); outline-offset: 3px; }
+  .riso-ink.skipped input { opacity: .35; }
+
+  .riso-ink input {
+    width: 100%;
+    height: 14px;
+    margin: 0;
+    padding: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  .riso-ink input::-webkit-slider-runnable-track { height: 1px; background: var(--rule); }
+  .riso-ink input::-moz-range-track { height: 1px; background: var(--rule); }
+  .riso-ink input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    margin-top: -4.5px;
+    border: 0;
+    border-radius: 0;
+    background: var(--text);
+  }
+  .riso-ink input::-moz-range-thumb { width: 10px; height: 10px; border: 0; border-radius: 0; background: var(--text); }
+  .riso-ink input:focus-visible { outline: 1px solid var(--focus); outline-offset: 3px; }
+
+  .riso-note {
+    margin: 1.1rem 0 0;
+    color: var(--muted);
+    font-size: .8125em;
+  }
+
+  @media print {
+    .riso-wrap, .riso-controls, .riso-inks, .riso-note { display: none; }
+    .riso .riso-still { display: block; }
+  }
+</style>
+<div class="riso">
+  <div class="riso-wrap" id="riso-wrap">
+    <div class="riso-sheet" id="riso-sheet">
+      <canvas id="riso-print" aria-label="{{alt}}"></canvas>
+      <span class="switch"><button type="button" id="riso-close">Close</button></span>
+    </div>
+  </div>
+  <img class="riso-still" src="02.webp" alt="{{alt}}" width="1468" height="1670" loading="lazy" decoding="async">
+  <div class="riso-controls">
+    <div class="switch" role="group" aria-label="Look closer">
+      <button type="button" id="riso-in">Closer</button>
+      <button type="button" id="riso-fit">Whole sheet</button>
+    </div>
+    <div class="switch">
+      <button type="button" id="riso-reprint">Reprint</button>
+    </div>
+    <div class="switch">
+      <button type="button" id="riso-full" aria-pressed="false">Full screen</button>
+    </div>
+  </div>
+  <div class="riso-inks" id="riso-inks" role="group" aria-label="Ink in each drum"></div>
+  <p class="riso-note" id="riso-hint">Double-click the print to look closer and drag to move about. Each reprint lands a little off register.</p>
+</div>
+<script src="riso.js" defer></script>

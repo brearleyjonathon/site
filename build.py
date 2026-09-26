@@ -200,11 +200,14 @@ def render_figure(images, base):
     In a row each image's share of the width is its aspect ratio, so they
     all come out the same height. Each links to its own file, full size.
     An .mp4 or .webm in the same syntax becomes a video with controls, and
-    a .json becomes a chart (see render_chart). Two files joined by | are
-    one picture with a second under it (see render_reveal).
+    a .json becomes a chart (see render_chart), and an .html is inlined
+    (see render_embed). Two files joined by | are one picture with a second
+    under it (see render_reveal).
     """
     if len(images) == 1 and images[0][1].lower().endswith(".json"):
         return render_chart(images[0][0], images[0][1], base)
+    if len(images) == 1 and images[0][1].lower().endswith(".html"):
+        return render_embed(images[0][0], images[0][1], base)
     if len(images) == 1 and "|" in images[0][1]:
         return render_reveal(images[0][0], images[0][1], base)
     parts = []
@@ -269,6 +272,18 @@ def render_chart(title, src, base):
         '<script type="application/json">%s</script>\n</figure>'
         % (render_inline(title), data.strip().replace("</", "<\\/"))
     )
+
+
+def render_embed(alt, src, base):
+    """A figure that brings its own markup: the .html fragment beside the page.
+
+    For a one-off interactive piece, like the Bubble Box riso print, whose
+    fragment carries its style and a script beside it. {{alt}} in the
+    fragment becomes the alt text.
+    """
+    fragment = (base / src).read_text(encoding="utf-8") if base else ""
+    return '<figure class="figure embed">\n%s\n</figure>' % (
+        fragment.strip().replace("{{alt}}", html.escape(alt, quote=True)))
 
 
 # --------------------------------------------------------------------------
