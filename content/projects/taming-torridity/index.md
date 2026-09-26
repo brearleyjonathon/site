@@ -15,6 +15,10 @@ This thesis asks what it would mean for those houses to withstand a heat wave: a
 
 A representative single-family house was modeled and simulated in Phoenix, Austin, Miami and Washington DC. Two variants followed: one was modeled to the local energy code (assumed as IECC) and one to the Passive House (PHIUS+ 2018) standard, the gold standard for efficiency. Each was run through the hottest week of the year in historic weather and using morphed weather projected for 2020, 2050 and 2080 under a high-emissions scenario. The first case examines power on with results that measure the energy it takes over the week to keep the house cool, as well as the peak cooling power, which is most important for mitigating grid strain. In the second case, a power outage on the second afternoon of a heat wave measures the number of hours the indoor conditions pass a heat index of 32 °C, where heat exhaustion becomes possible.
 
+First, the hot week itself, outdoors in historic weather. Heat index is the temperature as it feels, with the humidity counted in.
+
+![The hot week outdoors, in four cities](weather.json)
+
 ![Cooling and heat over one hot week, in four cities](cities.json)
 
 - The outlier is Phoenix: more on that later...
