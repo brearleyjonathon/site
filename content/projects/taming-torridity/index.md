@@ -23,6 +23,10 @@ A representative single-family house was modeled and simulated in Phoenix, Austi
 - **Passive House cut the peak by 30% and the week's cooling by 33%, on average across the cities and climates.**
 - Without power, almost every house passed 32 °C for most of the week. **Passive House helped only where its slab sat directly on the ground. In DC, where the slab is insulated as the standard asks, it did worse than the code house**. This is one of the biggest findings: insulation decouples the building from the ground, a significant heat sink during hot days.
 
+Here is that week without power, city by city. The power goes out on the second afternoon, and the climates draw on in turn, from historic weather to 2080.
+
+![Four cities without power, historic weather to 2080](climates.json)
+
 ## The significance of the ground model
 
 Phoenix comes through the four-city study remarkably well: neither house passes 32 °C until 2080. Later in the thesis a code house built the same way, in the same hot week of 2050 weather, passes it for 122 of the 128 hours without power. The biggest change between the two is the model of the ground beneath the slab.

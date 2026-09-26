@@ -21,8 +21,11 @@
 // Lines (type "lines"): x {max, step, label}, y {min, max, ticks}, unit,
 // marks [{y, label}] for level lines, event {x, label} for a moment, and
 // each set is {note, series: [{name, style, values}]}, one value per step
-// of x, style "dotted", "thin", "dashed" or "solid". The lines draw on from
-// the left when the chart first comes into view and on every switch.
+// of x (null where there is none), style "dotted", "thin", "dashed" or
+// "solid", or "faint", "light", "mid" and "solid" as a scale of ink. The
+// lines draw on from the left when the chart first comes into view and on
+// every switch; with stagger (ms) each series starts that long after the
+// one before, in order.
 (function () {
   var SVG = "http://www.w3.org/2000/svg";
   var still = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -212,7 +215,7 @@
   function lines(figure, data) {
     var id = "chart-clip-" + (++uid);
     var x = data.x, y = data.y;
-    var set, box, reveal, hour = null, seen = false, timer = 0;
+    var set, box, reveals = [], hour = null, seen = false, timer = 0;
     var parts = frame(figure, data, show);
     var plot = parts.plot, readout = parts.readout;
     plot.classList.add("lines");
@@ -254,13 +257,23 @@
         svg("text", { x: sx(data.event.x) + 4, y: pad.t - 6 }, g).textContent = data.event.label;
       }
 
-      // The lines, under a clip that opens from the left to draw them on.
-      var clip = svg("clipPath", { id: id }, svg("defs", {}, s));
-      reveal = svg("rect", { x: 0, y: 0, width: seen ? box.w : 0, height: box.h }, clip);
-      var group = svg("g", { "clip-path": "url(#" + id + ")" }, s);
-      set.series.forEach(function (series) {
+      // The lines, under a clip that opens from the left to draw them on:
+      // one clip for all, or one each when they draw on in turn.
+      var defs = svg("defs", {}, s);
+      reveals = [];
+      var group;
+      set.series.forEach(function (series, n) {
+        if (!n || data.stagger) {
+          var clip = svg("clipPath", { id: id + "-" + n }, defs);
+          reveals.push(svg("rect", { x: 0, y: 0, width: seen ? box.w : 0, height: box.h }, clip));
+          group = svg("g", { "clip-path": "url(#" + id + "-" + n + ")" }, s);
+        }
+        var pen = "M";
         var d = series.values.map(function (v, i) {
-          return (i ? "L" : "M") + sx(i * x.max / (series.values.length - 1)).toFixed(1) + " " + sy(v).toFixed(1);
+          if (v == null) { pen = "M"; return ""; }
+          var step = pen + sx(i * x.max / (series.values.length - 1)).toFixed(1) + " " + sy(v).toFixed(1);
+          pen = "L";
+          return step;
         }).join("");
         svg("path", { d: d, "class": "series " + series.style }, group);
       });
@@ -273,17 +286,23 @@
     function sweep() {
       seen = true;
       cancelAnimationFrame(timer);
-      if (!reveal) draw();   // it had no width when the page loaded
-      if (!reveal) return;
+      if (!reveals.length) draw();   // it had no width when the page loaded
+      if (!reveals.length) return;
       var full = box.w;
-      if (still.matches) { reveal.setAttribute("width", full); return; }
-      var start = performance.now(), length = 2600;
-      reveal.setAttribute("width", 0);
+      if (still.matches) {
+        reveals.forEach(function (r) { r.setAttribute("width", full); });
+        return;
+      }
+      var start = performance.now(), gap = data.stagger || 0;
+      var length = gap ? 1700 : 2600, end = length + gap * (reveals.length - 1);
+      reveals.forEach(function (r) { r.setAttribute("width", 0); });
       (function step(now) {
-        var p = Math.min(1, (now - start) / length);
-        p = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
-        reveal.setAttribute("width", full * p);
-        if (p < 1) timer = requestAnimationFrame(step);
+        reveals.forEach(function (r, n) {
+          var p = Math.max(0, Math.min(1, (now - start - gap * n) / length));
+          p = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+          r.setAttribute("width", full * p);
+        });
+        if (now - start < end) timer = requestAnimationFrame(step);
       })(start);
     }
 
@@ -310,7 +329,7 @@
       cross.classList.add("on");
       var i = Math.round(hour / x.max * (set.series[0].values.length - 1));
       readout.textContent = (x.label ? x.label.charAt(0).toUpperCase() + x.label.slice(1) + " " : "") + hour + ": " +
-        set.series.map(function (s) {
+        set.series.filter(function (s) { return s.values[i] != null; }).map(function (s) {
           return s.name + " " + number(s.values[i]);
         }).join(", ") + " " + data.unit + ".";
     }
