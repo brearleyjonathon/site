@@ -26,6 +26,7 @@
 - [**The Y**](the-y/), a YMCA for Coney Island built from one continuous surface :: 2020
 - [**Village Square Pavilion**](village-square-pavillion/), a canopy of bamboo trusses and fiberglass for a village square in China, built at full size :: 2019
 - [**Safest At The Top Of The Hill**](you-are-safest/), moving Chamanga, Ecuador, to higher ground after the 2016 earthquake :: 2017
+- [**Bubble Box: Eat & Watch**](bubble-box-eat-watch/), imagined volumes turned into architecture, published in the *Journal of Architectural Education* :: 2017
 
 ## Smalls
 
