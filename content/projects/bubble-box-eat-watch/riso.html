@@ -39,12 +39,17 @@
   .riso.bare .riso-note { display: none; }
   .riso.bare .riso-still { display: block; }
 
+  /* Three pairs across the full width under the print, each button an
+     equal share of its pair; on a phone the last pair wraps and fills the
+     line below. */
   .riso-controls {
     display: flex;
     flex-wrap: wrap;
     gap: .5rem;
     margin-top: .9rem;
   }
+  .riso-controls .switch { flex: 1 1 auto; }
+  .riso-controls .switch button { flex: 1 1 0; }
 
   /* A drum to a cell: its place in the run, its ink, the slider through
      every ink, and this pull's line from the job ticket. */
@@ -93,13 +98,15 @@
     background: transparent;
     cursor: pointer;
   }
-  .riso-ink input::-webkit-slider-runnable-track { height: 1px; background: var(--rule); }
-  .riso-ink input::-moz-range-track { height: 1px; background: var(--rule); }
+  /* Two pixels, not one: a hairline falls between device pixels at some
+     zoom levels and comes out a different weight on each slider. */
+  .riso-ink input::-webkit-slider-runnable-track { height: 2px; background: var(--rule); }
+  .riso-ink input::-moz-range-track { height: 2px; background: var(--rule); }
   .riso-ink input::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 10px;
     height: 10px;
-    margin-top: -4.5px;
+    margin-top: -4px;   /* (2 - 10) / 2: centred on the track */
     border: 0;
     border-radius: 0;
     background: var(--text);
@@ -131,11 +138,13 @@
       <button type="button" id="riso-in">Closer</button>
       <button type="button" id="riso-fit">Whole sheet</button>
     </div>
-    <div class="switch">
+    <div class="switch" role="group" aria-label="The print">
       <button type="button" id="riso-reprint">Reprint</button>
+      <button type="button" id="riso-reset">Reset</button>
     </div>
-    <div class="switch">
+    <div class="switch" role="group" aria-label="Take it further">
       <button type="button" id="riso-full" aria-pressed="false">Full screen</button>
+      <button type="button" id="riso-download">Download</button>
     </div>
   </div>
   <div class="riso-inks" id="riso-inks" role="group" aria-label="Ink in each drum"></div>

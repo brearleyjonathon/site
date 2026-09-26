@@ -76,7 +76,8 @@
   var INKS = [["Red", "#FF665E"], ["Crimson", "#E45D50"], ["Pumpkin", "#FF6F4C"], ["Brown", "#925F52"], ["Orange", "#FF6C2F"], ["Paprika", "#EE7F4B"], ["Copper", "#BD6439"], ["Apricot", "#F6A04D"], ["Bright Gold", "#BA8032"], ["Melon", "#FFAE3B"], ["Metallic Gold", "#AC936E"], ["Flat Gold", "#BB8B41"], ["Sunflower", "#FFB511"], ["Bright Olive Green", "#B49F29"], ["Citron", "#FAF3B7"], ["Yellow", "#FFE800"], ["Fluorescent Yellow", "#F7FF00"], ["Light Lime", "#E3ED55"], ["Moss", "#68724D"], ["Kelly Green", "#67B346"], ["Fluorescent Green", "#44D62C"], ["Grass", "#397E58"], ["Emerald", "#19975D"], ["Green", "#00A95C"], ["Ivy", "#169B62"], ["Hunter Green", "#407060"], ["Sea Foam", "#62C2B1"], ["Lagoon", "#2F6F65"], ["Turquoise", "#00AA93"], ["Pine", "#237E74"], ["Mint", "#82D8D5"], ["Light Teal", "#009DA5"], ["Teal", "#00838A"], ["Smoky Teal", "#5F8289"], ["Aqua", "#5EC8E5"], ["Sea Blue", "#0074A2"], ["Blue", "#0078BF"], ["Steel", "#375E77"], ["Cornflower", "#62A8E5"], ["Midnight", "#435060"], ["Sky Blue", "#4982CF"], ["Lake", "#235BA8"], ["Federal Blue", "#3D5588"], ["Medium Blue", "#3255A4"], ["Indigo", "#484D7A"], ["Purple", "#765BA7"], ["Violet", "#9D7AD2"], ["Plum", "#845991"], ["Orchid", "#BB76CF"], ["Bubblegum", "#F984CA"], ["Fluorescent Pink", "#FF48B0"], ["Burgundy", "#914E72"], ["Dark Mauve", "#BD8CA6"], ["Maroon", "#9E4C6E"], ["Light Mauve", "#E6B5C9"], ["Raspberry Red", "#B44B65"], ["Fluorescent Red", "#FF4C65"], ["Cranberry", "#BA0C24"], ["Tomato", "#D2515E"], ["Bright Red", "#F15060"], ["Bisque", "#F2CDCF"], ["Scarlet", "#F65058"], ["Brick", "#A75154"], ["Coral", "#FF8E91"], ["Fluorescent Orange", "#FF7477"], ["Mahogany", "#8E595A"], ["White", "#FFFFFF"], ["Mist", "#B8C7C4"], ["Granite", "#A5AAA8"], ["Gray", "#928D88"], ["Light Gray", "#88898A"], ["Charcoal", "#70747C"], ["Grape", "#6C5D80"], ["Raisin", "#775D7A"], ["Slate", "#5E695E"], ["Forest", "#516E5A"], ["Spruce", "#4A635D"], ["Black", "#141414"]];
   var ANGLES = [75, 5, 15, 45];          // each drum keeps its screen angle
   var ROLES = ["warm", "light", "cool", "key"];
-  var pick = [50, 15, 34, 77];
+  var START = [50, 15, 34, 77];         // Fluorescent Pink, Yellow, Aqua, Black: what Reset loads
+  var pick = START.slice();
   var on = [1, 1, 1, 1];               // a drum switched off never goes through
   function inkSet() {
     return pick.map(function (i, k) { return [INKS[i][0], INKS[i][1], ANGLES[k]]; });
@@ -787,16 +788,79 @@
     });
     [role, load, slider, spec].forEach(function (el) { row.appendChild(el); });
     inkBox.appendChild(row);
-    rows[k] = { row: row, spec: spec };
+    rows[k] = { row: row, spec: spec, slider: slider, show: show };
     show();
   });
 
   document.getElementById("riso-in").addEventListener("click", function () { zoomAt(2, sheet.w / 2, sheet.h / 2); });
-  document.getElementById("riso-fit").addEventListener("click", function () {
+  function whole() {
     view.goal = { zoom: 1, cx: sheet.w / 2, cy: sheet.h / 2 };
     canvas.classList.remove("close-up");
     start();
+  }
+  document.getElementById("riso-fit").addEventListener("click", whole);
+
+  // Reset: the inks the collage was fitted to, every drum in the run, and
+  // the whole sheet. The register stays where this pull put it.
+  document.getElementById("riso-reset").addEventListener("click", function () {
+    PRINTED.forEach(function (k) {
+      pick[k] = START[k];
+      on[k] = 1;
+      rows[k].slider.value = String(pick[k]);
+      rows[k].show();
+    });
+    marked = "";
+    ticket();
+    whole();
   });
+
+  // Download: the whole sheet drawn once more, on a canvas big enough that
+  // the collage is at its own pixels (so the screen's dots are sharp), with
+  // every drum through, and saved as it stands: these inks, this register,
+  // everyone where they are. The canvas keeps no picture between frames, so
+  // the copy is taken in the same task as the drawing; then the canvas goes
+  // back to its size and view and is drawn again before anything paints.
+  function download() {
+    if (!loaded()) return;
+    var cw = canvas.width, ch = canvas.height, was = ratio;
+    var keep = { zoom: view.zoom, cx: view.cx, cy: view.cy }, goal = view.goal;
+    var most = Math.min(gl.getParameter(gl.MAX_RENDERBUFFER_SIZE), gl.getParameter(gl.MAX_VIEWPORT_DIMS)[1]);
+    var w = Math.round(ART_W / 0.93), h = Math.round(w / ASPECT);
+    if (h > most) { h = most; w = Math.round(h * ASPECT); }
+    canvas.width = w;
+    canvas.height = h;
+    if (gl.drawingBufferHeight < h) {     // the browser gave less than asked
+      h = gl.drawingBufferHeight; w = Math.round(h * ASPECT);
+      canvas.width = w;
+      canvas.height = h;
+    }
+    ratio = w / poster.clientWidth;       // the marks and slug scale with the sheet
+    view.zoom = 1; view.cx = sheet.w / 2; view.cy = sheet.h / 2;
+    view.goal = { zoom: 1, cx: view.cx, cy: view.cy };
+    var fed = pull.feed.slice();
+    pull.feed = [1, 1, 1, 1];
+    draw(clock);
+    canvas.toBlob(function (blob) {
+      if (!blob) return;
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "bubble-box-riso.jpg";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+    }, "image/jpeg", 0.92);
+    pull.feed = fed;
+    canvas.width = cw;
+    canvas.height = ch;
+    ratio = was;
+    layout(cw, ch);
+    view.zoom = keep.zoom; view.cx = keep.cx; view.cy = keep.cy;
+    view.goal = goal;
+    draw(clock);
+    start();
+  }
+  document.getElementById("riso-download").addEventListener("click", download);
 
   // The job ticket, a line under each drum's slider.
   function ticket() {

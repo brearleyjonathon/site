@@ -172,8 +172,12 @@ def is_ink(path):
 
     Such an image is a drawing in ink on nothing: black lines whose weight
     is in their opacity. It gets class="ink", and the dark theme turns the
-    ink white. Photographs are saved flat, without alpha, and are left alone.
+    ink white. Photographs are saved flat, without alpha, and are left alone,
+    and so is a colour drawing cut out of its white ground, whose name ends
+    in -cut (Bubble Box's 01-cut.webp): clear round it, but not ink.
     """
+    if path.stem.endswith("-cut"):
+        return False
     try:
         with open(path, "rb") as f:
             head = f.read(32)
