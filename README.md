@@ -13,7 +13,7 @@ Everything you'll ever touch lives in `content/`.
 | `01-about.md` | About: the bio |
 | `02-work.md` | Work: lectures, publications, exhibitions |
 | `03-cv.md` | Experience: jobs and education |
-| `04-slop.md` | Slop: side projects, each with a one-line description |
+| `04-after-hours.md` | After Hours: side projects and small design pieces, each with a one-line description |
 | `05-contact.md` | Elsewhere: email and social links |
 
 The rules are just:
