@@ -217,6 +217,15 @@ body.ready * {
 :root[data-page="project"] [data-set-theme="fun"],
 :root[data-page="project"] .fun-controls { display: none; }
 
+/* A page fixed to one theme (a project's `theme:`) crosses the other out. */
+.switch button[aria-disabled="true"],
+.switch button[aria-disabled="true"]:hover {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  cursor: not-allowed;
+}
+
 .switch.pill,
 .switch.pill button { border-radius: 999px; }
 

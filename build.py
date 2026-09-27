@@ -276,10 +276,17 @@ def render_reveal(alt, src, base):
     alts += alts[:1] * (2 - len(alts))
     size = image_size(base / first) if base else None
     attrs = ' width="%d" height="%d"' % size if size else ""
+    # Either may be an ink drawing (see is_ink), which the dark theme turns
+    # white: a drawing that gives way to a photograph of the thing.
+    def classes(name, s):
+        names = [name] if name else []
+        if base and is_ink(base / s):
+            names.append("ink")
+        return ' class="%s"' % " ".join(names) if names else ""
     imgs = [
         '<img%s src="%s" alt="%s"%s loading="lazy" decoding="async">'
-        % (cls, html.escape(s, quote=True), html.escape(a, quote=True), attrs)
-        for cls, s, a in (("", first, alts[0]), (' class="under"', second, alts[1]))
+        % (classes(cls, s), html.escape(s, quote=True), html.escape(a, quote=True), attrs)
+        for cls, s, a in (("", first, alts[0]), ("under", second, alts[1]))
     ]
     return ('<figure class="figure reveal"><div class="pair" role="button" tabindex="0" '
             'aria-pressed="false">%s</div></figure>' % "".join(imgs))
@@ -452,12 +459,13 @@ def section_id(path):
     return re.sub(r"^\d+[-_]", "", name).replace("_", "-")
 
 
-def fill(template, site, sections, root="", title=None, description=None):
+def fill(template, site, sections, root="", title=None, description=None, lock=None):
     """Put one page's sections into the template.
 
     root is the way back to the top of the site ("" on the home page, "../"
     on a project page), so the shared assets resolve from either. A page
-    with a title of its own also gets the site name as a link home.
+    with a title of its own also gets the site name as a link home. lock
+    fixes the page to one theme (a project's `theme:`), whatever is saved.
     """
     name = site.get("name", "Portfolio")
     tagline = site.get("tagline", "")
@@ -468,6 +476,7 @@ def fill(template, site, sections, root="", title=None, description=None):
 
     page = template
     page = page.replace("{{page}}", "project" if title else "home")
+    page = page.replace("{{lock}}", ' data-lock="%s"' % html.escape(lock, quote=True) if lock else "")
     page = page.replace("{{root}}", root)
     page = page.replace("{{name}}", heading)
     page = page.replace("{{title}}", html.escape(
@@ -542,7 +551,8 @@ def build():
         out = DIST / folder.name
         out.mkdir()
         page = fill(template, site, [article], root="../",
-                    title=title, description=meta.get("description"))
+                    title=title, description=meta.get("description"),
+                    lock=meta.get("theme") if meta.get("theme") in ("light", "dark") else None)
         (out / "index.html").write_text(page, encoding="utf-8")
         for item in folder.iterdir():
             if item.is_file() and item.name != "index.md" and not item.name.startswith("."):

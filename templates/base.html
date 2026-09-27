@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{lang}}" data-page="{{page}}">
+<html lang="{{lang}}" data-page="{{page}}"{{lock}}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,6 +38,9 @@
   // Project pages have no Fun mode. Show them light, the page Fun is drawn
   // on, and leave the saved choice alone so the home page is still Fun.
   if (theme === "fun" && root.getAttribute("data-page") === "project") theme = "light";
+  // A page can be fixed to one theme (a project's `theme:`), again without
+  // touching the saved choice.
+  if (root.getAttribute("data-lock")) theme = root.getAttribute("data-lock");
   root.setAttribute("data-theme",
     theme === "dark" ? "dark" : theme === "fun" ? "fun" : "light");
   root.setAttribute("data-font", font === "serif" || (!font && defaultFont === "serif") ? "serif" : "sans");

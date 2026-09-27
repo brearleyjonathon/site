@@ -1211,6 +1211,11 @@
     var font = root.getAttribute("data-font");
     document.querySelectorAll("[data-set-theme]").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.setTheme === theme));
+      // On a page fixed to one theme the others are crossed out.
+      if (root.dataset.lock && b.dataset.setTheme !== root.dataset.lock) {
+        b.setAttribute("aria-disabled", "true");
+        b.title = "Not on this page";
+      }
     });
     document.querySelectorAll("[data-set-font]").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.setFont === font));
@@ -1392,6 +1397,7 @@
     if (!button) return;
 
     if (button.dataset.setTheme) {
+      if (root.dataset.lock) return;   // this page has one theme
       root.setAttribute("data-theme", button.dataset.setTheme);
       save("theme", button.dataset.setTheme);
     } else if (button.dataset.setFun) {
