@@ -1831,13 +1831,17 @@
     var b = event.target.closest(".desk-box");
     if (!b) return;
     var w = b.closest(".masthead, .section");
-    if (b.classList.contains("close")) w.remove(); else minimise(w);
+    if (!b.classList.contains("close")) minimise(w);
+    else if (w.hasAttribute("data-keep")) w.classList.add("desk-min");   // hidden, to open again as it was
+    else w.remove();
   }
 
   // A project opened as a window on the desk. A click on a link to one of
   // the site's own pages fetches it and lays its article in a new window
   // on top, its images and links pointed back at its folder, its charts
-  // drawn. A page with a script of its own (Bubble Box's riso print) or
+  // drawn, and any script of its own loaded afresh (Bubble Box's riso
+  // print; such a window is hidden when closed, not taken away, so opening
+  // it again finds the same print rather than starting a second). A page
   // fixed to one theme (embern) can't come across whole, so its window is
   // brief: the date and credit, its first picture, its description, and
   // the way to the full page. A click with a modifier opens the page, so
@@ -1861,7 +1865,7 @@
     event.preventDefault();
     var key = url.pathname;
     var open = document.querySelector('.desk-page[data-url="' + key + '"]');
-    if (open) { raise(open); return; }
+    if (open) { open.classList.remove("desk-min"); raise(open); return; }
     if (opening[key]) return;
     opening[key] = true;
     fetch(url.href).then(function (r) {
@@ -1871,7 +1875,7 @@
       var doc = new DOMParser().parseFromString(text, "text/html");
       var article = doc.querySelector("article.project");
       if (!article) { location.href = url.href; return; }
-      if (doc.documentElement.getAttribute("data-lock") || article.querySelector("script[src]")) {
+      if (doc.documentElement.getAttribute("data-lock")) {
         var about = doc.querySelector('meta[name="description"]');
         brief(article, about ? about.content : "");
       }
@@ -1946,6 +1950,13 @@
     w.style.top = top + "px";
     w.style.setProperty("--cap", Math.max(200, H - top - 96) + "px");
     raise(w);
+    // A script parsed from another page never runs; put in a new one.
+    [].forEach.call(panel.querySelectorAll("script[src]"), function (old) {
+      var run = document.createElement("script");
+      run.src = old.src;
+      old.replaceWith(run);
+      w.setAttribute("data-keep", "");
+    });
     if (window.drawCharts) window.drawCharts(panel);
     fitLabels();   // the charts' switch buttons
     shut.focus({ preventScroll: true });
