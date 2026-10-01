@@ -1314,21 +1314,81 @@ g.ink {   /* the animals' groups; img.ink is a drawing on a project page */
 :root[data-theme="fun"][data-desk="on"] .desk-spread .desk-dragging .desk-bar,
 :root[data-theme="fun"][data-desk="on"] .desk-spread .desk-dragging > h2 { cursor: grabbing; }
 
-/* The close box folds a window up to its bar, like a window shade. */
-.desk-shut {
+/* The box at the end of a title bar: a line that minimises one of the
+   home page's windows to the tray, an x that closes a project's. */
+.desk-box {
   flex: none;
-  width: 10px;
-  height: 10px;
+  position: relative;
+  width: 11px;
+  height: 11px;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--on-titlebar);
+  border: 0;
   background: none;
+  color: var(--on-titlebar);
   cursor: pointer;
 }
 
-.desk-shut[aria-expanded="false"] { background: var(--on-titlebar); }
+.desk-box::before,
+.desk-box::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
 
-:root[data-theme="fun"][data-desk="on"] .section.shut > .desk-panel { display: none; }
+.desk-box.minimize::before { left: 1px; right: 1px; bottom: 1px; height: 2px; }
+.desk-box.minimize::after { display: none; }
+
+.desk-box.close::before,
+.desk-box.close::after {
+  left: -1px;
+  right: -1px;
+  top: 50%;
+  height: 1.5px;
+  margin-top: -.75px;
+  rotate: 45deg;
+}
+
+.desk-box.close::after { rotate: -45deg; }
+
+.desk-box:hover { color: var(--chip); }
+
+:root[data-theme="fun"][data-desk="on"] .desk-min { display: none !important; }
+
+/* The tray: minimised windows as tiny windows, centred at the foot of the
+   desk, each saying only its name. Drawn like the Desk button. */
+.desk-tray { display: none; }
+
+:root[data-theme="fun"][data-desk="on"] .desk-tray:not(:empty) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--inset) + 12px);
+  z-index: 8500;
+  max-width: calc(100% - 2 * var(--inset) - 24px);
+  translate: -50% 0;
+}
+
+.desk-tab {
+  margin: 0;
+  padding: 8px 10px 2px;
+  border: 1px solid var(--frame);
+  background-color: var(--panel);
+  background-image: linear-gradient(var(--titlebar), var(--titlebar));
+  background-size: 100% 5px;
+  background-repeat: no-repeat;
+  box-shadow: 2px 2px 0 var(--frame);
+  color: var(--ink);
+  font: 400 11px/14px "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.desk-tab:hover { outline: 1px solid var(--frame); outline-offset: 2px; }
 
 /* The reading surface inside each window. */
 .desk-panel { display: contents; }
@@ -1580,7 +1640,7 @@ g.ink {   /* the animals' groups; img.ink is a drawing on a project page */
 
 /* The desk's additions to the headings say nothing on paper. */
 @media print {
-  .desk-shut, .desk-bar, .halftone, .robot { display: none !important; }
+  .desk-box, .desk-bar, .desk-tray, .halftone, .robot { display: none !important; }
 }
 
 /* =========================================================================

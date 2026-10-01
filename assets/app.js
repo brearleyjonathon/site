@@ -1677,13 +1677,55 @@
     dragging = null;
   }
 
-  function onDeskShut(event) {
-    var shut = event.target.closest(".desk-shut");
-    if (!shut) return;
-    var w = shut.closest(".section");
-    if (w.classList.contains("desk-page")) { w.remove(); return; }   // a project: closed
-    var open = w.classList.toggle("shut");
-    shut.setAttribute("aria-expanded", String(!open));
+  // The box at the end of a title bar: on a project's window an x that
+  // closes it, on the home page's windows a line that minimises it to the
+  // tray, a row of tiny windows centred at the foot of the desk that each
+  // say only the window's name. A click on one puts the window back where
+  // it was, in front.
+  var tray = null;
+
+  function box(kind, name) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "desk-box " + kind;
+    b.setAttribute("aria-label", (kind === "close" ? "Close " : "Minimise ") + name);
+    return b;
+  }
+
+  function windowName(w) {
+    var t = w.querySelector(".desk-title");
+    return t ? t.textContent : "";
+  }
+
+  function minimise(w) {
+    w.classList.add("desk-min");
+    w.classList.remove("desk-front");
+    var tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "desk-tab";
+    tab.textContent = windowName(w);
+    tab.setAttribute("aria-label", "Restore " + windowName(w));
+    tab._window = w;
+    tray.appendChild(tab);
+    tab.focus({ preventScroll: true });
+  }
+
+  function restore(tab) {
+    var w = tab._window;
+    tab.remove();
+    w.classList.remove("desk-min");
+    raise(w);
+    var b = w.querySelector(".desk-box");
+    if (b) b.focus({ preventScroll: true });
+  }
+
+  function onDeskBox(event) {
+    var tab = event.target.closest(".desk-tab");
+    if (tab) { restore(tab); return; }
+    var b = event.target.closest(".desk-box");
+    if (!b) return;
+    var w = b.closest(".masthead, .section");
+    if (b.classList.contains("close")) w.remove(); else minimise(w);
   }
 
   // A project opened as a window on the desk. A click on a link to one of
@@ -1770,10 +1812,7 @@
     var title = document.createElement("span");
     title.className = "desk-title";
     title.textContent = name;
-    var shut = document.createElement("button");
-    shut.type = "button";
-    shut.className = "desk-shut";
-    shut.setAttribute("aria-label", "Close " + name);
+    var shut = box("close", name);
     bar.appendChild(title);
     bar.appendChild(shut);
     var panel = document.createElement("div");
@@ -1834,17 +1873,26 @@
       document.body.appendChild(deskBits[k]);
     });
 
+    tray = document.createElement("div");
+    tray.className = "desk-tray";
+    tray.setAttribute("role", "toolbar");
+    tray.setAttribute("aria-label", "Minimised windows");
+    document.body.appendChild(tray);
+
     var head = document.querySelector(".masthead");
     if (head && !head.querySelector(".desk-bar")) {
       var bar = document.createElement("div");
       bar.className = "desk-bar";
-      bar.setAttribute("aria-hidden", "true");
-      bar.textContent = "Read Me";
+      var label = document.createElement("span");
+      label.className = "desk-title";
+      label.textContent = "Read Me";
+      bar.appendChild(label);
+      bar.appendChild(box("minimize", "Read Me"));
       head.insertBefore(bar, head.firstChild);
     }
 
-    // Each section: the heading takes a close box, and the
-    // rest goes into a panel.
+    // Each section: the heading takes a minimise box, and the rest goes
+    // into a panel.
     document.querySelectorAll("main > .section").forEach(function (s) {
       var h = s.querySelector(":scope > h2");
       if (!h || s.querySelector(":scope > .desk-panel")) return;
@@ -1853,13 +1901,8 @@
       var title = document.createElement("span");
       title.className = "desk-title";
       title.textContent = name;
-      var shut = document.createElement("button");
-      shut.type = "button";
-      shut.className = "desk-shut";
-      shut.setAttribute("aria-expanded", "true");
-      shut.setAttribute("aria-label", "Fold " + name);
       h.appendChild(title);
-      h.appendChild(shut);
+      h.appendChild(box("minimize", name));
       var panel = document.createElement("div");
       panel.className = "desk-panel";
       while (h.nextSibling) panel.appendChild(h.nextSibling);
@@ -1870,7 +1913,7 @@
     document.addEventListener("pointermove", onDeskMove);
     document.addEventListener("pointerup", onDeskUp);
     document.addEventListener("pointercancel", onDeskUp);
-    document.addEventListener("click", onDeskShut);
+    document.addEventListener("click", onDeskBox);
     document.addEventListener("click", onDeskLink);
     window.addEventListener("resize", onDeskResize);
     if (spread.addEventListener) spread.addEventListener("change", arrange);
@@ -1891,7 +1934,7 @@
     document.removeEventListener("pointermove", onDeskMove);
     document.removeEventListener("pointerup", onDeskUp);
     document.removeEventListener("pointercancel", onDeskUp);
-    document.removeEventListener("click", onDeskShut);
+    document.removeEventListener("click", onDeskBox);
     document.removeEventListener("click", onDeskLink);
     window.removeEventListener("resize", onDeskResize);
     if (spread.removeEventListener) spread.removeEventListener("change", arrange);
@@ -1901,6 +1944,8 @@
 
     if (deskBits) Object.keys(deskBits).forEach(function (k) { deskBits[k].remove(); });
     deskBits = null;
+    if (tray) tray.remove();
+    tray = null;
     var bar = document.querySelector(".masthead > .desk-bar");
     if (bar) bar.remove();
 
@@ -1913,13 +1958,12 @@
         while (panel.firstChild) s.insertBefore(panel.firstChild, panel);
         panel.remove();
       }
-      s.classList.remove("shut");
     });
 
     var page = document.querySelector(".page");
     if (page) page.classList.remove("desk-spread");
     windows().concat(document.querySelector(".colophon") || []).forEach(function (w) {
-      w.classList.remove("desk-front", "desk-dragging");
+      w.classList.remove("desk-front", "desk-dragging", "desk-min");
       w.style.left = w.style.top = w.style.width = w.style.zIndex = "";
       w.style.removeProperty("--cap");
     });
