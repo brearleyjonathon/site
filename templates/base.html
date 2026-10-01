@@ -19,6 +19,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap">
 <link rel="stylesheet" href="{{root}}style.css">
+<!-- Desk's faces, loaded by script only while Fun is on. -->
+<meta name="desk-faces" content="https://fonts.googleapis.com/css2?family=Silkscreen&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap">
 
 <script>
 // Apply saved preferences before first paint, so nothing flashes.
@@ -45,6 +47,17 @@
     theme === "dark" ? "dark" : theme === "fun" ? "fun" : "light");
   root.setAttribute("data-font", font === "serif" || (!font && defaultFont === "serif") ? "serif" : "sans");
   try { var fun = localStorage.getItem("fun-mode"); root.setAttribute("data-fun", fun === "source" || fun === "cursor" ? "source" : "field"); } catch (e) {}
+  // Inside Fun, Desk dresses the page as Halftone OS. Its faces are
+  // fetched only in Fun (the Desk button is set in its mono).
+  try { var desk = localStorage.getItem("desk"); } catch (e) {}
+  if (desk === "on") root.setAttribute("data-desk", "on");
+  if (root.getAttribute("data-theme") === "fun") {
+    var faces = document.createElement("link");
+    faces.rel = "stylesheet";
+    faces.id = "desk-faces";
+    faces.href = document.querySelector('meta[name="desk-faces"]').content;
+    document.head.appendChild(faces);
+  }
 })();
 </script>
 </head>
@@ -89,6 +102,9 @@
             <span class="thumb" aria-hidden="true"></span>
             <button type="button" data-set-fun="source">Source</button>
             <button type="button" data-set-fun="field">Field</button>
+          </div>
+          <div class="switch desk-switch">
+            <button type="button" data-set-desk aria-pressed="false">Desk</button>
           </div>
         </div>
       </div>

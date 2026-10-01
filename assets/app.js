@@ -542,6 +542,14 @@
   }
 
   function fit() {
+    if (ht) {
+      halftoneFit();
+      last.going = false;
+      marks.length = 0;
+      place();
+      halftone(performance.now());   // the loop may be asleep
+      return;
+    }
     if (!canvas) return;
     // The marks are soft all the way through, so a phone draws them at one
     // canvas pixel per css pixel and lets the screen scale them up.
@@ -588,7 +596,7 @@
   }
 
   function cull() {
-    var most = touch.matches ? 60 : 90;
+    var most = ht ? MOST : touch.matches ? 60 : 90;
     if (marks.length > most) marks.splice(0, marks.length - most);
   }
 
@@ -631,6 +639,7 @@
   // "source" each is the colour the hue was when it was made, so a long
   // sweep leaves a slow rainbow behind it.
   function paint(now) {
+    if (ht) { halftone(now); return; }
     if (!ctx) return;
     if (!marks.length && !drawn) return;   // already clear; most frames on a phone
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -677,6 +686,8 @@
       var pt = points[i];
       var x = Math.sin(drift * pt.fx + pt.px) * pt.ax * w;
       var y = Math.sin(drift * pt.fy + pt.py) * pt.ay * h;
+      pt.x = w / 2 + x;   // the centre, for the halftone
+      pt.y = h / 2 + y;
       pt.el.style.translate = x.toFixed(1) + "px " + y.toFixed(1) + "px";
     }
   }
@@ -707,6 +718,7 @@
     if (drift !== place.at) { place.at = drift; place(); }
     paintHue();
     swim(gap);
+    runRobots(gap, now);
     // On touch the finger winds the pools and turns the hue but leaves no
     // trail of its own; the animals draw instead.
     if (!touch.matches) sow(last, held.x, held.y, now, 1, STEP);
@@ -722,7 +734,8 @@
 
   function busy() {
     return rush > 0 || last.going || drawn || marks.length > 0 ||
-           flying.length > 0 || swimmers.length > 0;
+           flying.length > 0 || swimmers.length > 0 || robotsRunning() ||
+           gathering(performance.now());
   }
 
   function wake() {
@@ -1061,7 +1074,7 @@
   }
 
   function dive(event) {
-    if (root.getAttribute("data-theme") !== "fun" || motion.matches) return;
+    if (running !== "fun" || motion.matches) return;
     if (event.target.closest("[data-set-theme], [data-set-font], .fun-controls, a")) return;
 
     // It falls all the way to the water along the bottom of the window,
@@ -1124,67 +1137,679 @@
   }
 
   document.addEventListener("click", dive);
+  document.addEventListener("click", spawn);
 
+  // Fun runs one of two ways: the soft field ("fun"), or the desk
+  // ("desk"), where the field is halftone and a click lets a robot out.
+  // Switching between them takes the one down before putting the other up.
   function syncFun() {
-    var wanted = root.getAttribute("data-theme") === "fun";
+    var wanted = root.getAttribute("data-theme") !== "fun" ? false : deskWanted() ? "desk" : "fun";
     if (wanted === running) return;
+    if (running) stopFun();
     running = wanted;
+    if (running) startFun();
+  }
 
-    if (running) {
-      startHue();
-      outline();
-      plot();
-      canvas = document.querySelector(".trail");
-      ctx = canvas ? canvas.getContext("2d") : null;
-      fit();
-      place();   // put them somewhere sensible even if the loop never runs
-      window.addEventListener("scroll", onScroll, { passive: true });
-      window.addEventListener("resize", fit);
-      window.addEventListener("resize", lineUp);
-      window.addEventListener("pointermove", onPointerMove, { passive: true });
-      window.addEventListener("pointerout", onPointerOut, { passive: true });
-      window.addEventListener("touchstart", onTouch, { passive: true });
-      window.addEventListener("touchmove", onTouch, { passive: true });
-      window.addEventListener("touchend", onTouchEnd, { passive: true });
-      window.addEventListener("touchcancel", onTouchEnd, { passive: true });
-      if (!motion.matches) {
-        shatter();
-        window.addEventListener("resize", remeasure);
-        // The typeface switch changes every word's box, so take them again.
-        typeWatch = new MutationObserver(function () { remeasure(); lineUp(); outline(); seat(false); });
-        typeWatch.observe(root, { attributes: true, attributeFilter: ["data-font"] });
-      }
-      wake();
-    } else {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerout", onPointerOut);
-      window.removeEventListener("touchstart", onTouch);
-      window.removeEventListener("touchmove", onTouch);
-      window.removeEventListener("touchend", onTouchEnd);
-      window.removeEventListener("touchcancel", onTouchEnd);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", fit);
-      window.removeEventListener("resize", lineUp);
-      clearRow();
-      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-      marks.length = 0;
-      drawn = false;
-      canvas = ctx = null;
-      sprites = {};
-      last.going = false;
-      held.x = held.y = -9999;   // a finger lifted while Fun was off never said so
-      window.removeEventListener("resize", remeasure);
-      if (typeWatch) { typeWatch.disconnect(); typeWatch = null; }
-      mend();
-      if (frame !== null) cancelAnimationFrame(frame);
-      frame = null;
-      rush = 0;
-      points.forEach(function (pt) { pt.el.style.removeProperty("translate"); });
-      points = [];
-      flying = [];
-      [].forEach.call(document.querySelectorAll(".diver, .splash, .flicks, .drop"),
-        function (el) { el.remove(); });
+  function startFun() {
+    faces();
+    startHue();
+    outline();
+    plot();
+    // On the desk, null without WebGL: the soft pools show instead.
+    ht = running === "desk" ? halftoneOn() : null;
+    root.classList.toggle("halftoned", !!ht);
+    canvas = ht ? null : document.querySelector(".trail");
+    ctx = canvas ? canvas.getContext("2d") : null;
+    fit();
+    place();   // put them somewhere sensible even if the loop never runs
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", fit);
+    window.addEventListener("resize", lineUp);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerout", onPointerOut, { passive: true });
+    window.addEventListener("touchstart", onTouch, { passive: true });
+    window.addEventListener("touchmove", onTouch, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    // On the desk the words sit still: they are in windows, which move
+    // and scroll.
+    if (!motion.matches && running === "fun") {
+      shatter();
+      window.addEventListener("resize", remeasure);
     }
+    // The typeface switch changes every word's box and every window's
+    // size, so take them again.
+    typeWatch = new MutationObserver(function () { remeasure(); lineUp(); outline(); seat(false); arrange(); });
+    typeWatch.observe(root, { attributes: true, attributeFilter: ["data-font"] });
+    wake();
+    paint(performance.now());   // once, for when the loop does not run
+  }
+
+  function stopFun() {
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerout", onPointerOut);
+    window.removeEventListener("touchstart", onTouch);
+    window.removeEventListener("touchmove", onTouch);
+    window.removeEventListener("touchend", onTouchEnd);
+    window.removeEventListener("touchcancel", onTouchEnd);
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("resize", fit);
+    window.removeEventListener("resize", lineUp);
+    clearRow();
+    clearRobots();
+    halftoneOff();
+    root.classList.remove("halftoned");
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    marks.length = 0;
+    drawn = false;
+    canvas = ctx = null;
+    sprites = {};
+    last.going = false;
+    held.x = held.y = -9999;   // a finger lifted while Fun was off never said so
+    window.removeEventListener("resize", remeasure);
+    if (typeWatch) { typeWatch.disconnect(); typeWatch = null; }
+    mend();
+    if (frame !== null) cancelAnimationFrame(frame);
+    frame = null;
+    rush = 0;
+    points.forEach(function (pt) { pt.el.style.removeProperty("translate"); });
+    points = [];
+    flying = [];
+    [].forEach.call(document.querySelectorAll(".diver, .splash, .flicks, .drop"),
+      function (el) { el.remove(); });
+  }
+
+  // --- The halftone --------------------------------------------------------
+  // On the desk the field is ordered dither rather than soft colour: a dot
+  // in every 4px cell whose density beats the cell's place in a 4x4 Bayer
+  // matrix. The density is the same field the pools and the trail make:
+  // in "field" the pools fill the desk with dots in their five colours and
+  // the trail disperses them; in "source" the desk is white and the trail
+  // lays dots down in the hue it was made in. A WebGL shader works out one
+  // pixel per cell, the canvas is scaled up square, and a mask over it
+  // (style.css) leaves the top-left 2px of each cell, so the dots are
+  // exact at any size. Without WebGL the soft pools show instead.
+  var CELL = 4;
+  var MOST = 64;       // the marks the shader takes, the newest
+  var ht = null;       // { el, canvas, gl, at: uniform locations, ... }
+  var clip = { x: 0, y: 0, from: 0, to: 0, at: -1e9 };   // the pools' circle
+  var GATHER = 1100;   // ms for the pools to gather into the pill or bloom out
+
+  var HT_VERT = "attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }";
+  var HT_FRAG = [
+    "precision highp float;",
+    "uniform vec2 rows;",          // the canvas, in cells
+    "uniform float source;",
+    "uniform vec4 pool[5];",       // x, y, radius, strength (css px)
+    "uniform vec3 poolInk[5];",
+    "uniform vec3 clip;",          // the circle the pools show inside
+    "uniform vec4 mark[" + MOST + "];",   // x, y, radius, strength
+    "uniform vec3 markInk[" + MOST + "];",
+    "uniform int marks;",
+    "float m2(vec2 a) { return mod(2.0 * a.x + 3.0 * a.y, 4.0); }",
+    "void main() {",
+    "  vec2 cell = vec2(floor(gl_FragCoord.x), rows.y - 1.0 - floor(gl_FragCoord.y));",
+    "  vec2 at = cell * 4.0 + 1.0;",
+    "  float cut = 0.0; vec3 lit = vec3(0.0);",
+    "  for (int i = 0; i < " + MOST + "; i++) {",
+    "    if (i >= marks) break;",
+    "    float t = length(at - mark[i].xy) / mark[i].z;",
+    "    if (t < 1.0) { float f = 1.0 - t; f = f * f * (3.0 - 2.0 * f) * mark[i].w; cut += f; lit += markInk[i] * f; }",
+    "  }",
+    "  float s = 0.0; vec3 tint = vec3(0.0);",
+    "  for (int i = 0; i < 5; i++) {",
+    "    vec2 v = (at - pool[i].xy) / pool[i].z;",
+    "    float g = pool[i].w * exp(-dot(v, v) * 2.2);",
+    "    s += g; tint += poolInk[i] * g;",
+    "  }",
+    "  float inside = smoothstep(clip.z, clip.z - 60.0, length(at - clip.xy));",
+    "  float fieldPart = s * inside * clamp(1.0 - cut, 0.0, 1.0);",
+    "  float sourcePart = source * min(cut, 1.4);",
+    "  float d = fieldPart + sourcePart;",
+    "  vec3 ink = (tint / max(s, 1e-4) * fieldPart + lit / max(cut, 1e-4) * sourcePart) / max(d, 1e-4);",
+    "  vec2 q = mod(cell, 4.0);",
+    "  float th = (4.0 * m2(mod(q, 2.0)) + m2(floor(q / 2.0)) + 0.5) / 16.0;",
+    "  gl_FragColor = vec4(d > th ? ink : vec3(1.0), 1.0);",
+    "}"
+  ].join("\n");
+
+  function halftoneOn() {
+    var el = document.createElement("div");
+    el.className = "halftone";
+    el.setAttribute("aria-hidden", "true");
+    var c = document.createElement("canvas");
+    var mask = document.createElement("div");
+    mask.className = "mask";
+    el.appendChild(c);
+    el.appendChild(mask);
+    var gl = null;
+    try { gl = c.getContext("webgl", { alpha: false, antialias: false, depth: false, preserveDrawingBuffer: true }); } catch (e) {}
+    if (!gl) return null;
+    function shader(type, src) {
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+    }
+    var vs = shader(gl.VERTEX_SHADER, HT_VERT), fs = shader(gl.FRAGMENT_SHADER, HT_FRAG);
+    if (!vs || !fs) return null;
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
+    gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var p = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(p);
+    gl.vertexAttribPointer(p, 2, gl.FLOAT, false, 0, 0);
+    var at = {};
+    ["rows", "source", "pool", "poolInk", "clip", "mark", "markInk", "marks"].forEach(function (n) {
+      at[n] = gl.getUniformLocation(prog, n);
+    });
+    document.body.insertBefore(el, document.body.firstChild);
+    return {
+      el: el, canvas: c, gl: gl, at: at,
+      pool: new Float32Array(20), poolInk: new Float32Array(15),
+      mark: new Float32Array(MOST * 4), markInk: new Float32Array(MOST * 3)
+    };
+  }
+
+  function halftoneOff() {
+    if (!ht) return;
+    var lose = ht.gl.getExtension("WEBGL_lose_context");
+    if (lose) lose.loseContext();
+    ht.el.remove();
+    ht = null;
+  }
+
+  function halftoneFit() {
+    var cols = Math.ceil(window.innerWidth / CELL), rows = Math.ceil(window.innerHeight / CELL);
+    ht.canvas.width = cols;
+    ht.canvas.height = rows;
+    ht.canvas.style.width = cols * CELL + "px";
+    ht.canvas.style.height = rows * CELL + "px";
+    ht.gl.viewport(0, 0, cols, rows);
+    ht.gl.uniform2f(ht.at.rows, cols, rows);
+    // The pools' circle covers the window in "field".
+    clip.to = clip.from = mode() === "field" ? reach() : 0;
+  }
+
+  function reach() { return 1.3 * Math.max(window.innerWidth, window.innerHeight) + 200; }
+
+  // The pools gather into the pill button pressed (x, y), or bloom out of it.
+  function gather(x, y) {
+    clip.from = clipNow(performance.now());
+    clip.to = mode() === "field" ? reach() : 0;
+    clip.x = x;
+    clip.y = y;
+    clip.at = performance.now();
+  }
+
+  function clipNow(now) {
+    var t = Math.min(1, (now - clip.at) / GATHER);
+    var e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    return clip.from + (clip.to - clip.from) * e;
+  }
+
+  function gathering(now) { return now - clip.at < GATHER; }
+
+  var POOL_SIZE = [35, 39, 43, 37, 32];   // radius, vmax: the blobs' own
+
+  function halftone(now) {
+    var gl = ht.gl;
+    var w = window.innerWidth, h = window.innerHeight, vmax = Math.max(w, h) / 100;
+    var i, m;
+
+    // Age the marks as the soft trail does, and hand the newest to the shader.
+    var alive = 0;
+    for (i = 0; i < marks.length; i++) {
+      m = marks[i];
+      var age = (now - m.born) / m.life;
+      if (age >= 1) continue;
+      m.age = age;
+      marks[alive++] = m;
+    }
+    marks.length = alive;
+    var first = Math.max(0, alive - MOST), n = alive - first;
+    for (i = 0; i < n; i++) {
+      m = marks[first + i];
+      var left = 1 - m.age;
+      ht.mark[i * 4] = m.x;
+      ht.mark[i * 4 + 1] = m.y;
+      ht.mark[i * 4 + 2] = HOLE * m.size * (FROM + (TO - FROM) * m.age);
+      ht.mark[i * 4 + 3] = left * left;
+      if (!m.ink) m.ink = tone(0.6, 0.2, m.hue);
+      ht.markInk[i * 3] = m.ink[0] / 255;
+      ht.markInk[i * 3 + 1] = m.ink[1] / 255;
+      ht.markInk[i * 3 + 2] = m.ink[2] / 255;
+    }
+    drawn = alive > 0;
+
+    for (i = 0; i < 5; i++) {
+      var pt = points[i];
+      ht.pool[i * 4] = pt ? pt.x : w / 2;
+      ht.pool[i * 4 + 1] = pt ? pt.y : h / 2;
+      ht.pool[i * 4 + 2] = POOL_SIZE[i] * vmax;
+      ht.pool[i * 4 + 3] = 0.42;
+      var ink = tone(0.62, 0.19, hue + (i - 2) * SPREAD);
+      ht.poolInk[i * 3] = ink[0] / 255;
+      ht.poolInk[i * 3 + 1] = ink[1] / 255;
+      ht.poolInk[i * 3 + 2] = ink[2] / 255;
+    }
+
+    gl.uniform1f(ht.at.source, mode() === "source" ? 1 : 0);
+    gl.uniform4fv(ht.at.pool, ht.pool);
+    gl.uniform3fv(ht.at.poolInk, ht.poolInk);
+    gl.uniform3f(ht.at.clip, clip.x, clip.y, clipNow(now));
+    gl.uniform4fv(ht.at.mark, ht.mark);
+    gl.uniform3fv(ht.at.markInk, ht.markInk);
+    gl.uniform1i(ht.at.marks, n);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  // --- Robots --------------------------------------------------------------
+  // A click lets a little robot out. It runs about the screen, over the
+  // windows, turning as it pleases and now and then stopping to look round,
+  // and it draws as it goes: dots where it has been in "source", a path
+  // cleared through them in "field". After a good run it sits down and its
+  // lamp goes out, until the pointer comes close. Drawn on a 14 by 16 grid.
+  function px(x, y, w, h, cls) {
+    return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" class="' + cls + '"/>';
+  }
+
+  var ROBOT =
+    '<svg viewBox="0 0 14 16" aria-hidden="true"><g class="body">' +
+      px(6, 0, 2, 2, "lamp") + px(6, 2, 2, 1, "k") +
+      px(2, 3, 10, 6, "k") + px(3, 4, 8, 4, "w") +
+      px(7, 5, 1, 2, "k") + px(9, 5, 1, 2, "k") +
+      px(6, 9, 2, 1, "k") +
+      px(3, 10, 8, 4, "k") + px(4, 11, 6, 2, "w") + px(6, 11, 2, 1, "lamp") +
+      px(1, 10, 2, 1, "k") + px(1, 11, 1, 2, "k") +
+      px(11, 10, 2, 1, "k") + px(12, 11, 1, 2, "k") +
+    '</g>' +
+    '<g class="legs-stand">' + px(4, 14, 2, 2, "k") + px(8, 14, 2, 2, "k") + '</g>' +
+    '<g class="legs-a">' + px(3, 14, 2, 2, "k") + px(9, 14, 2, 1, "k") + '</g>' +
+    '<g class="legs-b">' + px(4, 14, 2, 1, "k") + px(8, 14, 2, 2, "k") + '</g>' +
+    '</svg>';
+
+  var robots = [];
+  var CROWD = 12;          // robots out at once; past this the oldest goes
+  var BOLT = 1.0;          // a robot's marks, against the pointer's
+  var BOLT_APART = 22;     // px of run between them
+  var EDGE = 34;           // px it keeps from the window's edge
+
+  function spawn(event) {
+    if (running !== "desk" || motion.matches || event.button > 0) return;
+    if (event.target.closest("a, button, input, label, .controls, .desk-bar, .section > h2")) return;
+    var picked = window.getSelection && String(window.getSelection());
+    if (picked) return;   // selecting text, not letting a robot out
+    var el = document.createElement("div");
+    el.className = "robot running";
+    el.setAttribute("aria-hidden", "true");
+    el.innerHTML = ROBOT;
+    document.body.appendChild(el);
+    var bot = {
+      el: el, x: event.clientX, y: event.clientY + 16,
+      a: Math.random() * Math.PI * 2,
+      v: 80 + Math.random() * 60,
+      run: true, pause: 0.5, next: 1.5 + Math.random() * 3,
+      stamina: 16 + Math.random() * 14,
+      trail: { x: event.clientX, y: event.clientY + 16, going: true, sown: 0 }
+    };
+    robots.push(bot);
+    placeRobot(bot);
+    if (robots.length > CROWD) retire(robots.shift());
+    wake();
+  }
+
+  function retire(bot) {
+    bot.el.classList.add("gone");
+    setTimeout(function () { bot.el.remove(); }, 600);
+  }
+
+  function placeRobot(bot) {
+    bot.el.style.translate = bot.x.toFixed(1) + "px " + bot.y.toFixed(1) + "px";
+    bot.el.classList.toggle("left", Math.cos(bot.a) < 0);
+  }
+
+  function runRobots(gap, now) {
+    var w = window.innerWidth, h = window.innerHeight;
+    for (var i = 0; i < robots.length; i++) {
+      var bot = robots[i];
+      if (!bot.run) {
+        // Sitting: the pointer coming close sets it off again.
+        var dx = held.x - bot.x, dy = held.y - (bot.y - 16);
+        if (held.x > -9000 && dx * dx + dy * dy < 70 * 70) {
+          bot.run = true;
+          bot.stamina = 10 + Math.random() * 12;
+          bot.a = Math.atan2(-dy, -dx) + (Math.random() - 0.5);
+          bot.pause = 0;
+          bot.el.classList.remove("resting");
+          bot.trail.going = false;
+        }
+        continue;
+      }
+      bot.stamina -= gap;
+      if (bot.stamina <= 0) {
+        bot.run = false;
+        bot.el.classList.remove("running");
+        bot.el.classList.add("resting");
+        continue;
+      }
+      if (bot.pause > 0) {
+        bot.pause -= gap;
+        if (bot.pause <= 0) bot.el.classList.add("running");
+        // looking round: a turn now and then
+        if (Math.random() < gap * 1.5) { bot.a = Math.PI - bot.a; placeRobot(bot); }
+        continue;
+      }
+      bot.next -= gap;
+      if (bot.next <= 0) {
+        bot.pause = 0.4 + Math.random() * 1.1;
+        bot.next = 1.5 + Math.random() * 4;
+        bot.el.classList.remove("running");
+        continue;
+      }
+      bot.a += (Math.random() - 0.5) * 5 * gap;
+      bot.x += Math.cos(bot.a) * bot.v * gap;
+      bot.y += Math.sin(bot.a) * bot.v * gap;
+      // Turned back off the edges.
+      if (bot.x < EDGE) { bot.x = EDGE; bot.a = Math.PI - bot.a; }
+      if (bot.x > w - EDGE) { bot.x = w - EDGE; bot.a = Math.PI - bot.a; }
+      if (bot.y < EDGE + 32) { bot.y = EDGE + 32; bot.a = -bot.a; }
+      if (bot.y > h - EDGE) { bot.y = h - EDGE; bot.a = -bot.a; }
+      placeRobot(bot);
+      if (!bot.trail.going) { bot.trail.x = bot.x; bot.trail.y = bot.y - 12; bot.trail.going = true; }
+      var mx = bot.x - bot.trail.x, my = bot.y - 12 - bot.trail.y;
+      hue = (hue + Math.sqrt(mx * mx + my * my) * SPIN * 0.5) % 360;
+      sow(bot.trail, bot.x, bot.y - 12, now, BOLT, BOLT_APART);
+    }
+  }
+
+  function robotsRunning() {
+    for (var i = 0; i < robots.length; i++) if (robots[i].run) return true;
+    return false;
+  }
+
+  function clearRobots() {
+    robots.forEach(function (bot) { bot.el.remove(); });
+    robots = [];
+  }
+
+  // --- Desk ----------------------------------------------------------------
+  // Fun dresses the home page as Halftone OS. Each section becomes a
+  // window, its h2 the title bar with a version and a close box that folds
+  // it; the body goes in a panel. On a wide screen the windows are thrown
+  // all over the screen, overlapping, and drag by their bars. Everything
+  // laid in here is taken out again when Fun goes off.
+  var desk = false;
+  var deskBits = null;       // the inner frame and the corner label
+  var spread = window.matchMedia("(min-width: 64rem)");
+  var front = 0;             // z-index of the window last raised
+  var laidFor = null;        // the window size the desk was laid out for
+
+  function deskWanted() {
+    return root.getAttribute("data-theme") === "fun" && root.getAttribute("data-desk") === "on" &&
+           root.getAttribute("data-page") === "home";
+  }
+
+  function windows() {
+    return [].slice.call(document.querySelectorAll(".masthead, main > .section"));
+  }
+
+  // How wide each window is, and the share of the screen's height its
+  // panel may take before it scrolls.
+  var SIZES = {
+    masthead: [440, 0],
+    about: [500, 0.6],
+    work: [560, 0.74],
+    cv: [500, 0.64],
+    "after-hours": [420, 0.42],
+    contact: [400, 0.36]
+  };
+
+  function overlap(a, b) {
+    var x = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+    var y = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+    return x > 0 && y > 0 ? x * y : 0;
+  }
+
+  // Throw the windows over the screen. Each tries a spread of places at
+  // random and takes the one that buries least: a window may overlap
+  // another, but it pays heavily to cover another's title bar, so every
+  // bar stays in reach. The masthead goes down last, on top. New places
+  // every visit.
+  function arrange() {
+    var page = document.querySelector(".page");
+    var all = windows(), foot = document.querySelector(".colophon");
+    if (!desk || !page) return;
+    if (!spread.matches) {
+      page.classList.remove("desk-spread");
+      all.concat(foot || []).forEach(function (w) {
+        w.style.left = w.style.top = w.style.width = w.style.zIndex = "";
+        w.style.removeProperty("--cap");
+      });
+      laidFor = null;
+      return;
+    }
+    page.classList.add("desk-spread");
+    var W = window.innerWidth, H = window.innerHeight, M = 40;
+    laidFor = { w: W, h: H };
+    var order = all.slice(1).concat(all[0]);   // the masthead last
+    var placed = [];
+    front = 0;
+    order.forEach(function (w) {
+      var key = w.classList.contains("masthead") ? "masthead" : w.id;
+      var size = SIZES[key] || [480, 0.5];
+      var width = Math.min(size[0], Math.round(W * 0.62));
+      w.style.width = width + "px";
+      if (size[1]) w.style.setProperty("--cap", Math.max(140, Math.round(H * size[1]) - 40) + "px");
+      var h = w.offsetHeight;
+      var best = null, least = Infinity;
+      for (var k = 0; k < 120; k++) {
+        var box = {
+          x: M + Math.random() * Math.max(0, W - 2 * M - width),
+          y: M + 16 + Math.random() * Math.max(0, H - 2 * M - 16 - h),
+          w: width, h: h
+        };
+        var cost = 0;
+        for (var j = 0; j < placed.length; j++) {
+          var p = placed[j];
+          cost += 14 * overlap(box, { x: p.x, y: p.y, w: p.w, h: 22 });
+          cost += 0.2 * overlap(box, p);
+        }
+        if (cost < least) { least = cost; best = box; }
+      }
+      w.style.left = Math.round(best.x) + "px";
+      w.style.top = Math.round(best.y) + "px";
+      w.style.zIndex = String(++front);
+      placed.push(best);
+    });
+    raise(all[0]);
+    if (foot) {   // a chip in the corner, over the windows
+      foot.style.left = W - M - foot.offsetWidth - 12 + "px";
+      foot.style.top = H - M - foot.offsetHeight - 12 + "px";
+      foot.style.zIndex = "8000";
+    }
+  }
+
+  function raise(w) {
+    windows().forEach(function (o) { o.classList.toggle("desk-front", o === w); });
+    w.style.zIndex = String(++front);
+  }
+
+  // Drag by the title bar, on the wide desk only, kept where its bar can
+  // still be caught. Left and top, the way the design system's
+  // HOS.draggable does it.
+  var dragging = null;
+
+  function onDeskDown(event) {
+    var w = event.target.closest(".masthead, main > .section");
+    if (!w || !desk) return;
+    raise(w);
+    var bar = event.target.closest(".desk-bar, .section > h2");
+    if (!bar || event.target.closest("button") || !spread.matches || event.button > 0) return;
+    event.preventDefault();
+    dragging = { w: w, bar: bar, id: event.pointerId, sx: event.clientX, sy: event.clientY, ox: w.offsetLeft, oy: w.offsetTop };
+    bar.setPointerCapture(event.pointerId);
+    w.classList.add("desk-dragging");
+  }
+
+  function onDeskMove(event) {
+    if (!dragging || event.pointerId !== dragging.id) return;
+    var w = dragging.w;
+    var x = dragging.ox + event.clientX - dragging.sx;
+    var y = dragging.oy + event.clientY - dragging.sy;
+    x = Math.max(80 - w.offsetWidth, Math.min(window.innerWidth - 80, x));
+    y = Math.max(0, Math.min(window.innerHeight - 24, y));
+    w.style.left = x + "px";
+    w.style.top = y + "px";
+  }
+
+  function onDeskUp(event) {
+    if (!dragging || event.pointerId !== dragging.id) return;
+    if (dragging.bar.hasPointerCapture(event.pointerId)) dragging.bar.releasePointerCapture(event.pointerId);
+    dragging.w.classList.remove("desk-dragging");
+    dragging = null;
+  }
+
+  function onDeskShut(event) {
+    var shut = event.target.closest(".desk-shut");
+    if (!shut) return;
+    var w = shut.closest(".section");
+    var open = w.classList.toggle("shut");
+    shut.setAttribute("aria-expanded", String(!open));
+  }
+
+  // Thrown again only when the window has really changed size, not when a
+  // phone's address bar comes and goes.
+  function onDeskResize() {
+    if (!spread.matches || !laidFor) { arrange(); return; }
+    if (Math.abs(window.innerWidth - laidFor.w) > 80 || Math.abs(window.innerHeight - laidFor.h) > 120) arrange();
+  }
+
+  // Desk's faces, wanted as soon as Fun is on: the Desk button is set in
+  // the mono.
+  function faces() {
+    if (document.getElementById("desk-faces")) return;
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.id = "desk-faces";
+    link.href = document.querySelector('meta[name="desk-faces"]').content;
+    document.head.appendChild(link);
+  }
+
+  function deskOn() {
+    deskBits = { frame: document.createElement("div"), label: document.createElement("div") };
+    deskBits.frame.className = "desk-frame";
+    deskBits.label.className = "desk-label";
+    deskBits.label.textContent = "JB.OS1";
+    Object.keys(deskBits).forEach(function (k) {
+      deskBits[k].setAttribute("aria-hidden", "true");
+      document.body.appendChild(deskBits[k]);
+    });
+
+    var head = document.querySelector(".masthead");
+    if (head && !head.querySelector(".desk-bar")) {
+      var bar = document.createElement("div");
+      bar.className = "desk-bar";
+      bar.setAttribute("aria-hidden", "true");
+      bar.textContent = "Read Me 1.0";
+      head.insertBefore(bar, head.firstChild);
+    }
+
+    // Each section: the heading takes a version and a close box, and the
+    // rest goes into a panel.
+    document.querySelectorAll("main > .section").forEach(function (s) {
+      var h = s.querySelector(":scope > h2");
+      if (!h || s.querySelector(":scope > .desk-panel")) return;
+      var name = h.textContent;
+      h.innerHTML = "";
+      var title = document.createElement("span");
+      title.textContent = name;
+      var ver = document.createElement("span");
+      ver.className = "desk-ver";
+      ver.textContent = " 1.0";
+      title.appendChild(ver);
+      var shut = document.createElement("button");
+      shut.type = "button";
+      shut.className = "desk-shut";
+      shut.setAttribute("aria-expanded", "true");
+      shut.setAttribute("aria-label", "Fold " + name);
+      h.appendChild(title);
+      h.appendChild(shut);
+      var panel = document.createElement("div");
+      panel.className = "desk-panel";
+      while (h.nextSibling) panel.appendChild(h.nextSibling);
+      s.appendChild(panel);
+    });
+
+    document.addEventListener("pointerdown", onDeskDown);
+    document.addEventListener("pointermove", onDeskMove);
+    document.addEventListener("pointerup", onDeskUp);
+    document.addEventListener("pointercancel", onDeskUp);
+    document.addEventListener("click", onDeskShut);
+    window.addEventListener("resize", onDeskResize);
+    if (spread.addEventListener) spread.addEventListener("change", arrange);
+
+    arrange();
+    // The windows change height once the faces arrive, so throw them again.
+    if (document.fonts && document.fonts.load) {
+      Promise.all([
+        document.fonts.load('14px "Space Mono"'),
+        document.fonts.load('700 14px "Space Mono"'),
+        document.fonts.load('12px "Silkscreen"')
+      ]).then(function () { if (desk) { fitLabels(); arrange(); outline(); seat(false); } }, function () {});
+    }
+  }
+
+  function deskOff() {
+    document.removeEventListener("pointerdown", onDeskDown);
+    document.removeEventListener("pointermove", onDeskMove);
+    document.removeEventListener("pointerup", onDeskUp);
+    document.removeEventListener("pointercancel", onDeskUp);
+    document.removeEventListener("click", onDeskShut);
+    window.removeEventListener("resize", onDeskResize);
+    if (spread.removeEventListener) spread.removeEventListener("change", arrange);
+    dragging = null;
+    laidFor = null;
+
+    if (deskBits) Object.keys(deskBits).forEach(function (k) { deskBits[k].remove(); });
+    deskBits = null;
+    var bar = document.querySelector(".masthead > .desk-bar");
+    if (bar) bar.remove();
+
+    document.querySelectorAll("main > .section").forEach(function (s) {
+      var panel = s.querySelector(":scope > .desk-panel");
+      var h = s.querySelector(":scope > h2");
+      if (h && h.querySelector(".desk-ver")) {
+        h.textContent = h.firstChild.firstChild.nodeValue;
+      }
+      if (panel) {
+        while (panel.firstChild) s.insertBefore(panel.firstChild, panel);
+        panel.remove();
+      }
+      s.classList.remove("shut");
+    });
+
+    var page = document.querySelector(".page");
+    if (page) page.classList.remove("desk-spread");
+    windows().concat(document.querySelector(".colophon") || []).forEach(function (w) {
+      w.classList.remove("desk-front", "desk-dragging");
+      w.style.left = w.style.top = w.style.width = w.style.zIndex = "";
+      w.style.removeProperty("--cap");
+    });
+    fitLabels();
+  }
+
+  function syncDesk() {
+    var wanted = deskWanted();
+    if (wanted === desk) return;
+    desk = wanted;
+    if (desk) deskOn(); else deskOff();
   }
 
   // Each switch button is given the width of its label in whichever face
@@ -1192,7 +1817,8 @@
   // in both faces, with the x-height correction the serif gets.
   function fitLabels() {
     var adjust = getComputedStyle(root).getPropertyValue("--serif-x-height").trim() || "none";
-    document.querySelectorAll(".switch button").forEach(function (b) {
+    // Not the Desk button: its label is always in the mono.
+    document.querySelectorAll(".switch:not(.desk-switch) button").forEach(function (b) {
       b.style.minWidth = "";
       var widest = 0;
       [["var(--sans)", "none"], ["var(--serif)", adjust]].forEach(function (face) {
@@ -1220,6 +1846,10 @@
     document.querySelectorAll("[data-set-font]").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.setFont === font));
     });
+    document.querySelectorAll("[data-set-desk]").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(root.getAttribute("data-desk") === "on"));
+    });
+    syncDesk();
     var fun = mode();
     document.querySelectorAll("[data-set-fun]").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.setFun === fun));
@@ -1393,10 +2023,14 @@
   window.addEventListener("resize", function () { seat(false); outline(); });
 
   document.addEventListener("click", function (event) {
-    var button = event.target.closest("[data-set-theme], [data-set-font], [data-set-fun]");
+    var button = event.target.closest("[data-set-theme], [data-set-font], [data-set-fun], [data-set-desk]");
     if (!button) return;
 
-    if (button.dataset.setTheme) {
+    if (button.hasAttribute("data-set-desk")) {
+      var on = root.getAttribute("data-desk") !== "on";
+      if (on) root.setAttribute("data-desk", "on"); else root.removeAttribute("data-desk");
+      save("desk", on ? "on" : "off");
+    } else if (button.dataset.setTheme) {
       if (root.dataset.lock) return;   // this page has one theme
       root.setAttribute("data-theme", button.dataset.setTheme);
       save("theme", button.dataset.setTheme);
@@ -1408,6 +2042,7 @@
       root.style.setProperty("--px", (at.left + at.width / 2).toFixed(0) + "px");
       root.style.setProperty("--py", (at.top + at.height / 2).toFixed(0) + "px");
       root.setAttribute("data-fun", button.dataset.setFun);
+      if (ht) { gather(at.left + at.width / 2, at.top + at.height / 2); wake(); }
       save("fun-mode", button.dataset.setFun);
       marks.length = 0;   // the old marks were the other colour
       if (was !== mode()) {

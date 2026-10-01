@@ -200,6 +200,7 @@ body.ready * {
 .fun-controls {
   display: flex;
   align-items: center;
+  gap: .5rem;
   opacity: 0;
   translate: -.75rem 0;
   visibility: hidden;
@@ -216,6 +217,55 @@ body.ready * {
 /* Project pages have no Fun mode: the switch there is Light and Dark. */
 :root[data-page="project"] [data-set-theme="fun"],
 :root[data-page="project"] .fun-controls { display: none; }
+
+/* The Desk toggle is a little program window: a title bar across the top,
+   a hard shadow, the label in the desk's mono. Pressed, it is the front
+   window, with the desk's second outline, and its shadow goes.
+   The same in plain Fun and on the desk, whose own button rules leave it be. */
+.switch.desk-switch {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+/* As tall as the switches beside it (their border, padding and line), so
+   top and bottom line up; the label sits under the bar. */
+.switch.desk-switch button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(.6rem + 1.05rem + 6px);
+  padding: 5px 9px 0;
+  border: 1px solid var(--text);
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--text), var(--text));
+  background-size: 100% 5px;
+  background-repeat: no-repeat;
+  box-shadow: 2px 2px 0 var(--text);
+  color: var(--text);
+  font-family: "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+  font-size-adjust: none;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 14px;
+  transition: box-shadow .12s ease;
+}
+
+/* On the desk the switches are a 20px button inside a 1px frame. The
+   height is the content's, so the border rounds the way theirs does. */
+:root[data-theme="fun"][data-desk="on"] .switch.desk-switch button {
+  box-sizing: content-box;
+  height: 15px;   /* + 5px of bar = 20px */
+}
+
+.switch.desk-switch button[aria-pressed="true"] {
+  background-color: var(--bg);
+  color: var(--text);
+  outline: 1px solid var(--text);
+  outline-offset: 2px;
+  box-shadow: none;
+}
 
 /* A page fixed to one theme (a project's `theme:`) crosses the other out. */
 .switch button[aria-disabled="true"],
@@ -825,8 +875,9 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 }
 
 /* Film grain. A tile of SVG noise, multiplied over everything including the
-   type, nudged to a new offset a few times a second so it crawls. */
-:root[data-theme="fun"] body::after {
+   type, nudged to a new offset a few times a second so it crawls. Only
+   where the halftone can't be drawn: the desk is crisp. */
+:root[data-theme="fun"]:not(.halftoned) body::after {
   content: "";
   position: fixed;
   inset: 0;
@@ -850,8 +901,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 /* A shallow roll through the text, like heat off a surface. The noise is
    static, but the filter runs again over all of main whenever anything in
    it repaints, which is every time a word is shoved. Touch screens go
-   without it (see the end of this section). */
-:root[data-theme="fun"] main {
+   without it (see the end of this section), and so does the desk. */
+:root[data-theme="fun"]:not(.halftoned) main {
   filter: url("#fun-warp");
 }
 
@@ -1089,6 +1140,426 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   .pools, :root[data-theme="fun"] .blobs, .fun-controls { transition: none; }
   .thumb.hop { animation: none; }
   .diver, .splash, .flicks, .drop, .swimmer { display: none; }
+}
+
+/* =========================================================================
+   Desk — Fun's second skin, the home page as Halftone OS
+   =========================================================================
+   A toggle beside Source/Field (data-desk="on" on <html>, only while the
+   theme is Fun). Each section is a window, its heading the title bar, on a white desk of
+   ordered dither in the hue of the moment. assets/app.js lays down the
+   furniture (the halftone, the frame, the corner label), wraps each
+   section's body in a panel, and on a wide screen throws the windows all
+   over the screen, overlapping, to be dragged by their bars. Screen only:
+   print gets the plain page. The tokens are the Halftone OS design
+   system's, with neutral bars. */
+
+@media screen {
+
+:root[data-theme="fun"][data-desk="on"] {
+  --sans: "Space Mono", "Courier New", monospace;
+  --serif: "Times New Roman", Times, serif;
+  --serif-x-height: none;
+  --x-height: none;
+  --font-display: "Silkscreen", "Courier New", monospace;
+  --step: 14px;
+  --leading: 1.4286;   /* 20px */
+  --inset: 24px;       /* the desk's inner frame, from the window's edge */
+
+  --paper: #ffffff;
+  --window: #dcdcdc;
+  --panel: #ffffff;
+  --chip: #c8c8c8;
+  --frame: #111111;
+  --titlebar: #111111;
+  --on-titlebar: #ffffff;
+  --ink: #111111;
+  --ink-muted: #4a4a4a;
+  --soft: #ececec;
+  --drop: 4px 4px 0 #111111;
+
+  --bg: var(--panel);
+  --text: var(--ink);
+  --muted: var(--ink-muted);
+  --faint: var(--ink-muted);
+  --rule: var(--frame);
+  --raised: var(--titlebar);
+  --link-line: var(--ink);
+  --focus: var(--frame);
+}
+
+/* Times is small on the body: a step up keeps it as readable as the mono. */
+:root[data-theme="fun"][data-desk="on"][data-font="serif"] { --step: 16px; --leading: 1.25; }
+
+:root[data-theme="fun"][data-desk="on"],
+:root[data-theme="fun"][data-desk="on"] body { background: var(--paper); }
+:root[data-theme="fun"][data-desk="on"] body { background: transparent; }
+
+/* The halftone: a canvas of one pixel per 4px cell, scaled up square, under
+   a mask that leaves a 2px dot at the corner of each cell. app.js paints
+   the cells; where it can't (no WebGL), the soft pools above show instead. */
+.halftone,
+.desk-frame,
+.desk-label { display: none; }
+
+:root[data-theme="fun"][data-desk="on"] .halftone {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.halftone canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.halftone .mask {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff' fill-rule='evenodd' d='M0 0h4v4H0zM0 0v2h2V0z'/%3E%3C/svg%3E");
+  background-size: 4px 4px;
+}
+
+:root[data-theme="fun"].halftoned .blobs { display: none; }
+
+:root[data-theme="fun"][data-desk="on"] .desk-frame {
+  display: block;
+  position: fixed;
+  inset: var(--inset);
+  z-index: -1;
+  border: 1px solid var(--frame);
+  pointer-events: none;
+}
+
+:root[data-theme="fun"][data-desk="on"] .desk-label {
+  display: block;
+  position: fixed;
+  top: var(--inset);
+  left: var(--inset);
+  z-index: -1;
+  padding: 0 3px;
+  background: var(--titlebar);
+  color: var(--on-titlebar);
+  font: 400 12px/16px var(--font-display);
+  pointer-events: none;
+}
+
+:root[data-theme="fun"][data-desk="on"] .page {
+  position: relative;
+  max-width: 40rem;
+  padding: calc(var(--inset) + 2.5rem) calc(var(--inset) + 1rem) calc(var(--inset) + 3rem);
+}
+
+/* --- windows ------------------------------------------------------------ */
+
+:root[data-theme="fun"][data-desk="on"] .masthead,
+:root[data-theme="fun"][data-desk="on"] .section {
+  position: relative;
+  margin: 0 0 20px;
+  padding: 0;
+  border: 1px solid var(--frame);
+  background: var(--window);
+  color: var(--ink);
+  box-shadow: var(--drop);
+}
+
+:root[data-theme="fun"][data-desk="on"] .section + .section { margin-top: 0; }
+
+/* The front window gets a second outline, which is how the desk says
+   "active" without a colour. */
+:root[data-theme="fun"][data-desk="on"] .desk-front {
+  outline: 1px solid var(--frame);
+  outline-offset: 2px;
+}
+
+/* Title bars: the masthead's is laid in by app.js, a section's is its h2. */
+:root[data-theme="fun"][data-desk="on"] .desk-bar,
+:root[data-theme="fun"][data-desk="on"] .section > h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 20px;
+  margin: 0;
+  padding: 0 6px;
+  background: var(--titlebar);
+  color: var(--on-titlebar);
+  font: 400 13px/20px var(--family);
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.desk-bar { display: none; }
+:root[data-theme="fun"][data-desk="on"] .desk-bar { flex: 0 0 100%; }
+
+/* On a wide screen the windows are dragged by their bars. */
+:root[data-theme="fun"][data-desk="on"] .desk-spread .desk-bar,
+:root[data-theme="fun"][data-desk="on"] .desk-spread .section > h2 {
+  cursor: grab;
+  touch-action: none;
+}
+
+:root[data-theme="fun"][data-desk="on"] .desk-spread .desk-dragging .desk-bar,
+:root[data-theme="fun"][data-desk="on"] .desk-spread .desk-dragging > h2 { cursor: grabbing; }
+
+/* The close box folds a window up to its bar, like a window shade. */
+.desk-shut {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--on-titlebar);
+  background: none;
+  cursor: pointer;
+}
+
+.desk-shut[aria-expanded="false"] { background: var(--on-titlebar); }
+
+:root[data-theme="fun"][data-desk="on"] .section.shut > .desk-panel { display: none; }
+
+/* The reading surface inside each window. */
+.desk-panel { display: contents; }
+
+:root[data-theme="fun"][data-desk="on"] .desk-panel {
+  display: block;
+  margin: 8px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--frame);
+  box-shadow: inset 1px 1px 0 var(--chip);
+  scrollbar-color: var(--frame) var(--window);
+}
+
+/* Spread over the screen, a window is capped (--cap, from app.js) and its
+   panel scrolls. */
+:root[data-theme="fun"][data-desk="on"] .desk-spread .desk-panel {
+  max-height: var(--cap, none);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* --- the masthead window ------------------------------------------------- */
+
+:root[data-theme="fun"][data-desk="on"] .masthead {
+  gap: 12px;
+  padding-bottom: 12px;
+}
+
+:root[data-theme="fun"][data-desk="on"] .identity,
+:root[data-theme="fun"][data-desk="on"] .controls {
+  flex: 1 1 100%;
+  margin: 0 12px;
+}
+
+/* The name is the window's one Tag. */
+:root[data-theme="fun"][data-desk="on"] .name {
+  display: inline;
+  padding: 2px 6px;
+  background: var(--titlebar);
+  color: var(--on-titlebar);
+  font: 400 clamp(22px, 5vw, 32px)/1.2 var(--font-display);
+  letter-spacing: 0;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+:root[data-theme="fun"][data-desk="on"] .tagline {
+  margin-top: 12px;
+  color: var(--ink);
+  text-transform: lowercase;
+}
+
+:root[data-theme="fun"][data-desk="on"] .controls {   /* theme left, typeface right */
+  align-items: center;   /* not stretched to the pill's height */
+  gap: 8px 12px;
+}
+
+/* The square switches become bevelled buttons; pressed ones invert. The
+   Source/Field pill keeps its own shape. */
+:root[data-theme="fun"][data-desk="on"] .switch:not(.pill):not(.desk-switch) {
+  padding: 0;
+  border: 1px solid var(--frame);
+  background: var(--window);
+}
+
+:root[data-theme="fun"][data-desk="on"] .switch:not(.desk-switch) button {
+  color: var(--ink);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+:root[data-theme="fun"][data-desk="on"] .switch:not(.pill):not(.desk-switch) button {
+  padding: 1px 10px;
+  line-height: 18px;
+  box-shadow: inset -1px -1px 0 var(--chip), inset 1px 1px 0 var(--panel);
+}
+
+:root[data-theme="fun"][data-desk="on"] .switch:not(.pill):not(.desk-switch) button + button { border-left: 1px solid var(--frame); }
+
+:root[data-theme="fun"][data-desk="on"] .switch:not(.pill):not(.desk-switch) button[aria-pressed="true"] {
+  background: var(--titlebar);
+  color: var(--on-titlebar);
+  box-shadow: none;
+}
+
+/* Keyboard focus is a marquee. */
+:root[data-theme="fun"][data-desk="on"] :focus-visible {
+  outline: 2px dashed var(--frame);
+  outline-offset: 2px;
+}
+
+/* --- inside a window ---------------------------------------------------- */
+
+:root[data-theme="fun"][data-desk="on"] main { line-height: var(--leading); }
+
+/* Subheadings are small Tags. */
+:root[data-theme="fun"][data-desk="on"] .section h3 {
+  display: table;
+  margin: 24px 0 8px;
+  padding: 0 3px;
+  background: var(--titlebar);
+  color: var(--on-titlebar);
+  font: 400 12px/16px var(--font-display);
+  letter-spacing: 0;
+}
+
+:root[data-theme="fun"][data-desk="on"] .desk-panel > h3:first-child { margin-top: 0; }
+
+:root[data-theme="fun"][data-desk="on"] .section h4 {
+  margin: 16px 0 4px;
+  color: var(--ink-muted);
+  font-size: .857em;
+  font-weight: 700;
+}
+
+:root[data-theme="fun"][data-desk="on"] .section strong { font-weight: 700; }
+
+:root[data-theme="fun"][data-desk="on"] .section ul:not(.rows) { list-style: square; }
+
+/* A row lights up under the pointer. */
+:root[data-theme="fun"][data-desk="on"] li.row {
+  margin-left: -4px;
+  margin-right: -4px;
+  padding: 0 4px;
+}
+
+:root[data-theme="fun"][data-desk="on"] li.row:hover,
+:root[data-theme="fun"][data-desk="on"] .section ul:not(.rows) li:hover { background: var(--soft); }
+
+:root[data-theme="fun"][data-desk="on"] li.row .item-meta {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The footer is a small chip on the desk. */
+:root[data-theme="fun"][data-desk="on"] .colophon {
+  display: table;
+  margin: 8px 0 0;
+  padding: 0 4px;
+  border: 1px solid var(--frame);
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Spread: the page is one screen, and app.js sets each window's left, top,
+   width and cap. */
+:root[data-theme="fun"][data-desk="on"] .page.desk-spread {
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+:root[data-theme="fun"][data-desk="on"] .desk-spread .masthead,
+:root[data-theme="fun"][data-desk="on"] .desk-spread .section,
+:root[data-theme="fun"][data-desk="on"] .desk-spread .colophon {
+  position: absolute;
+  margin: 0;
+}
+
+/* --- the robots ---------------------------------------------------------- */
+
+/* A click lets one out. app.js runs it about the screen by `translate`;
+   nothing here animates that. The legs swap while it runs, and it hops
+   out of the click when it is made. */
+.robot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9000;
+  width: 28px;
+  height: 32px;
+  margin: -32px 0 0 -14px;   /* its feet are the point it stands on */
+  pointer-events: none;
+  transition: opacity .5s ease;
+}
+
+.robot.gone { opacity: 0; }
+
+.robot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  shape-rendering: crispEdges;
+  animation: robot-pop .45s cubic-bezier(.2, .9, .3, 1.4) both;
+}
+
+.robot.left svg { scale: -1 1; }
+
+.robot .k { fill: var(--ink); }
+.robot .w { fill: var(--panel); }
+.robot .lamp { fill: var(--c3); }
+.robot .legs-a,
+.robot .legs-b,
+.robot.running .legs-stand { visibility: hidden; }
+.robot.running .legs-a,
+.robot.running .legs-b { animation: robot-step .22s steps(1) infinite; }
+.robot.running .legs-b { animation-delay: -.11s; }
+
+/* Powered down: it sits, its lamp out, until the pointer comes close. */
+.robot.resting .lamp { fill: var(--chip); }
+.robot.resting .body { translate: 0 2px; }
+
+@keyframes robot-step {
+  0%   { visibility: visible; }
+  50%  { visibility: hidden; }
+}
+
+@keyframes robot-pop {
+  from { transform: translateY(10px) scale(.2); }
+  to   { transform: none; }
+}
+
+@media (max-width: 34rem) {
+  :root[data-theme="fun"][data-desk="on"] { --inset: 10px; }
+  :root[data-theme="fun"][data-desk="on"] .page { padding: calc(var(--inset) + 2rem) calc(var(--inset) + 8px) calc(var(--inset) + 2rem); }
+  :root[data-theme="fun"][data-desk="on"] .masthead { flex-direction: row; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot { display: none; }
+}
+
+}   /* @media screen */
+
+/* The desk's additions to the headings say nothing on paper. */
+@media print {
+  .desk-ver, .desk-shut, .desk-bar, .halftone, .robot { display: none !important; }
 }
 
 /* =========================================================================
