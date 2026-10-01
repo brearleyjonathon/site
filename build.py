@@ -83,7 +83,9 @@ def render_inline(text):
         label, url = match.group(1), match.group(2)
         external = url.startswith("http://") or url.startswith("https://")
         extra = ' target="_blank" rel="noopener noreferrer"' if external else ""
-        urls.append(html.escape(url, quote=True))
+        # The text is escaped already; undo that first, so a URL's "&" is
+        # escaped once, and its quotes too, for the attribute.
+        urls.append(html.escape(html.unescape(url), quote=True))
         return '<a href="\x01%d\x01"%s>%s</a>' % (len(urls) - 1, extra, label)
 
     text = LINK_RE.sub(link, text)

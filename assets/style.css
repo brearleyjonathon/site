@@ -1559,7 +1559,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 
 /* The desk's additions to the headings say nothing on paper. */
 @media print {
-  .desk-ver, .desk-shut, .desk-bar, .halftone, .robot { display: none !important; }
+  .desk-shut, .desk-bar, .halftone, .robot { display: none !important; }
 }
 
 /* =========================================================================

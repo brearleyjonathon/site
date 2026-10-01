@@ -1541,7 +1541,7 @@
 
   // --- Desk ----------------------------------------------------------------
   // Fun dresses the home page as Halftone OS. Each section becomes a
-  // window, its h2 the title bar with a version and a close box that folds
+  // window, its h2 the title bar with a close box that folds
   // it; the body goes in a panel. On a wide screen the windows are thrown
   // all over the screen, overlapping, and drag by their bars. Everything
   // laid in here is taken out again when Fun goes off.
@@ -1717,11 +1717,11 @@
       var bar = document.createElement("div");
       bar.className = "desk-bar";
       bar.setAttribute("aria-hidden", "true");
-      bar.textContent = "Read Me 1.0";
+      bar.textContent = "Read Me";
       head.insertBefore(bar, head.firstChild);
     }
 
-    // Each section: the heading takes a version and a close box, and the
+    // Each section: the heading takes a close box, and the
     // rest goes into a panel.
     document.querySelectorAll("main > .section").forEach(function (s) {
       var h = s.querySelector(":scope > h2");
@@ -1729,11 +1729,8 @@
       var name = h.textContent;
       h.innerHTML = "";
       var title = document.createElement("span");
+      title.className = "desk-title";
       title.textContent = name;
-      var ver = document.createElement("span");
-      ver.className = "desk-ver";
-      ver.textContent = " 1.0";
-      title.appendChild(ver);
       var shut = document.createElement("button");
       shut.type = "button";
       shut.className = "desk-shut";
@@ -1785,9 +1782,8 @@
     document.querySelectorAll("main > .section").forEach(function (s) {
       var panel = s.querySelector(":scope > .desk-panel");
       var h = s.querySelector(":scope > h2");
-      if (h && h.querySelector(".desk-ver")) {
-        h.textContent = h.firstChild.firstChild.nodeValue;
-      }
+      var title = h && h.querySelector(".desk-title");
+      if (title) h.textContent = title.textContent;
       if (panel) {
         while (panel.firstChild) s.insertBefore(panel.firstChild, panel);
         panel.remove();
