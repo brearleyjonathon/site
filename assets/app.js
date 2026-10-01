@@ -1706,7 +1706,7 @@
     deskBits = { frame: document.createElement("div"), label: document.createElement("div") };
     deskBits.frame.className = "desk-frame";
     deskBits.label.className = "desk-label";
-    deskBits.label.textContent = "JB.OS1";
+    deskBits.label.textContent = "JB.OS";
     Object.keys(deskBits).forEach(function (k) {
       deskBits[k].setAttribute("aria-hidden", "true");
       document.body.appendChild(deskBits[k]);
