@@ -1466,6 +1466,17 @@
   }
 
   function retire(bot) {
+    // The next in line leads from where it stands: the path ahead of it goes.
+    if (marched) {
+      var d = STRIDE;
+      while (line.length > 1) {
+        var a = line[line.length - 1], b = line[line.length - 2];
+        var seg = Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+        if (seg >= d) { line[line.length - 1] = { x: a.x + (b.x - a.x) * d / seg, y: a.y + (b.y - a.y) * d / seg }; break; }
+        d -= seg;
+        line.pop();
+      }
+    }
     bot.el.classList.add("gone");
     setTimeout(function () { bot.el.remove(); }, 600);
   }
@@ -1475,21 +1486,115 @@
     bot.el.classList.toggle("left", Math.cos(bot.a) < 0);
   }
 
+  // In the sans they march in a line, as the animals swim in a row: the
+  // first one out leads, wandering as any robot does, and each of the rest
+  // keeps to its path a step behind the one in front, running to catch up
+  // when it is new. When the leader halts or sits down the line does too.
+  // In the serif each goes its own way.
+  var STRIDE = 30;   // px between robots in the line
+  var line = [];     // where the leader has been, newest last
+  var marched = false;
+
+  function marching() { return root.getAttribute("data-font") === "sans"; }
+
+  // The point `d` px back along the leader's path, or its far end.
+  function along(d) {
+    for (var k = line.length - 1; k > 0; k--) {
+      var a = line[k], b = line[k - 1];
+      var seg = Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+      if (d <= seg) {
+        var t = seg ? d / seg : 0;
+        return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+      }
+      d -= seg;
+    }
+    return line[0] || null;
+  }
+
+  // Keep only as much path as the line needs.
+  function trimLine() {
+    var need = robots.length * STRIDE + 40, run = 0;
+    for (var k = line.length - 1; k > 0; k--) {
+      run += Math.abs(line[k].x - line[k - 1].x) + Math.abs(line[k].y - line[k - 1].y);
+      if (run > need) { line.splice(0, k - 1); return; }
+    }
+  }
+
+  function draws(bot, now) {
+    if (!bot.trail.going) { bot.trail.x = bot.x; bot.trail.y = bot.y - 12; bot.trail.going = true; }
+    var mx = bot.x - bot.trail.x, my = bot.y - 12 - bot.trail.y;
+    hue = (hue + Math.sqrt(mx * mx + my * my) * SPIN * 0.5) % 360;
+    sow(bot.trail, bot.x, bot.y - 12, now, BOLT, BOLT_APART);
+  }
+
+  // Sitting: the pointer coming close sets it off again.
+  function near(bot) {
+    var dx = held.x - bot.x, dy = held.y - (bot.y - 16);
+    return held.x > -9000 && dx * dx + dy * dy < 70 * 70;
+  }
+
+  function rouse(bot) {
+    var dx = held.x - bot.x, dy = held.y - (bot.y - 16);
+    bot.run = true;
+    bot.stamina = 10 + Math.random() * 12;
+    bot.a = Math.atan2(-dy, -dx) + (Math.random() - 0.5);
+    bot.pause = 0;
+    bot.el.classList.remove("resting");
+    bot.trail.going = false;
+  }
+
+  function follow(bot, place, leader, gap, now) {
+    var to = along(place * STRIDE);
+    if (!to) return;
+    var dx = to.x - bot.x, dy = to.y - bot.y, far = Math.sqrt(dx * dx + dy * dy);
+    var moving = far > 0.5;
+    if (moving) {
+      var step = Math.max(170, leader.v * 1.6) * gap;
+      if (far <= step) { bot.x = to.x; bot.y = to.y; }
+      else { bot.x += dx / far * step; bot.y += dy / far * step; }
+      bot.a = Math.atan2(dy, dx);
+      placeRobot(bot);
+      draws(bot, now);
+    } else {
+      bot.trail.going = false;
+    }
+    bot.run = moving;
+    bot.el.classList.toggle("running", moving);
+    bot.el.classList.toggle("resting", !moving && !leader.run);
+    if (!leader.run && near(bot)) rouse(leader);
+  }
+
   function runRobots(gap, now) {
     var w = window.innerWidth, h = window.innerHeight;
+    var march = marching() && robots.length > 1;
+    // Out of the line, each picks up where it stands, with a run left in it.
+    if (marched && !march) {
+      for (var j = 1; j < robots.length; j++) {
+        var b = robots[j];
+        b.run = robots[0].run;
+        b.stamina = 6 + Math.random() * 10;
+        b.pause = 0;
+        b.el.classList.toggle("running", b.run);
+        b.el.classList.toggle("resting", !b.run);
+      }
+    }
+    // Into the line: a straight tail behind the leader, so the rest have
+    // somewhere to fall in even while it sits still.
+    if (march && !marched) {
+      var lead = robots[0], tail = robots.length * STRIDE;
+      line = [
+        { x: Math.max(EDGE, Math.min(w - EDGE, lead.x - Math.cos(lead.a) * tail)),
+          y: Math.max(EDGE + 32, Math.min(h - EDGE, lead.y - Math.sin(lead.a) * tail)) },
+        { x: lead.x, y: lead.y }
+      ];
+    }
+    marched = march;
+
     for (var i = 0; i < robots.length; i++) {
       var bot = robots[i];
+      if (march && i > 0) { follow(bot, i, robots[0], gap, now); continue; }
       if (!bot.run) {
-        // Sitting: the pointer coming close sets it off again.
-        var dx = held.x - bot.x, dy = held.y - (bot.y - 16);
-        if (held.x > -9000 && dx * dx + dy * dy < 70 * 70) {
-          bot.run = true;
-          bot.stamina = 10 + Math.random() * 12;
-          bot.a = Math.atan2(-dy, -dx) + (Math.random() - 0.5);
-          bot.pause = 0;
-          bot.el.classList.remove("resting");
-          bot.trail.going = false;
-        }
+        if (near(bot)) rouse(bot);
         continue;
       }
       bot.stamina -= gap;
@@ -1513,7 +1618,8 @@
         bot.el.classList.remove("running");
         continue;
       }
-      bot.a += (Math.random() - 0.5) * 5 * gap;
+      // A leader turns more gently, so the line behind it can keep up.
+      bot.a += (Math.random() - 0.5) * (march ? 2.5 : 5) * gap;
       bot.x += Math.cos(bot.a) * bot.v * gap;
       bot.y += Math.sin(bot.a) * bot.v * gap;
       // Turned back off the edges.
@@ -1522,10 +1628,8 @@
       if (bot.y < EDGE + 32) { bot.y = EDGE + 32; bot.a = -bot.a; }
       if (bot.y > h - EDGE) { bot.y = h - EDGE; bot.a = -bot.a; }
       placeRobot(bot);
-      if (!bot.trail.going) { bot.trail.x = bot.x; bot.trail.y = bot.y - 12; bot.trail.going = true; }
-      var mx = bot.x - bot.trail.x, my = bot.y - 12 - bot.trail.y;
-      hue = (hue + Math.sqrt(mx * mx + my * my) * SPIN * 0.5) % 360;
-      sow(bot.trail, bot.x, bot.y - 12, now, BOLT, BOLT_APART);
+      draws(bot, now);
+      if (march) { line.push({ x: bot.x, y: bot.y }); trimLine(); }
     }
   }
 
@@ -1537,6 +1641,8 @@
   function clearRobots() {
     robots.forEach(function (bot) { bot.el.remove(); });
     robots = [];
+    line = [];
+    marched = false;
   }
 
   // --- Desk ----------------------------------------------------------------
