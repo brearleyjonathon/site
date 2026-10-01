@@ -756,6 +756,14 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   .controls { flex: 0 0 auto; align-self: stretch; }
   .theme-group { flex-wrap: wrap; }
 
+  /* Here the Fun controls wrap onto a row of their own, so out of Fun they
+     take no room at all, rather than leaving that row empty. They still
+     slide in where @starting-style is known. */
+  :root:not([data-theme="fun"]) .fun-controls { display: none; }
+  @starting-style {
+    :root[data-theme="fun"] .fun-controls { opacity: 0; translate: -.75rem 0; }
+  }
+
   /* Too narrow for two columns. The note runs on after the text instead,
      so the entry reads as one sentence and keeps the full width. */
   li.row { display: block; }
