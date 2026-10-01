@@ -875,9 +875,8 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 }
 
 /* Film grain. A tile of SVG noise, multiplied over everything including the
-   type, nudged to a new offset a few times a second so it crawls. Only
-   where the halftone can't be drawn: the desk is crisp. */
-:root[data-theme="fun"]:not(.halftoned) body::after {
+   type, nudged to a new offset a few times a second so it crawls. */
+:root[data-theme="fun"] body::after {
   content: "";
   position: fixed;
   inset: 0;
@@ -902,7 +901,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
    static, but the filter runs again over all of main whenever anything in
    it repaints, which is every time a word is shoved. Touch screens go
    without it (see the end of this section), and so does the desk. */
-:root[data-theme="fun"]:not(.halftoned) main {
+:root[data-theme="fun"] main {
   filter: url("#fun-warp");
 }
 
@@ -1187,6 +1186,10 @@ g.ink {   /* the animals' groups; img.ink is a drawing on a project page */
   --link-line: var(--ink);
   --focus: var(--frame);
 }
+
+/* The desk is crisp: no grain, no warp. */
+:root[data-theme="fun"][data-desk="on"] body::after { content: none; }
+:root[data-theme="fun"][data-desk="on"] main { filter: none; }
 
 /* Times is small on the body: a step up keeps it as readable as the mono. */
 :root[data-theme="fun"][data-desk="on"][data-font="serif"] { --step: 16px; --leading: 1.25; }
