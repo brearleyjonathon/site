@@ -1443,7 +1443,7 @@
 
   function spawn(event) {
     if (running !== "desk" || motion.matches || event.button > 0) return;
-    if (event.target.closest("a, button, input, label, .controls, .desk-bar, .section > h2")) return;
+    if (event.target.closest("a, button, input, label, [role='button'], .chart, .controls, .desk-bar, .section > h2")) return;
     var picked = window.getSelection && String(window.getSelection());
     if (picked) return;   // selecting text, not letting a robot out
     var el = document.createElement("div");
@@ -1584,7 +1584,8 @@
   // every visit.
   function arrange() {
     var page = document.querySelector(".page");
-    var all = windows(), foot = document.querySelector(".colophon");
+    var all = windows().filter(function (w) { return !w.classList.contains("desk-page"); });
+    var foot = document.querySelector(".colophon");
     if (!desk || !page) return;
     if (!spread.matches) {
       page.classList.remove("desk-spread");
@@ -1680,8 +1681,129 @@
     var shut = event.target.closest(".desk-shut");
     if (!shut) return;
     var w = shut.closest(".section");
+    if (w.classList.contains("desk-page")) { w.remove(); return; }   // a project: closed
     var open = w.classList.toggle("shut");
     shut.setAttribute("aria-expanded", String(!open));
+  }
+
+  // A project opened as a window on the desk. A click on a link to one of
+  // the site's own pages fetches it and lays its article in a new window
+  // on top, its images and links pointed back at its folder, its charts
+  // drawn. A page with a script of its own (Bubble Box's riso print) or
+  // fixed to one theme (embern) can't come across whole, so its window is
+  // brief: the date and credit, its first picture, its description, and
+  // the way to the full page. A click with a modifier opens the page, so
+  // a new tab still works. Wide screens only.
+  var opening = {};
+
+  function pageLink(event) {
+    if (!desk || !spread.matches || event.defaultPrevented || event.button > 0 ||
+        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null;
+    var a = event.target.closest("a[href]");
+    if (!a || a.target || a.hasAttribute("download") || a.closest(".controls")) return null;
+    var url = new URL(a.href, location.href);
+    var home = new URL(root.getAttribute("data-page") === "home" ? "." : "..", location.href);
+    if (url.origin !== home.origin || url.pathname.indexOf(home.pathname) !== 0) return null;
+    return /^[^\/]+\/$/.test(url.pathname.slice(home.pathname.length)) ? url : null;
+  }
+
+  function onDeskLink(event) {
+    var url = pageLink(event);
+    if (!url) return;
+    event.preventDefault();
+    var key = url.pathname;
+    var open = document.querySelector('.desk-page[data-url="' + key + '"]');
+    if (open) { raise(open); return; }
+    if (opening[key]) return;
+    opening[key] = true;
+    fetch(url.href).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.text();
+    }).then(function (text) {
+      var doc = new DOMParser().parseFromString(text, "text/html");
+      var article = doc.querySelector("article.project");
+      if (!article) { location.href = url.href; return; }
+      if (doc.documentElement.getAttribute("data-lock") || article.querySelector("script[src]")) {
+        var about = doc.querySelector('meta[name="description"]');
+        brief(article, about ? about.content : "");
+      }
+      if (desk) openPage(article, url);
+    }).catch(function () {
+      location.href = url.href;
+    }).then(function () {
+      delete opening[key];
+    });
+  }
+
+  // Cut an article down to its heading, date, credit, first picture (not
+  // a chart or an embed) and a line of description.
+  function brief(article, about) {
+    var keep = [].filter.call(article.children, function (el) {
+      return el.matches("h2, .date, .credit");
+    });
+    var picture = article.querySelector(":scope > figure:not(.chart):not(.embed)");
+    if (picture) keep.push(picture);
+    if (about) {
+      var line = document.createElement("p");
+      line.textContent = about;
+      keep.push(line);
+    }
+    article.textContent = "";
+    keep.forEach(function (el) { article.appendChild(el); });
+  }
+
+  function openPage(article, url) {
+    // Every relative address in it is relative to the project's folder.
+    ["src", "href", "poster"].forEach(function (attr) {
+      article.querySelectorAll("[" + attr + "]").forEach(function (el) {
+        var v = el.getAttribute(attr);
+        if (!/^(#|[a-z]+:|\/)/i.test(v)) el.setAttribute(attr, new URL(v, url).href);
+      });
+    });
+    var h = article.querySelector(":scope > h2");
+    var name = h ? h.textContent : url.pathname;
+
+    var w = document.createElement("section");
+    w.className = "section desk-page";
+    w.setAttribute("data-url", url.pathname);
+    var bar = document.createElement("h2");
+    var title = document.createElement("span");
+    title.className = "desk-title";
+    title.textContent = name;
+    var shut = document.createElement("button");
+    shut.type = "button";
+    shut.className = "desk-shut";
+    shut.setAttribute("aria-label", "Close " + name);
+    bar.appendChild(title);
+    bar.appendChild(shut);
+    var panel = document.createElement("div");
+    panel.className = "desk-panel";
+    if (h) h.remove();
+    while (article.firstChild) panel.appendChild(document.adoptNode(article.firstChild));
+    var out = document.createElement("p");
+    out.className = "desk-out";
+    var go = document.createElement("a");
+    go.href = url.href;
+    go.textContent = "Open the full page";
+    out.appendChild(go);
+    panel.appendChild(out);
+    w.appendChild(bar);
+    w.appendChild(panel);
+    document.querySelector("main").appendChild(w);
+
+    // On top, near the middle, each one a little down and along from the last.
+    var W = window.innerWidth, H = window.innerHeight;
+    var n = document.querySelectorAll(".desk-page").length - 1;
+    var width = Math.min(680, Math.round(W * 0.7));
+    var top = 56 + (n % 5) * 28;
+    w.style.width = width + "px";
+    w.style.left = Math.round((W - width) / 2 + (n % 5) * 28 + (Math.random() - 0.5) * 60) + "px";
+    w.style.top = top + "px";
+    w.style.setProperty("--cap", Math.max(200, H - top - 96) + "px");
+    raise(w);
+    if (window.drawCharts) window.drawCharts(panel);
+    fitLabels();   // the charts' switch buttons
+    shut.focus({ preventScroll: true });
   }
 
   // Thrown again only when the window has really changed size, not when a
@@ -1749,6 +1871,7 @@
     document.addEventListener("pointerup", onDeskUp);
     document.addEventListener("pointercancel", onDeskUp);
     document.addEventListener("click", onDeskShut);
+    document.addEventListener("click", onDeskLink);
     window.addEventListener("resize", onDeskResize);
     if (spread.addEventListener) spread.addEventListener("change", arrange);
 
@@ -1769,10 +1892,12 @@
     document.removeEventListener("pointerup", onDeskUp);
     document.removeEventListener("pointercancel", onDeskUp);
     document.removeEventListener("click", onDeskShut);
+    document.removeEventListener("click", onDeskLink);
     window.removeEventListener("resize", onDeskResize);
     if (spread.removeEventListener) spread.removeEventListener("change", arrange);
     dragging = null;
     laidFor = null;
+    [].forEach.call(document.querySelectorAll(".desk-page"), function (w) { w.remove(); });
 
     if (deskBits) Object.keys(deskBits).forEach(function (k) { deskBits[k].remove(); });
     deskBits = null;
@@ -2083,14 +2208,18 @@
 
 // A picture with a second under it (build.py's render_reveal): hovering
 // shows the second, and a tap, a click or Enter holds it there.
+// Listened for on the document, so a project opened as a window on the
+// desk works too.
 (function () {
-  document.querySelectorAll(".reveal .pair").forEach(function (pair) {
-    function flip() {
-      pair.setAttribute("aria-pressed", String(pair.getAttribute("aria-pressed") !== "true"));
-    }
-    pair.addEventListener("click", flip);
-    pair.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); }
-    });
+  function flip(pair) {
+    pair.setAttribute("aria-pressed", String(pair.getAttribute("aria-pressed") !== "true"));
+  }
+  document.addEventListener("click", function (e) {
+    var pair = e.target.closest(".reveal .pair");
+    if (pair) flip(pair);
+  });
+  document.addEventListener("keydown", function (e) {
+    var pair = e.target.closest && e.target.closest(".reveal .pair");
+    if (pair && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); flip(pair); }
   });
 })();

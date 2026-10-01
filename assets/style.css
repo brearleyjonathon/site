@@ -909,7 +909,7 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
 /* The hand the animals, the water and the splash are drawn in: round caps
    and a small wobble from the #ink-sketch filter in the page's own
    <svg class="filters">, so the strokes read as pencil rather than vector. */
-.ink {
+g.ink {   /* the animals' groups; img.ink is a drawing on a project page */
   stroke-linecap: round;
   stroke-linejoin: round;
   filter: url(#ink-sketch);
@@ -1346,6 +1346,24 @@ ul.rows li, ol.rows li { margin-bottom: .7em; }
   max-height: var(--cap, none);
   overflow: auto;
   overscroll-behavior: contain;
+}
+
+/* A project opened as a window (app.js's openPage): its date and credit
+   under the bar, as on its page, and a way out to the page itself. */
+:root[data-theme="fun"][data-desk="on"] .desk-page .desk-panel > .date,
+:root[data-theme="fun"][data-desk="on"] .desk-page .desk-panel > .credit {
+  color: var(--ink-muted);
+  font-size: .875em;
+  margin: 0;
+}
+
+:root[data-theme="fun"][data-desk="on"] .desk-page .desk-panel > .credit { margin-bottom: 1.25em; }
+
+:root[data-theme="fun"][data-desk="on"] .desk-page .desk-out {
+  margin-top: 2em;
+  padding-top: 8px;
+  border-top: 1px solid var(--frame);
+  font-size: .875em;
 }
 
 /* --- the masthead window ------------------------------------------------- */

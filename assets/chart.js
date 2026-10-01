@@ -375,13 +375,21 @@
     }
   }
 
-  document.querySelectorAll("figure.chart").forEach(function (figure) {
-    try {
-      var data = JSON.parse(figure.querySelector("script").textContent);
-      (data.type === "lines" ? lines : bars)(figure, data);
-    } catch (e) {
-      // A broken chart leaves its title, not a broken page.
-      console.error(e);
-    }
-  });
+  // Every chart under `root` not drawn yet. Run once for the page, and
+  // again by app.js for a project opened as a window on the desk.
+  function drawCharts(root) {
+    root.querySelectorAll("figure.chart:not([data-drawn])").forEach(function (figure) {
+      figure.setAttribute("data-drawn", "");
+      try {
+        var data = JSON.parse(figure.querySelector("script").textContent);
+        (data.type === "lines" ? lines : bars)(figure, data);
+      } catch (e) {
+        // A broken chart leaves its title, not a broken page.
+        console.error(e);
+      }
+    });
+  }
+
+  window.drawCharts = drawCharts;
+  drawCharts(document);
 })();
