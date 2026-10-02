@@ -1852,7 +1852,8 @@
     if (!desk || !spread.matches || event.defaultPrevented || event.button > 0 ||
         event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null;
     var a = event.target.closest("a[href]");
-    if (!a || a.target || a.hasAttribute("download") || a.closest(".controls")) return null;
+    // Not the way out of a project's window, which is meant to leave the desk.
+    if (!a || a.target || a.hasAttribute("download") || a.closest(".controls, .desk-out")) return null;
     var url = new URL(a.href, location.href);
     var home = new URL(root.getAttribute("data-page") === "home" ? "." : "..", location.href);
     if (url.origin !== home.origin || url.pathname.indexOf(home.pathname) !== 0) return null;
