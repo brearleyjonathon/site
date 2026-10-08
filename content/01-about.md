@@ -1,5 +1,7 @@
 # About
 
+![A one-room house in axonometric, drawn in line, the air inside coloured by its temperature](house.html)
+
 Jon Brearley is an associate at [Transsolar KlimaEngineering](https://transsolar.com/) in New York, where he works on climate-responsive design for projects from Santa Cruz to Saudi Arabia. He is a [Certified Passive House Designer](https://passivehouse.com/en/training/certificates/designer-consultant/), speaks at conferences on passive design, sits in on architecture studio reviews as a critic, and is on the content committee for [NESEA BuildingEnergy Boston 2027](https://nesea.org/conference/buildingenergy-boston-2027).
 
 Before Transsolar, Jon was a research affiliate at MIT's [Urban Risk Lab](https://urbanrisklab.org/), where he made graphics for Miho Mazereeuw's book [*Design Before Disaster*](https://urbanrisklab.org/dbdbook/) and contributed to MIT's Climate Grand Challenges. Earlier, at [MIT's Leventhal Center for Advanced Urbanism](https://lcau.mit.edu/), he researched heat-resilient housing in Kuwait City, created a heat-resilient housing design manual, and co-authored two peer-reviewed papers on the work. Those papers and his other publications are on [Google Scholar](https://scholar.google.com/citations?user=mlDAczYAAAAJ&hl=en).

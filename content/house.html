@@ -1,0 +1,236 @@
+<!-- The house at the top of About (house.js in assets/ draws it). build.py
+     inlines this into the page as a figure, with the image line's alt text
+     where marked. Everything is in the page's ink but the air. -->
+<style>
+  .house { --dim: .38; }
+  .house-bar,
+  .house-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1rem;
+    align-items: center;
+  }
+  .house-bar { justify-content: space-between; margin-bottom: .4rem; }
+
+  .house-stage {
+    position: relative;
+    aspect-ratio: 600 / 400;
+    touch-action: pan-y;
+    cursor: grab;
+    outline: none;
+  }
+  .house-stage:active { cursor: grabbing; }
+  .house-stage:focus-visible { outline: 1px solid var(--focus); outline-offset: 3px; }
+  .house-air,
+  .house-draw {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .house-draw { overflow: visible; color: var(--text); }
+
+  .house-draw line,
+  .house-draw polyline,
+  .house-draw polygon,
+  .house-draw path,
+  .house-draw ellipse,
+  .house-draw circle,
+  .house-draw rect { fill: none; stroke: currentColor; stroke-width: 1; stroke-linejoin: round; stroke-linecap: round; }
+  .house-draw .ground { stroke-opacity: .35; }
+  .house-draw .north { stroke-width: 1.25; }
+  .house-draw .north-dot { fill: currentColor; stroke: none; }
+  .house-draw .shadow { fill: currentColor; fill-opacity: .09; stroke: none; }
+  .house-draw .sunpath { stroke-dasharray: 0 4; stroke-opacity: .55; }
+  .house-draw .ray { stroke-dasharray: 2 4; stroke-opacity: .4; }
+  .house-draw .sun circle { fill: var(--bg); }
+  .house-draw .pier { stroke-width: 1.5; }
+  .house-draw .floor { stroke-opacity: .6; }
+  .house-draw .far { opacity: .4; }
+  .house-draw .near .face { stroke-width: 1.4; }
+  .house-draw .mat { stroke-width: .5; stroke-opacity: .5; }
+  .house-draw .pane { stroke-width: 1.1; }
+  .house-draw .pane.open { stroke-dasharray: 3 2.5; }
+  .house-draw .mullion { stroke-width: .75; }
+  .house-draw .louvre { stroke-width: .9; }
+  .house-draw .earth { fill: currentColor; fill-opacity: .14; stroke: none; }
+  .house-draw .grade { stroke-width: 1.4; }
+  .house-draw .roof { stroke-width: 1.4; }
+  .house-draw .roof-edge { stroke-width: 1; }
+  .house-draw .roof-under { stroke-opacity: .35; stroke-dasharray: 3 3; }
+  .house-draw .roof-corner { stroke-opacity: .7; }
+  .house-draw .roof-hatch { stroke-width: .5; stroke-opacity: .45; }
+  .house-draw .breeze { stroke-width: 1.25; stroke-dasharray: 5 6; animation: house-breeze 1.1s linear infinite; }
+  .house-draw .breeze-head { stroke-width: 1.25; }
+  .house-draw .unit-top,
+  .house-draw .unit-side { fill: var(--bg); }
+  .house-draw .unit.running .fan { animation: house-fan .6s linear infinite; }
+  .house-draw .unit .cut { stroke-width: 1.5; }
+  .house-draw .handle { cursor: ew-resize; outline: none; }
+  .house-draw .handle rect { fill: var(--bg); stroke-width: 1.4; }
+  .house-draw .handle:focus-visible rect { fill: currentColor; }
+  .house-draw text {
+    fill: currentColor;
+    stroke: none;
+    font-family: var(--family);
+    font-size: 11px;
+  }
+  @keyframes house-breeze { to { stroke-dashoffset: -11; } }
+  @keyframes house-fan { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .house-draw .breeze,
+    .house-draw .unit.running .fan { animation: none; }
+  }
+
+  /* The four numbers: the power-cut pair and the power-on pair. The pair
+     for the state not shown is dimmed. */
+  .house-read {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .5rem 1rem;
+    margin: .6rem 0 .3rem;
+    border-top: 1px solid var(--rule);
+    padding-top: .55rem;
+  }
+  .house-stat { transition: opacity .3s ease; }
+  .house-stat.dim { opacity: var(--dim); }
+  .house-stat b { display: block; font-size: 1.5em; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .house-stat span { font-size: .8125em; color: var(--muted); }
+  .house-now { font-size: .8125em; margin: 0 0 .2rem; min-height: 1.4em; font-variant-numeric: tabular-nums; }
+
+  .house-plot { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; cursor: col-resize; outline: none; }
+  .house-plot:focus-visible { outline: 1px solid var(--focus); outline-offset: 4px; }
+  .house-plot line,
+  .house-plot polyline { fill: none; stroke: var(--text); stroke-linejoin: round; stroke-linecap: round; }
+  .house-plot .grid { stroke-opacity: .12; }
+  .house-plot .day { stroke-opacity: .2; }
+  .house-plot .mark { stroke-opacity: .6; stroke-dasharray: 4 3; }
+  .house-plot .base { stroke-opacity: .6; }
+  .house-plot .series.outdoor { stroke-width: 1.5; stroke-dasharray: 0 3.5; stroke-opacity: .7; }
+  .house-plot .series.live { stroke-width: 2.25; }
+  .house-plot .series.ghost { stroke-width: 1; stroke-opacity: .35; }
+  .house-plot .bars rect { fill: none; stroke: var(--text); stroke-width: .5; stroke-opacity: .35; }
+  .house-plot .bars.live rect { fill: var(--text); stroke: none; }
+  .house-plot .playhead { stroke-width: 1; }
+  .house-plot text { fill: var(--muted); font-family: var(--family); font-size: 10px; }
+
+  .house-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .2rem 1.1rem;
+    margin: .2rem 0 1rem;
+    padding: 0;
+    list-style: none;
+    font-size: .8125em;
+    color: var(--muted);
+  }
+  .house-key li { display: flex; align-items: center; gap: .4rem; margin: 0; }
+
+  /* The design, a row of switches each with its name above. */
+  .house-controls { align-items: flex-start; gap: .8rem 1rem; }
+  .house-control { display: flex; flex-direction: column; gap: .25rem; }
+  .house-control > span { font-size: .75em; color: var(--muted); }
+  .house-actions { display: flex; gap: .5rem; margin-top: 1rem; }
+  .house-note { font-size: .8125em; margin-top: 1rem; }
+
+  @media (max-width: 34rem) {
+    .house-read { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media print {
+    .house-controls,
+    .house-actions,
+    .house-bar .switch { display: none; }
+  }
+</style>
+<div class="house">
+  <div class="house-bar">
+    <div class="switch" role="group" aria-label="Power">
+      <button type="button" data-set="power" data-value="On">Power on</button>
+      <button type="button" data-set="power" data-value="Off">Power cut</button>
+    </div>
+    <div class="switch" role="group" aria-label="City">
+      <button type="button" data-set="city" data-value="DC">DC</button>
+      <button type="button" data-set="city" data-value="Miami">Miami</button>
+      <button type="button" data-set="city" data-value="Austin">Austin</button>
+      <button type="button" data-set="city" data-value="Phoenix">Phoenix</button>
+    </div>
+  </div>
+
+  <div class="house-stage" tabindex="0" aria-label="Drag to turn the house, drag the square on the roof edge to change the overhang">
+    <canvas class="house-air" aria-hidden="true"></canvas>
+    <svg class="house-draw" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{alt}}"></svg>
+  </div>
+
+  <div class="house-read">
+    <div class="house-stat" data-power="Off"><b data-read="hot">0</b><span>hours over 32 °C</span></div>
+    <div class="house-stat" data-power="Off"><b data-read="peak">0</b><span>°C at the hottest</span></div>
+    <div class="house-stat" data-power="On"><b data-read="kwh">0</b><span>kWh to stay at 24.5 °C</span></div>
+    <div class="house-stat" data-power="On"><b data-read="kw">0</b><span>kW at the peak</span></div>
+  </div>
+  <p class="house-now" aria-live="polite"></p>
+  <svg class="house-plot" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="img" aria-label="The week hour by hour: temperatures above, the electricity for cooling below. Arrow keys move through the hours."></svg>
+  <ul class="house-key">
+    <li><span class="key line dotted"></span>Outside</li>
+    <li><span class="key line solid"></span>Inside</li>
+    <li><span class="key line faint"></span>Inside, the other way</li>
+    <li><span class="key solid"></span>Cooling, kW</li>
+  </ul>
+
+  <div class="house-controls">
+    <div class="house-control"><span>Big windows face</span>
+      <div class="switch" role="group" aria-label="Big windows face">
+        <button type="button" data-set="faces" data-value="N">N</button>
+        <button type="button" data-set="faces" data-value="E">E</button>
+        <button type="button" data-set="faces" data-value="S">S</button>
+        <button type="button" data-set="faces" data-value="W">W</button>
+      </div>
+    </div>
+    <div class="house-control"><span>Glass</span>
+      <div class="switch" role="group" aria-label="Glass">
+        <button type="button" data-set="glass" data-value="Small">Small</button>
+        <button type="button" data-set="glass" data-value="Large">Large</button>
+      </div>
+    </div>
+    <div class="house-control"><span>Walls</span>
+      <div class="switch" role="group" aria-label="Walls">
+        <button type="button" data-set="walls" data-value="Frame">Frame</button>
+        <button type="button" data-set="walls" data-value="Block">Block</button>
+        <button type="button" data-set="walls" data-value="Earth">Earth</button>
+      </div>
+    </div>
+    <div class="house-control"><span>Roof</span>
+      <div class="switch" role="group" aria-label="Roof">
+        <button type="button" data-set="roof" data-value="Dark">Dark</button>
+        <button type="button" data-set="roof" data-value="Cool">Cool</button>
+      </div>
+    </div>
+    <div class="house-control"><span>Floor</span>
+      <div class="switch" role="group" aria-label="Floor">
+        <button type="button" data-set="floor" data-value="Raised">Raised</button>
+        <button type="button" data-set="floor" data-value="Grade">On grade</button>
+        <button type="button" data-set="floor" data-value="Sunken">Sunken</button>
+      </div>
+    </div>
+    <div class="house-control"><span>Shutters</span>
+      <div class="switch" role="group" aria-label="Shutters">
+        <button type="button" data-set="shutters" data-value="Open">Open</button>
+        <button type="button" data-set="shutters" data-value="Shut by day">Shut by day</button>
+      </div>
+    </div>
+    <div class="house-control"><span>Windows open</span>
+      <div class="switch" role="group" aria-label="Windows open">
+        <button type="button" data-set="windows" data-value="Shut">Never</button>
+        <button type="button" data-set="windows" data-value="Day">By day</button>
+        <button type="button" data-set="windows" data-value="Night">At night</button>
+      </div>
+    </div>
+  </div>
+  <div class="house-actions">
+    <div class="switch"><button type="button" data-act="adapt" aria-pressed="false">Let it adapt</button></div>
+    <div class="switch"><button type="button" data-act="play" aria-pressed="true">Play the week</button></div>
+    <div class="switch"><button type="button" data-act="reset" aria-pressed="false">Reset</button></div>
+  </div>
+  <p class="house-note">One room through each city's hottest week, the weeks from Jon's thesis. Drag the drawing to turn it and the square on the roof edge to deepen the overhang. A simple two-node model stands in for now, until a model trained on EnergyPlus runs replaces it.</p>
+</div>
+<script src="house.js?v={{v:house.js}}" defer></script>

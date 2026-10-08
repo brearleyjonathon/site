@@ -322,8 +322,12 @@ def render_embed(alt, src, base):
     fragment = (base / src).read_text(encoding="utf-8") if base else ""
 
     def version(match):
-        path = base / match.group(1) if base else None
-        return hashlib.sha1(path.read_bytes()).hexdigest()[:10] if path and path.exists() else ""
+        # Beside the fragment, or among the shared assets (the home page's
+        # house.html is in content/, its script in assets/).
+        paths = [base / match.group(1)] if base else []
+        paths.append(ASSETS / match.group(1))
+        path = next((q for q in paths if q.exists()), None)
+        return hashlib.sha1(path.read_bytes()).hexdigest()[:10] if path else ""
 
     fragment = re.sub(r"\{\{v:([^}]+)\}\}", version, fragment)
     return '<figure class="figure embed">\n%s\n</figure>' % (

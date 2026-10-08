@@ -803,7 +803,12 @@
     page = document.querySelector("main");
     if (!page) return;
 
-    var walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, null);
+    // Not inside a drawing or the house, whose script rewrites its own text.
+    var walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        return node.parentNode.closest("svg, .house") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }
+    });
     var texts = [];
     while (walker.nextNode()) texts.push(walker.currentNode);
 
@@ -1075,7 +1080,7 @@
 
   function dive(event) {
     if (running !== "fun" || motion.matches) return;
-    if (event.target.closest("[data-set-theme], [data-set-font], .fun-controls, a")) return;
+    if (event.target.closest("[data-set-theme], [data-set-font], .fun-controls, a, .house")) return;
 
     // It falls all the way to the water along the bottom of the window,
     // however high the click was, and takes longer from higher up.
@@ -1443,7 +1448,7 @@
 
   function spawn(event) {
     if (running !== "desk" || motion.matches || event.button > 0) return;
-    if (event.target.closest("a, button, input, label, [role='button'], .chart, .controls, .desk-bar, .section > h2")) return;
+    if (event.target.closest("a, button, input, label, [role='button'], .chart, .house, .controls, .desk-bar, .section > h2")) return;
     var picked = window.getSelection && String(window.getSelection());
     if (picked) return;   // selecting text, not letting a robot out
     var el = document.createElement("div");
