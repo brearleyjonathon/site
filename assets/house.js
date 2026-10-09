@@ -416,8 +416,10 @@
   }
 
   // Load the trained model and the runs it was trained on, once.
+  // A page can carry them inline instead (tools/house_standalone.py does).
   var loading = null;
   function loadModel() {
+    if (!loading && window.HOUSE_MODEL) { loading = true; MODEL = window.HOUSE_MODEL; WEATHER = {}; pool = {}; rerun(); return; }
     if (loading || !here || !window.fetch) return;
     loading = fetch(new URL("house-model.json", here)).then(function (r) { return r.ok ? r.json() : null; })
       .then(function (m) {
@@ -1613,6 +1615,7 @@
 
   // The sweep's runs, once, if they are there.
   function loadRuns() {
+    if (!runsLoading && window.HOUSE_RUNS) { runsLoading = true; runs = window.HOUSE_RUNS; pool = {}; grow(); return; }
     if (runsLoading || !here || !window.fetch) return;
     runsLoading = fetch(new URL("house-runs.json", here)).then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
