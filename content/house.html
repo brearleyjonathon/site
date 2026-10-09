@@ -10,6 +10,8 @@
     align-items: center;
   }
   .house-bar { justify-content: space-between; margin-bottom: .4rem; }
+  .house-lens { flex: 1 1 100%; }
+  .house-lens button { flex: 1 1 0; }
 
   .house-stage {
     position: relative;
@@ -91,6 +93,12 @@
     font-family: var(--family);
     font-size: 11px;
   }
+  /* Daylight: the sun's patches and their rays, and the two desks. */
+  .house-draw .sunpatch { stroke-width: .75; stroke-dasharray: 2 2; }
+  .house-draw .lightray { stroke-width: .6; stroke-opacity: .45; stroke-dasharray: 1 3; }
+  .house-draw .desk { fill: var(--bg); stroke-width: 1.2; }
+  .house-draw .desk-leg { stroke-width: .75; }
+  .house-draw .lux { font-size: 10px; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; }
   @keyframes house-breeze { to { stroke-dashoffset: -11; } }
   @keyframes house-fan { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) {
@@ -130,6 +138,17 @@
   .house-plot .bars.live rect { fill: var(--text); stroke: none; }
   .house-plot .playhead { stroke-width: 1; }
   .house-plot text { fill: var(--muted); font-family: var(--family); font-size: 10px; }
+  .house-plot .series.dashed { stroke-width: 1.75; stroke-dasharray: 5 3.5; }
+  .house-plot .flow { stroke: none; fill: var(--text); }
+  .house-plot .flow.fan { fill-opacity: .75; }
+  .house-plot .flow.leaks { fill-opacity: .4; }
+  .house-plot .flow.windows { fill-opacity: .16; }
+  .house-plot .cbar { fill: var(--text); }
+  .house-plot .label { font-size: 11px; fill: var(--text); }
+  .house-key .flow-key { background: var(--text); }
+  .house-key .flow-key.fan { opacity: .75; }
+  .house-key .flow-key.leaks { opacity: .4; }
+  .house-key .flow-key.windows { opacity: .16; }
 
   .house-key {
     display: flex;
@@ -142,6 +161,8 @@
     color: var(--muted);
   }
   .house-key li { display: flex; align-items: center; gap: .4rem; margin: 0; }
+  .house-key .swatch { display: inline-block; width: .9rem; height: .6rem; }
+  .house-key .key.line.dashed { border-top-style: dashed; }
 
   /* The design: three groups of sliders, each with its value beside its
      name, and the two switches. The range inputs are drawn in the page's
@@ -225,6 +246,12 @@
 </style>
 <div class="house">
   <div class="house-bar">
+    <div class="switch house-lens" role="group" aria-label="What to see">
+      <button type="button" data-lens="temp">Temperature</button>
+      <button type="button" data-lens="light">Daylight</button>
+      <button type="button" data-lens="air">Airflow</button>
+      <button type="button" data-lens="carbon">Carbon</button>
+    </div>
     <div class="switch" role="group" aria-label="Power">
       <button type="button" data-set="power" data-value="On">Power on</button>
       <button type="button" data-set="power" data-value="Off">Power cut</button>
@@ -232,7 +259,7 @@
     <div class="switch" role="group" aria-label="City">
       <button type="button" data-set="city" data-value="DC">DC</button>
       <button type="button" data-set="city" data-value="Miami">Miami</button>
-      <button type="button" data-set="city" data-value="Austin">Austin</button>
+      <button type="button" data-set="city" data-value="Fresno">Fresno</button>
       <button type="button" data-set="city" data-value="Phoenix">Phoenix</button>
     </div>
   </div>
@@ -243,19 +270,14 @@
   </div>
 
   <div class="house-read">
-    <div class="house-stat" data-power="Off"><b data-read="hot">0</b><span>hours over 32 °C</span></div>
-    <div class="house-stat" data-power="Off"><b data-read="peak">0</b><span>°C at the hottest</span></div>
-    <div class="house-stat" data-power="On"><b data-read="kwh">0</b><span>kWh to stay at <span data-read="sp">24.5</span> °C</span></div>
-    <div class="house-stat" data-power="On"><b data-read="kw">0</b><span>kW at the peak</span></div>
+    <div class="house-stat"><b></b><span></span></div>
+    <div class="house-stat"><b></b><span></span></div>
+    <div class="house-stat"><b></b><span></span></div>
+    <div class="house-stat"><b></b><span></span></div>
   </div>
   <p class="house-now" aria-live="polite"></p>
-  <svg class="house-plot" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="img" aria-label="The week hour by hour: temperatures above, the electricity for cooling below. Arrow keys move through the hours."></svg>
-  <ul class="house-key">
-    <li><span class="key line dotted"></span>Outside</li>
-    <li><span class="key line solid"></span>Inside</li>
-    <li><span class="key line faint"></span>Inside, the other way</li>
-    <li><span class="key solid"></span>Cooling, kW</li>
-  </ul>
+  <svg class="house-plot" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="img" aria-label="The week hour by hour for what is shown above. Arrow keys move through the hours."></svg>
+  <ul class="house-key"></ul>
 
   <div class="house-controls">
     <fieldset><legend>Form</legend>
