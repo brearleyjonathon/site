@@ -112,28 +112,55 @@
     { a: [-L / 2, D / 2], b: [-L / 2, -D / 2], n: [-1, 0], len: D }
   ];
 
-  // The azimuth each wall faces, once the front faces p.faces.
-  function azimuths(p) {
-    var f = FACES[p.faces];
-    return [f, (f + 90) % 360, (f + 180) % 360, (f + 270) % 360];
-  }
-
   // ------------------------------------------------------------------ model
 
   var SETPOINT = 24.5, COP = 3, DT = 120;
+  var PER_HOUR = 3600 / DT, STEPS = 168 * PER_HOUR;
+
+  // The weather and the sun for a city at every step of the week, worked
+  // out once: the outdoor air, sun on the roof, and for each way a wall
+  // can face (N, E, S, W) the beam on it and the tangent of the sun's
+  // profile angle, which says how far an overhang's shadow falls. The
+  // design only changes what is done with these, so a run is arithmetic.
+  var WEATHER = {};
+  function weather(city) {
+    if (WEATHER[city]) return WEATHER[city];
+    var c = CITIES[city];
+    var w = { to: new Float64Array(STEPS), ghi: new Float64Array(STEPS), dhi: new Float64Array(STEPS),
+              beam: [], prof: [] };
+    for (var j = 0; j < 4; j++) { w.beam.push(new Float64Array(STEPS)); w.prof.push(new Float64Array(STEPS)); }
+    for (var k = 0; k < STEPS; k++) {
+      var t = k / PER_HOUR;
+      w.to[k] = outdoor(c, t);
+      var s = sun(c.lat, c.doy + Math.floor(t / 24), t % 24);
+      if (s.alt <= 0) continue;
+      var sa = Math.sin(s.alt * RAD);
+      var dni = 900 * c.clear * Math.exp(-0.14 / Math.max(0.05, sa));
+      w.dhi[k] = 60 + 140 * (1 - c.clear) + 40 * sa;
+      w.ghi[k] = dni * sa + w.dhi[k];
+      for (j = 0; j < 4; j++) {
+        var dAz = (s.az - j * 90) * RAD;
+        var cosi = Math.cos(s.alt * RAD) * Math.cos(dAz);
+        w.beam[j][k] = cosi > 0 ? dni * cosi : 0;
+        w.prof[j][k] = Math.tan(s.alt * RAD) / Math.max(0.02, Math.cos(dAz));
+      }
+    }
+    return (WEATHER[city] = w);
+  }
 
   // One week, hour by hour, for both power states. Returns outdoor, indoor
   // with the power off and on, the electricity the cooling draws (kW), and
   // whether the windows are open, for each of 168 hours.
   function simulate(p) {
-    var c = CITIES[p.city], wall = WALL[p.walls];
-    var az = azimuths(p), wins = windows(p);
+    var c = CITIES[p.city], wall = WALL[p.walls], w = weather(p.city);
+    var wins = windows(p);
     var area = L * D, vol = area * H;
     var z0 = FLOOR[p.floor];
     var buried = z0 < 0 ? -z0 / H : 0;     // share of the walls below ground
+    var turn = FACES[p.faces] / 90;        // the front wall faces this way, in quarters
 
     var glass = wins.map(function (ws) {
-      return ws.reduce(function (s, w) { return s + (w[1] - w[0]) * (w[3] - w[2]); }, 0);
+      return ws.reduce(function (s, q) { return s + (q[1] - q[0]) * (q[3] - q[2]); }, 0);
     });
     var glassArea = glass.reduce(function (a, b) { return a + b; }, 0);
     var wallArea = 2 * (L + D) * H - glassArea;
@@ -152,66 +179,58 @@
     var Cm = 1000 * ((p.floor === "Raised" ? 20 : 150) * area + wall.c * wallArea + 40 * area);
     var Ham = 3.5 * (area * 2 + wallArea);
     var roofAbs = p.roof === "Cool" ? 0.3 : 0.9;
+    var shade = 1 - 0.35 * Math.min(1, p.overhang / 1.5);
 
     function isOpen(h) {
       if (p.windows === "Day") return h >= 8 && h < 19;
       if (p.windows === "Night") return h < 8 || h >= 19;
       return false;
     }
-    function shut(h) { return p.shutters === "Shut by day" && h >= 8 && h < 18; }
 
-    // Sun through the glass, and on the roof and walls, at time t.
-    function gains(t) {
-      var h = t % 24, s = sun(c.lat, c.doy + Math.floor(t / 24), h);
-      if (s.alt <= 0) return { glass: 0, roof: 0, wall: 0 };
-      var sa = Math.sin(s.alt * RAD);
-      var dni = 900 * c.clear * Math.exp(-0.14 / Math.max(0.05, sa));
-      var dhi = 60 + 140 * (1 - c.clear) + 40 * sa;
-      var ghi = dni * sa + dhi;
-      var q = 0, walls = 0;
+    // Sun through the glass, and on the walls, at every step: the same
+    // for both runs, so worked out once. The overhang shades the top of
+    // each window; the head is 0.5 m under it.
+    var gGlass = new Float64Array(STEPS), gWall = new Float64Array(STEPS);
+    var opens = new Uint8Array(24 * PER_HOUR), byDay = p.shutters === "Shut by day";
+    for (var k = 0; k < STEPS; k++) {
+      var h = (k % (24 * PER_HOUR)) / PER_HOUR;
+      if (k < 24 * PER_HOUR) opens[k] = isOpen(h) ? 1 : 0;
+      if (!w.ghi[k]) continue;
+      var dhi = w.dhi[k], diffuse = 0.5 * dhi * shade + 0.1 * w.ghi[k], q = 0, v = 0;
       for (var i = 0; i < 4; i++) {
-        var dAz = (s.az - az[i]) * RAD;
-        var cosi = Math.cos(s.alt * RAD) * Math.cos(dAz);
-        var beam = cosi > 0 ? dni * cosi : 0;
-        // The overhang shades the top of each window; the head is 0.5 m
-        // under it.
-        var lit = 1;
+        var j = (turn + i) % 4, beam = w.beam[j][k], lit = 1;
         if (beam > 0 && p.overhang > 0) {
-          var prof = Math.tan(s.alt * RAD) / Math.max(0.02, Math.cos(dAz));
           var tall = wins[i][0][3] - wins[i][0][2];
-          lit = 1 - Math.max(0, Math.min(1, (p.overhang * prof - 0.5) / tall));
+          lit = 1 - Math.max(0, Math.min(1, (p.overhang * w.prof[j][k] - 0.5) / tall));
         }
-        var diffuse = 0.5 * dhi * (1 - 0.35 * Math.min(1, p.overhang / 1.5)) + 0.5 * 0.2 * ghi;
         q += glass[i] * 0.5 * (beam * lit + diffuse);
-        walls += (beam + 0.5 * dhi) * (wallArea / 4);
+        v += (beam + 0.5 * dhi) / 4;
       }
-      if (shut(h)) q *= 0.15;
-      return { glass: q, roof: ghi, wall: walls / wallArea };
+      gGlass[k] = byDay && h >= 8 && h < 18 ? q * 0.15 : q;
+      gWall[k] = v;
     }
 
     function run(power, Ta, Tm, from, to, keep) {
       var out = keep ? { tin: [], kw: [] } : null;
-      var steps = 3600 / DT, sumT = 0, sumQ = 0;
-      for (var t = from; t < to; t += DT / 3600) {
-        var h = t % 24;
-        var To = outdoor(c, t);
-        var g = gains(t);
-        var tsaRoof = To + roofAbs * g.roof / 20 - 3;
-        var tsaWall = To + 0.6 * g.wall / 20;
+      var sumT = 0, sumQ = 0;
+      for (var k = from; k < to; k++) {
+        var To = w.to[k], g = gGlass[k];
+        var tsaRoof = To + roofAbs * w.ghi[k] / 20 - 3;
+        var tsaWall = To + 0.6 * gWall[k] / 20;
         var tFloor = p.floor === "Raised" ? To - 1 : c.ground;
         // With the cooling on, the windows open on schedule only when the
         // air outside is cooler than in.
-        var vent = isOpen(h) && (!power || To < Ta) ? UA.open : UA.leak;
+        var vent = opens[k % (24 * PER_HOUR)] && (!power || To < Ta) ? UA.open : UA.leak;
         var people = power ? 500 : 250;
 
         var qa = (UA.glass + vent) * (To - Ta) +
                  UA.wall * (1 - wall.link) * (tsaWall - Ta) +
                  UA.roof * 0.6 * (tsaRoof - Ta) +
-                 Ham * (Tm - Ta) + 0.3 * g.glass + 0.5 * people;
+                 Ham * (Tm - Ta) + 0.3 * g + 0.5 * people;
         var qm = UA.wall * wall.link * (tsaWall - Tm) +
                  UA.roof * 0.4 * (tsaRoof - Tm) +
                  UA.floor * (tFloor - Tm) + UA.below * (c.ground - Tm) +
-                 Ham * (Ta - Tm) + 0.7 * g.glass + 0.5 * people;
+                 Ham * (Ta - Tm) + 0.7 * g + 0.5 * people;
 
         var next = Ta + DT * qa / Ca, cool = 0;
         if (power && next > SETPOINT) {
@@ -222,9 +241,9 @@
         Tm += DT * qm / Cm;
         if (keep) {
           sumT += Ta; sumQ += cool;
-          if (Math.round((t - from) * steps) % steps === steps - 1) {
-            out.tin.push(sumT / steps);
-            out.kw.push(sumQ / steps / COP / 1000);
+          if ((k - from) % PER_HOUR === PER_HOUR - 1) {
+            out.tin.push(sumT / PER_HOUR);
+            out.kw.push(sumQ / PER_HOUR / COP / 1000);
             sumT = 0; sumQ = 0;
           }
         }
@@ -235,9 +254,9 @@
     // Three days of the first day's weather with the power on, to settle
     // the mass; the cut, if there is one, comes at midnight.
     var s = [SETPOINT, SETPOINT];
-    for (var k = 0; k < 3; k++) s = run(true, s[0], s[1], 0, 24, false);
-    var off = run(false, s[0], s[1], 0, 168, true);
-    var on = run(true, s[0], s[1], 0, 168, true);
+    for (var n = 0; n < 3; n++) s = run(true, s[0], s[1], 0, 24 * PER_HOUR, false);
+    var off = run(false, s[0], s[1], 0, STEPS, true);
+    var on = run(true, s[0], s[1], 0, STEPS, true);
 
     var tout = [], open = [];
     for (var hr = 0; hr < 168; hr++) {
@@ -810,6 +829,7 @@
     result = simulate(p);
     stats = score(result);
     render(); chart(); readout(); paintAir(0);
+    everyNow();
   }
 
   function press(group, value) {
@@ -970,6 +990,269 @@
     setTimeout(function () { btn.textContent = was; }, 1400);
   }
 
+  // ------------------------------------------------------------ every house
+
+  // A parallel coordinates plot of a few hundred houses in the chosen city,
+  // simulated here as the plot comes into view: one line each, through its
+  // settings and on to what it scored, tinted by its hottest hour like the
+  // air. Drag along an axis to keep only the lines that cross it there,
+  // click the axis to let go; click a line to build that house, which is
+  // then the heavy line. With the EnergyPlus sweep this would draw the
+  // sweep's own runs.
+  var AXES = [
+    { key: "faces", name: "Faces", opts: ["N", "E", "S", "W"] },
+    { key: "glass", name: "Glass", opts: ["Small", "Large"] },
+    { key: "walls", name: "Walls", opts: ["Frame", "Block", "Earth"] },
+    { key: "roof", name: "Roof", opts: ["Dark", "Cool"] },
+    { key: "floor", name: "Floor", opts: ["Raised", "Grade", "Sunken"], show: ["Raised", "Grade", "Sunk"] },
+    { key: "shutters", name: "Shutters", opts: ["Open", "Shut by day"], show: ["Open", "Shut"] },
+    { key: "windows", name: "Windows", opts: ["Shut", "Day", "Night"], show: ["Never", "Day", "Night"] },
+    { key: "overhang", name: "Overhang", range: [0, 1.5], fmt: function (v) { return v.toFixed(1) + " m"; } },
+    { key: "hot", name: "Hours", unit: "over 32 °C", out: "Off", range: [0, 168], fmt: function (v) { return String(Math.round(v)); } },
+    { key: "peak", name: "Peak", unit: "°C", out: "Off", range: [26, 54], fmt: function (v) { return String(Math.round(v)); } },
+    { key: "kwh", name: "Energy", unit: "kWh", out: "On", range: [0, 220], fmt: function (v) { return String(Math.round(v)); } },
+    { key: "peakKw", name: "Peak", unit: "kW", out: "On", range: [0, 2], fmt: function (v) { return v.toFixed(1); } }
+  ];
+  var SAMPLES = 600;
+  var VW = 600, VH = 250, ML = 16, MR = 30, MT = 38, MB = 14;
+  var GAP = (VW - ML - MR) / (AXES.length - 1);
+
+  var every = fig.querySelector(".house-every");
+  var eCanvas = every.querySelector("canvas"), eCtx = eCanvas.getContext("2d");
+  var eSvg = every.querySelector("svg"), eRead = every.querySelector(".house-every-read");
+  eSvg.setAttribute("viewBox", "0 0 " + VW + " " + VH);
+  var pool = {}, brushes = {}, hover = null, eVisible = false, growing = false;
+
+  function axisX(i) { return ML + i * GAP; }
+  // Where a value sits up its axis, 0 at the foot and 1 at the head.
+  function frac(a, v) {
+    if (a.opts) return 0.1 + 0.8 * a.opts.indexOf(v) / (a.opts.length - 1);
+    return Math.max(0, Math.min(1, (v - a.range[0]) / (a.range[1] - a.range[0])));
+  }
+  function axisY(f) { return MT + (VH - MT - MB) * (1 - f); }
+  function valueOf(a, q, s) { return a.out ? s[a.key] : q[a.key]; }
+
+  function ys(q, s, rand) {
+    return AXES.map(function (a) {
+      var y = axisY(frac(a, valueOf(a, q, s)));
+      return a.opts && rand ? y + (rand() - 0.5) * 7 : y;   // a little spread, so a choice reads as a bundle
+    });
+  }
+
+  // The same houses every time for a city.
+  function seeded(text) {
+    var h = 2166136261;
+    for (var i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+    return function () {
+      h += 0x6D2B79F5;
+      var t = h;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  // Simulate the city's houses a few at a time, drawing as they come.
+  function grow() {
+    var city = p.city, set = pool[city];
+    if (!set) set = pool[city] = { list: [], rand: seeded(city) };
+    if (set.list.length >= SAMPLES || growing) return;
+    growing = true;
+    (function chunk() {
+      if (city !== p.city) { growing = false; grow(); return; }
+      var t0 = performance.now();
+      while (set.list.length < SAMPLES && performance.now() - t0 < 14) {
+        var q = { city: city, power: "Off" };
+        AXES.forEach(function (a) {
+          if (a.opts) q[a.key] = a.opts[Math.floor(set.rand() * a.opts.length)];
+          else if (!a.out) q[a.key] = Math.round(set.rand() * 15) / 10;
+        });
+        var sc = score(simulate(q));
+        set.list.push({ q: q, s: sc, y: ys(q, sc, set.rand) });
+      }
+      lines(); overlay();
+      if (set.list.length < SAMPLES) setTimeout(chunk, 0);
+      else growing = false;
+    })();
+  }
+
+  function kept(item) {
+    for (var key in brushes) {
+      var i = AXES.findIndex(function (a) { return a.key === key; });
+      var b = brushes[key], y = item.y[i];
+      if (y < b[0] - 3.5 || y > b[1] + 3.5) return false;
+    }
+    return true;
+  }
+
+  function lines() {
+    var r = eCanvas.getBoundingClientRect();
+    if (!r.width) return;
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    var w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+    if (eCanvas.width !== w || eCanvas.height !== h) { eCanvas.width = w; eCanvas.height = h; }
+    var k = w / VW;
+    eCtx.setTransform(1, 0, 0, 1, 0, 0);
+    eCtx.clearRect(0, 0, w, h);
+    eCtx.setTransform(k, 0, 0, k, 0, 0);
+    eCtx.lineJoin = "round";
+    var set = pool[p.city];
+    if (!set) return;
+    var ink = getComputedStyle(eSvg).color, on = [], off = [];
+    set.list.forEach(function (item) { (kept(item) ? on : off).push(item); });
+    function trace(item) {
+      eCtx.beginPath();
+      item.y.forEach(function (y, i) { if (i) eCtx.lineTo(axisX(i), y); else eCtx.moveTo(axisX(i), y); });
+      eCtx.stroke();
+    }
+    eCtx.lineWidth = 0.75;
+    eCtx.strokeStyle = ink;
+    eCtx.globalAlpha = 0.05;
+    off.forEach(trace);
+    // Tinted from the coolest of the city's houses (blue) to the hottest
+    // (red), so the colour ranks them; the air's own scale would leave
+    // Phoenix all red.
+    var lo = Infinity, hi = -Infinity;
+    set.list.forEach(function (item) { lo = Math.min(lo, item.s.peak); hi = Math.max(hi, item.s.peak); });
+    eCtx.globalAlpha = Object.keys(brushes).length ? 0.55 : 0.32;
+    on.sort(function (a, b) { return a.s.peak - b.s.peak; });   // the hottest on top
+    on.forEach(function (item) {
+      var c = tint(21 + 15 * (item.s.peak - lo) / Math.max(1, hi - lo));
+      eCtx.strokeStyle = "rgb(" + (c[0] | 0) + "," + (c[1] | 0) + "," + (c[2] | 0) + ")";
+      trace(item);
+    });
+    eCtx.globalAlpha = 1;
+    every.dataset.kept = on.length;
+  }
+
+  function overlay() {
+    var out = [];
+    AXES.forEach(function (a, i) {
+      var x = axisX(i), dim = a.out && a.out !== p.power ? " dim" : "";
+      out.push('<g class="axis' + (a.out ? " out" : "") + dim + '">');
+      out.push(line([x, MT], [x, VH - MB], "spine"));
+      out.push('<text class="name" x="' + x + '" y="12" text-anchor="middle">' + a.name + "</text>");
+      if (a.unit) out.push('<text class="unit" x="' + x + '" y="24" text-anchor="middle">' + a.unit + "</text>");
+      var ticks = a.opts ? a.opts.map(function (o, j) { return [frac(a, o), (a.show || a.opts)[j]]; })
+                         : [[0, a.fmt(a.range[0])], [1, a.fmt(a.range[1])]];
+      ticks.forEach(function (t) {
+        var y = axisY(t[0]);
+        out.push(line([x - 2.5, y], [x + 2.5, y], "tick"));
+        out.push('<text class="opt" x="' + (x + 4) + '" y="' + (y - 3) + '">' + t[1] + "</text>");
+      });
+      var b = brushes[a.key];
+      if (b) out.push('<rect class="brush" x="' + (x - 6) + '" y="' + b[0].toFixed(1) + '" width="12" height="' + Math.max(1, b[1] - b[0]).toFixed(1) + '"/>');
+      out.push("</g>");
+    });
+    if (hover) {
+      out.push(polyline(hover.y.map(function (y, i) { return [axisX(i), y]; }), "hover"));
+    }
+    var now = ys(p, stats);
+    out.push(polyline(now.map(function (y, i) { return [axisX(i), y]; }), "current"));
+    now.forEach(function (y, i) { out.push('<circle class="node" cx="' + axisX(i).toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.5"/>'); });
+    eSvg.innerHTML = out.join("");
+    eReadout();
+  }
+
+  function describe(q, s) {
+    var a = { Small: "small glass", Large: "large glass" };
+    var bits = [
+      "big windows " + q.faces, a[q.glass], q.walls.toLowerCase() + " walls", q.roof.toLowerCase() + " roof",
+      { Raised: "raised floor", Grade: "on grade", Sunken: "sunken floor" }[q.floor],
+      q.shutters === "Open" ? "no shutters" : "shutters by day",
+      { Shut: "windows shut", Day: "windows open by day", Night: "windows open at night" }[q.windows],
+      q.overhang.toFixed(1) + " m overhang"
+    ];
+    return bits.join(", ") + ". " + Math.round(s.hot) + " hours over 32 °C, " + s.peak.toFixed(1) +
+           " °C at the hottest; " + Math.round(s.kwh) + " kWh, " + s.peakKw.toFixed(1) + " kW with the power on.";
+  }
+
+  function eReadout() {
+    var set = pool[p.city], n = set ? set.list.length : 0;
+    if (hover) { eRead.textContent = describe(hover.q, hover.s) + " Click to build it."; return; }
+    if (n < SAMPLES) { eRead.textContent = "Simulating " + p.city + ", " + n + " of " + SAMPLES + " houses…"; return; }
+    var k = every.dataset.kept || n;
+    eRead.textContent = (Object.keys(brushes).length ? k + " of " + n + " houses kept. Click an axis to let it go."
+      : n + " houses in " + p.city + ", from the coolest at its hottest hour (blue) to the hottest (red). Drag along an axis to keep some, click a line to build that house.");
+  }
+
+  // The view box point under the pointer.
+  function eAt(e) {
+    var r = eSvg.getBoundingClientRect();
+    return [(e.clientX - r.left) * VW / r.width, (e.clientY - r.top) * VH / r.height];
+  }
+  function nearest(pt) {
+    var set = pool[p.city];
+    if (!set || pt[0] < ML || pt[0] > VW - MR) return null;
+    var i = Math.min(AXES.length - 2, Math.floor((pt[0] - ML) / GAP)), f = (pt[0] - axisX(i)) / GAP;
+    var best = null, gap = 6;
+    set.list.forEach(function (item) {
+      if (!kept(item)) return;
+      var d = Math.abs(item.y[i] + (item.y[i + 1] - item.y[i]) * f - pt[1]);
+      if (d < gap) { gap = d; best = item; }
+    });
+    return best;
+  }
+
+  var eDrag = null;
+  eSvg.addEventListener("pointerdown", function (e) {
+    if (e.button > 0) return;
+    var pt = eAt(e), i = Math.round((pt[0] - ML) / GAP);
+    var onAxis = i >= 0 && i < AXES.length && Math.abs(pt[0] - axisX(i)) < 10 && pt[1] > MT - 8;
+    eDrag = { pt: pt, axis: onAxis ? i : -1, moved: false };
+    eSvg.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  eSvg.addEventListener("pointermove", function (e) {
+    var pt = eAt(e);
+    if (eDrag) {
+      if (Math.abs(pt[1] - eDrag.pt[1]) > 3 || Math.abs(pt[0] - eDrag.pt[0]) > 3) eDrag.moved = true;
+      if (eDrag.axis >= 0 && eDrag.moved) {
+        var lo = Math.max(MT, Math.min(pt[1], eDrag.pt[1])), hi = Math.min(VH - MB, Math.max(pt[1], eDrag.pt[1]));
+        brushes[AXES[eDrag.axis].key] = [lo, hi];
+        hover = null;
+        lines(); overlay();
+      }
+      return;
+    }
+    var near = e.pointerType === "touch" ? null : nearest(pt);
+    if (near !== hover) { hover = near; overlay(); }
+  });
+  eSvg.addEventListener("pointerup", function (e) {
+    var d = eDrag;
+    eDrag = null;
+    if (!d || d.moved) return;
+    if (d.axis >= 0) { delete brushes[AXES[d.axis].key]; lines(); overlay(); return; }
+    var pick = nearest(eAt(e));
+    if (pick) build(pick.q);
+  });
+  eSvg.addEventListener("pointercancel", function () { eDrag = null; });
+  eSvg.addEventListener("pointerleave", function () { if (hover && !eDrag) { hover = null; overlay(); } });
+
+  function build(q) {
+    cancelAdapt();
+    hover = null;
+    AXES.forEach(function (a) {
+      if (a.out) return;
+      if (a.opts) press(a.key, q[a.key]);
+      else p[a.key] = q[a.key];
+    });
+    rerun();
+  }
+
+  // Called by rerun: the heavy line follows the house, and a new city
+  // gets its own houses.
+  function everyNow() {
+    if (!every) return;
+    if (eVisible) grow();
+    lines(); overlay();
+  }
+
+  new IntersectionObserver(function (es) {
+    eVisible = es[0].isIntersecting;
+    if (eVisible) grow();
+  }).observe(every);
+
   // ------------------------------------------------------------------- loop
 
   var visible = false, last = 0, raf = 0, drawnAt = -1;
@@ -996,11 +1279,11 @@
   }).observe(stage);
 
   // Repaint when the theme or face changes, since the ink follows them.
-  new MutationObserver(function () { render(); chart(); }).observe(document.documentElement,
+  new MutationObserver(function () { render(); chart(); lines(); overlay(); }).observe(document.documentElement,
     { attributes: true, attributeFilter: ["data-theme", "data-font"] });
-  window.addEventListener("resize", size);
+  window.addEventListener("resize", function () { size(); lines(); });
 
   fig.querySelector('[data-act="play"]').setAttribute("aria-pressed", String(playing));
   syncButtons();
-  render(); chart(); readout(); size();
+  render(); chart(); readout(); size(); overlay();
 })();
