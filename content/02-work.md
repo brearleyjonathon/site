@@ -37,8 +37,8 @@
 
 ## Lectures and Design Reviews
 
-- **Water in Architecture**, guest lecture for Design Studio 5, [The New School](https://www.newschool.edu/) :: 2025
-- **Visiting studio critic**, Design Studio 5, [The New School](https://www.newschool.edu/) :: 2025
+- **Water in Architecture**, guest lecture for Design Studio 5, [Parsons School of Design](https://www.newschool.edu/parsons/) :: 2025
+- **Visiting studio critic**, Design Studios 3 and 5, [Parsons School of Design](https://www.newschool.edu/parsons/) :: 2025
 - **Engineered Natural Ventilation for Climate Resilient Buildings and Occupants**, [NESEA BuildingEnergy NYC](https://nesea.org/users/jonathon-brearley) :: 2025
 - **Natural Ventilation and Passive House in Adaptive Reuse**, Regenerative Metropolis, [Passive House New York](https://www.instagram.com/p/DPAUmwMjXAJ/) :: 2025
 - **Natural Ventilation at the Irving Institute for Energy and Society**, [NESEA Pro Tour](https://nesea.org/be-event/pro-tour-transforming-expanding-existing-building-dartmouth-college-campus) :: 2025
