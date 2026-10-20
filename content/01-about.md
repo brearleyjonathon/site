@@ -1,6 +1,6 @@
 # About
 
-Jon Brearley is interested in how buildings shape the environment and how the environment shapes them. His work often explores the parts of a building that go beyond the material, even beyond experience, like heat, air, light, acoustics, and carbon. He makes them visible through simulation, data visualization, and spatial approaches to resilience.
+Jon Brearley is interested in how buildings shape the environment and how the environment shapes them. His work often explores the parts of a building that go beyond the material, even beyond experience, like heat, air, light, acoustics, and carbon. He gives them form through simulation, data representation, and spatial approaches to resilience.
 
 He is an associate at [Transsolar KlimaEngineering](https://transsolar.com/) in New York, where he works on climate-responsive design for projects from Santa Cruz to Saudi Arabia. He is a [Certified Passive House Designer](https://passivehouse.com/en/training/certificates/designer-consultant/), speaks at conferences on passive design, sits in on architecture studio reviews as a critic, and is on the content committee for [NESEA BuildingEnergy Boston 2027](https://nesea.org/conference/buildingenergy-boston-2027).
 
