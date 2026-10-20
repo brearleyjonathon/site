@@ -11,7 +11,7 @@ description: Jon Brearley is a Brooklyn-based associate at Transsolar exploring 
 url:
 
 # What a first-time visitor sees: auto | light | dark | fun
-default_theme: dark
+default_theme: light
 
 # What a first-time visitor sees: sans (Helvetica) | serif (Baskerville)
 default_font: serif
