@@ -147,12 +147,15 @@ body.ready * {
 
 /* --- the two switches ---------------------------------------------------- */
 
+/* A row of their own under the name and tagline, however short the
+   tagline: beside the name there is not room for both switches and the
+   Fun controls, which keep their width while hidden. */
 .controls {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;   /* theme left, typeface right */
   gap: .5rem;
-  flex: 1 1 17rem;
+  flex: 0 0 100%;
 }
 
 .switch {
