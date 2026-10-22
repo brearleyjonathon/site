@@ -1971,9 +1971,9 @@
   }
 
   // Desk's faces, wanted as soon as Fun is on: the Desk button is set in
-  // the mono.
+  // the mono. Not while the Desk is off (its button is out of the page).
   function faces() {
-    if (document.getElementById("desk-faces")) return;
+    if (document.getElementById("desk-faces") || !document.querySelector("[data-set-desk]")) return;
     var link = document.createElement("link");
     link.rel = "stylesheet";
     link.id = "desk-faces";

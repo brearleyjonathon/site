@@ -49,15 +49,17 @@
   try { var fun = localStorage.getItem("fun-mode"); root.setAttribute("data-fun", fun === "source" || fun === "cursor" ? "source" : "field"); } catch (e) {}
   // Inside Fun, Desk dresses the page as Halftone OS. Its faces are
   // fetched only in Fun (the Desk button is set in its mono).
-  try { var desk = localStorage.getItem("desk"); } catch (e) {}
-  if (desk === "on") root.setAttribute("data-desk", "on");
-  if (root.getAttribute("data-theme") === "fun") {
-    var faces = document.createElement("link");
-    faces.rel = "stylesheet";
-    faces.id = "desk-faces";
-    faces.href = document.querySelector('meta[name="desk-faces"]').content;
-    document.head.appendChild(faces);
-  }
+  // The Desk is off for now (October 2026): its button is commented out
+  // below and a saved "desk" is not honoured. Put both back to turn it on.
+  // try { var desk = localStorage.getItem("desk"); } catch (e) {}
+  // if (desk === "on") root.setAttribute("data-desk", "on");
+  // if (root.getAttribute("data-theme") === "fun") {
+  //   var faces = document.createElement("link");
+  //   faces.rel = "stylesheet";
+  //   faces.id = "desk-faces";
+  //   faces.href = document.querySelector('meta[name="desk-faces"]').content;
+  //   document.head.appendChild(faces);
+  // }
 })();
 </script>
 </head>
@@ -103,9 +105,11 @@
             <button type="button" data-set-fun="source">Source</button>
             <button type="button" data-set-fun="field">Field</button>
           </div>
+          <!-- The Desk is off for now; see the head script.
           <div class="switch desk-switch">
             <button type="button" data-set-desk aria-pressed="false">Desk</button>
           </div>
+          -->
         </div>
       </div>
       <div class="switch" role="group" aria-label="Typeface">
