@@ -1,7 +1,5 @@
 # After Hours
 
 - [**nosh**](https://nosh.health) - Obsidian-based macro tracker and diet companion.
-- [**HONK**](https://honkmyhorn.netlify.app/) - When you honk your horn in NYC, how many people do you annoy?
-- [**compare.stream**](https://compare.stream) - Compare two files and see what changed, line by line.
 - [**embern**](embern/) - A collection of design objects that give light and warmth.
 - [**terrains**](https://terrains.page/) - A mapping and representation project of New Mexico.
