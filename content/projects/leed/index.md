@@ -9,3 +9,5 @@ Every prerequisite and credit in the July 2026 edition of LEED v5 BD+C gets a pa
 I made it while studying for the LEED AP BD+C exam. It is a study aid, so check anything that matters against the rating system itself.
 
 [**Download the PDF**](leed-v5-bdc-but-better-looking.pdf), 64 pages, 0.8 MB
+
+The PDF comes from a study app I built in Claude, with lessons, flashcards, a route map of every credit and full practice exams. [**Open the study app**](https://claude.ai/artifact/EBuMrrKukKcDePVsVRcp81). It runs inside Claude, and signing in keeps your progress across devices.
