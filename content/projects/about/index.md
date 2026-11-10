@@ -1,0 +1,15 @@
+---
+title: About
+---
+
+Jon Brearley studies the exchange between buildings and their surroundings. His work focuses on the parts of a building that go beyond the material, tracing how heat, air, light, sound, energy, and carbon pass through and around it. Through simulation, data visualization, and drawing, he finds forms that respond to changing conditions.
+
+He is an associate at [Transsolar KlimaEngineering](https://transsolar.com/) in New York, where he works on climate-responsive design for projects from Santa Cruz to Saudi Arabia. He is a [Certified Passive House Designer](https://passivehouse.com/en/training/certificates/designer-consultant/), speaks at conferences on passive design, sits in on architecture studio reviews as a critic, and is on the content committee for [NESEA BuildingEnergy Boston 2027](https://nesea.org/conference/buildingenergy-boston-2027).
+
+In 2022 he was a research affiliate at MIT's [Urban Risk Lab](https://urbanrisklab.org/), where he made graphics for Miho Mazereeuw's book [*Design Before Disaster*](https://urbanrisklab.org/dbdbook/) and contributed to MIT's Climate Grand Challenges. Earlier, at [MIT's Leventhal Center for Advanced Urbanism](https://lcau.mit.edu/), he researched heat-resilient housing in Kuwait City, created a heat-resilient housing design manual, and co-authored two peer-reviewed papers on the work. Those papers and his other publications are on [Google Scholar](https://scholar.google.com/citations?user=mlDAczYAAAAJ&hl=en).
+
+Jon studied architecture at Portland State University before graduate school at MIT, where he earned a [Master of Architecture](https://catalog.mit.edu/degree-charts/master-architecture) and a [Master of Science in Building Technology](https://architecture.mit.edu/node/159). His joint thesis, [*Taming Torridity*](../taming-torridity/), looked at heat resilience in the American single-family home. He graduated with the Tucker-Voss Award and the Faculty Leadership Award.
+
+At MIT he co-chaired the [IDSA Boston](https://www.idsa.org/communities/chapter/boston/) chapter with [Sheng-Hung Lee](https://www.shenghunglee.com/) and the [Architecture Student Council](https://architecture.mit.edu/student-groups) with [Ginevra D'Agostino](https://liminalfutures.com/ginevra-dagostino-eng). He was also part of the design and planning collective [Group Project](http://groupproject.us/index.html#info).
+
+Born in New Mexico, Jon is always hunting for a proper [breakfast burrito](../breakfast-burrito.jpg). He lives in Brooklyn, and when he isn't working his shift at the [PSFC](https://www.foodcoop.com/) he is probably baking [biscochitos](../biscochito.png) or starting a side project he may or may not finish.

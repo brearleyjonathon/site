@@ -4,7 +4,6 @@
 
 name: Jonathon Brearley
 title: Jonathon Brearley
-tagline: Buildings beyond the material
 description: Jon Brearley is a Brooklyn-based associate at Transsolar exploring how buildings and the environment shape each other.
 
 # Your live URL, once you have one.
