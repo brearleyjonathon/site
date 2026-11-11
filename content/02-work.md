@@ -44,7 +44,7 @@
 - **Engineered Natural Ventilation for Climate Resilient Buildings and Occupants**, [NESEA BuildingEnergy NYC](https://nesea.org/users/jonathon-brearley) :: 2025
 - **Natural Ventilation and Passive House in Adaptive Reuse**, Regenerative Metropolis, [Passive House New York](https://www.instagram.com/p/DPAUmwMjXAJ/) :: 2025
 - **Natural Ventilation at the Irving Institute for Energy and Society**, [NESEA Pro Tour](https://nesea.org/be-event/pro-tour-transforming-expanding-existing-building-dartmouth-college-campus) :: 2025
-- **Design reviewer and guest lecturer**, Solar Decathlon studio, [The Cooper Union](https://cooper.edu/academics/vertically-integrated-projects/teams/solar-decathlon) :: 2024 -- present
+- **Design reviewer and guest lecturer**, Building Design Collaborative, [The Cooper Union](https://cooper.edu/academics/vertically-integrated-projects/teams/solar-decathlon) :: 2024 -- present
 
 ## Exhibitions
 
