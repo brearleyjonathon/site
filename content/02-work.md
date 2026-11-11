@@ -40,7 +40,8 @@
 - **Ecological Environments**, guest lecture, [Kent State University](https://www.kent.edu/caed) :: 2026
 - **Climate Responsive Design**, guest lecture, [Cal Poly, San Luis Obispo](https://architecture.calpoly.edu/) :: 2026
 - **Guest critic**, [Spitzer School of Architecture, City College of New York](https://ssa.ccny.cuny.edu/) :: 2026
-- **Water in Architecture**, guest lecture for Design Studio 5, and guest critic for Design Studios 3 and 5, [The New School](https://www.newschool.edu/) :: 2025 -- present
+- **Water in Architecture**, guest lecture for Design Studio 5, [The New School](https://www.newschool.edu/) :: 2025 -- present
+- **Guest critic**, Design Studios 3 and 5, [The New School](https://www.newschool.edu/) :: 2025 -- present
 - **Engineered Natural Ventilation for Climate Resilient Buildings and Occupants**, [NESEA BuildingEnergy NYC](https://nesea.org/users/jonathon-brearley) :: 2025
 - **Natural Ventilation and Passive House in Adaptive Reuse**, Regenerative Metropolis, [Passive House New York](https://www.instagram.com/p/DPAUmwMjXAJ/) :: 2025
 - **Natural Ventilation at the Irving Institute for Energy and Society**, [NESEA Pro Tour](https://nesea.org/be-event/pro-tour-transforming-expanding-existing-building-dartmouth-college-campus) :: 2025
